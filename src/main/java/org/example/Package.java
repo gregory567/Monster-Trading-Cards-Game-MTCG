@@ -1,5 +1,18 @@
 package org.example;
 
 public class Package {
-    Card[] packageCards;
+    private Card[] packageCards;
+
+    public void openPackage() {
+
+    }
+
+    public void displayPackageInfo() {
+
+    }
+
+    public void applyDiscount() {
+
+    }
 }
+

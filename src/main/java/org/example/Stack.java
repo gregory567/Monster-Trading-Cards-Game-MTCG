@@ -1,12 +1,22 @@
 package org.example;
 
 public class Stack {
-    User owner;
-    Card[] stackCards;
-    public void removeCard(){
+    private Card[] stackCards;
+
+    public void removeCard() {
 
     }
-    public void attainCard(){
+
+    public void attainCard() {
+
+    }
+
+    public void shuffleCards() {
+
+    }
+
+    public void organizeByElement() {
 
     }
 }
+

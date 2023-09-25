@@ -1,6 +1,18 @@
 package org.example;
 
 public class Deck {
-    User owner;
-    Card[] bestCards;
+    private Card[] bestCards;
+
+    public void addCardToDeck(Card card) {
+
+    }
+
+    public void removeCardFromDeck(Card card) {
+
+    }
+
+    public void reorganizeDeck() {
+
+    }
 }
+

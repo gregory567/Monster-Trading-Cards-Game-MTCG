@@ -13,23 +13,39 @@ public class User {
     private String username;
     private String password;
     private double coins;
-    public void tradeCard(){
+    private Stack stack;
+    private Deck deck;
+    private Profile profile;
 
-    }
-    public void buyPackage(Package newPackage){
-
-    }
-    public void selectBestCards(){
-
-    }
-    public void register(){
-
-    }
-    public void login(){
-
-    }
-    public void viewScores(){
+    public void tradeCard() {
 
     }
 
+    public void buyPackage(Package newPackage) {
+
+    }
+
+    public void selectBestCards() {
+
+    }
+
+    public void register() {
+
+    }
+
+    public void login() {
+
+    }
+
+    public void viewScores() {
+
+    }
+
+    public void viewProfile() {
+
+    }
+
+    public void editProfile() {
+
+    }
 }
