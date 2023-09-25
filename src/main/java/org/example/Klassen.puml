@@ -5,45 +5,80 @@ class User {
     - username : String
     - password : String
     - coins: double
+    - stack: Stack
+    - deck: Deck
+    - profile: Profile
     + void tradeCard()
     + void buyPackage(Package newPackage)
     + void selectBestCards()
     + void register()
     + void login()
     + void viewScores()
+    + void viewProfile()
+    + void editProfile()
+}
+
+class Profile {
+    - name : String
+    - email : String
+    - otherDetails : String
+    + void displayProfile()
+    + void updateStatus()
 }
 
 class Card {
     # name : String
     # damage : Integer {static}
     # elementType: String
+    + void getAttributes()
+    + void displayCardInfo()
+    + void upgradeCard()
 }
 
 class SpellCard {
+    + void castSpell()
 }
 
 class MonsterCard {
+    + void evolve()
+    + void reproduce()
 }
 
 class Stack{
-    - owner: User
     - stackCards: Card[]
     + void removeCard()
     + void attainCard()
+    + void shuffleCards()
+    + void organizeByElement()
 }
 
 class Package {
     - packageCards: Card[5]
+    + void openPackage()
+    + void displayPackageInfo()
+    + void applyDiscount()
 }
 
 class Deck {
-    - owner: User
     - bestCards: Card[4]
+    + void addCardToDeck(Card card)
+    + void removeCardFromDeck(Card card)
+    + void reorganizeDeck()
 }
 
 class Battle {
     - user1: User
     - user2: User
+    + void startBattle()
+    + void endBattle()
+    + void displayBattleResults()
+}
+
+class GameController {
+    - users: User[]
+    - battles: Battle[]
+    + void createUser(String username, String password)
+    + void initiateBattle(User user1, User user2)
 }
 
 Card <|-- MonsterCard
@@ -53,10 +88,16 @@ User "1" --o "1..*" Card : owns
 User "1" --o "1" Deck : has
 User "1" --o "1..*" Package : canAcquire
 User "1" --o "1" Stack : has
+User "1" --o "1" Profile : has
 
 Stack "1" -- "1..*" Card : contains
+Package "1" -- "1..*" Card : contains
+Deck "1" -- "1..*" Card : contains
 
 Battle "1" -- "*" Deck : isFoughtWith
 Battle "1" -- "2" User : isFoughtBy
+
+GameController "1" -- "1..*" User : manages
+GameController "1" -- "1..*" Battle : manages
 
 @enduml
