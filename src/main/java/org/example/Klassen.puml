@@ -1,0 +1,62 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+class User {
+    - username : String
+    - password : String
+    - coins: double
+    + void tradeCard()
+    + void buyPackage(Package newPackage)
+    + void selectBestCards()
+    + void register()
+    + void login()
+    + void viewScores()
+}
+
+class Card {
+    # name : String
+    # damage : Integer {static}
+    # elementType: String
+}
+
+class SpellCard {
+}
+
+class MonsterCard {
+}
+
+class Stack{
+    - owner: User
+    - stackCards: Card[]
+    + void removeCard()
+    + void attainCard()
+}
+
+class Package {
+    - packageCards: Card[5]
+}
+
+class Deck {
+    - owner: User
+    - bestCards: Card[4]
+}
+
+class Battle {
+    - user1: User
+    - user2: User
+}
+
+Card <|-- MonsterCard
+Card <|-- SpellCard
+
+User "1" --o "1..*" Card : owns
+User "1" --o "1" Deck : has
+User "1" --o "1..*" Package : canAcquire
+User "1" --o "1" Stack : has
+
+Stack "1" -- "1..*" Card : contains
+
+Battle "1" -- "*" Deck : isFoughtWith
+Battle "1" -- "2" User : isFoughtBy
+
+@enduml
