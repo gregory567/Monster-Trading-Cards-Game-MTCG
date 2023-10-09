@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.app.models.User;
+
 public class GameController {
     private User[] users;
     private Battle[] battles;

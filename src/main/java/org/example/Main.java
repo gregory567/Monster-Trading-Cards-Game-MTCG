@@ -1,5 +1,11 @@
 package org.example;
 
+import org.example.app.App;
+import org.example.server.Server;
+
+import java.io.IOException;
+
+
 // Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
@@ -14,6 +20,14 @@ public class Main {
             // Press Shift+F9 to start debugging your code. We have set one breakpoint
             // for you, but you can always add more by pressing Ctrl+F8.
             System.out.println("i = " + i);
+        }
+
+        App app = new App();
+        Server server = new Server(app, 7777);
+        try {
+            server.start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
