@@ -1,7 +1,7 @@
 package org.example.app.controllers;
 
 import org.example.app.services.UserService;
-import org.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
 import lombok.AccessLevel;
@@ -20,11 +20,11 @@ public class UserController extends Controller {
         setUserService(userService);
     }
 
-    // DELETE /users/:id -> löscht einen user mit der id
+    // DELETE /users/:username -> löscht einen user mit dem usernamen
     // POST /users -> erstellt einen neuen user
-    // PUT/PATCH /users/:id -> updated einen user mit der id
-    // GET /users/:id -> gibt einen user zurück mit der id
-    // GET /cities -> gibt alle users zurück
+    // PUT/PATCH /users/:username -> updated einen user mit dem usernamen
+    // GET /users/:username -> gibt einen user zurück mit dem usernamen
+    // GET /users -> gibt alle users zurück
     public Response getUsers() {
         try {
             List userData = getUserService().getUsers();
@@ -45,8 +45,8 @@ public class UserController extends Controller {
         }
     }
 
-    // GET /users/:id
-    public void getUserById(int id) {
+    // GET /users/:username
+    public void getUserByUsername(String username) {
 
     }
 
@@ -55,8 +55,8 @@ public class UserController extends Controller {
 
     }
 
-    // DELETE /users/:id
-    public void deleteUser(int id) {
+    // DELETE /users/:username
+    public void deleteUser(String username) {
 
     }
 }

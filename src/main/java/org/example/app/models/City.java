@@ -1,6 +1,6 @@
 package org.example.app.models;
 
-import org.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
