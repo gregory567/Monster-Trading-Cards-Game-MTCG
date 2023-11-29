@@ -154,6 +154,7 @@ GameController "1" o-- "1..*" User : manages
 GameController "1" o-- "1..*" Battle : manages
 
 Card -- ElementType : has
+Card -- Requirement : has
 Requirement -- CardType : has
 Card -- Specialty : has
 
