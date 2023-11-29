@@ -1,11 +1,18 @@
 package org.example;
 import org.example.Specialty;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public abstract class Card {
     protected String name;
     protected Integer damage;
     protected String elementType;
     protected Specialty[] specialties;
+
+    public Card(String name, Integer damage, String elementType, Specialty[] specialties) {
+    }
 
     public abstract void getAttributes();
 
