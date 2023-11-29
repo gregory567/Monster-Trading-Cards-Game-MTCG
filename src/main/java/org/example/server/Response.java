@@ -1,7 +1,7 @@
 package org.example.server;
 
-import example.com.http.ContentType;
-import example.com.http.HttpStatus;
+import org.example.http.ContentType;
+import org.example.http.HttpStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
