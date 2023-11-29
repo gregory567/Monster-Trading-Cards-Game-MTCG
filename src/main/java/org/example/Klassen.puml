@@ -8,6 +8,7 @@ class User {
     - stack: Stack
     - deck: Deck
     - profile: Profile
+    - battleResults: BattleResult[]
     + void tradeCard(Card card, Requirement requirement)
     + void buyPackage(Package newPackage)
     + void selectBestCards()
@@ -30,9 +31,11 @@ class Card {
     # name : String
     # damage : Integer
     # elementType: String
+    - specialties: Specialty[]
     + void getAttributes()
     + void displayCardInfo()
     + void upgradeCard()
+    + void applySpecialty(Specialty specialty)
 }
 
 class SpellCard {
@@ -85,9 +88,15 @@ enum CardType {
     SPELL
 }
 
+class Specialty {
+    - name: String
+    + applySpecialtyEffect(Card card)
+}
+
 class Battle {
     - user1: User
     - user2: User
+    - battleLog: BattleLog
     + void startBattle()
     + void endBattle()
     + void displayBattleResults()
@@ -100,6 +109,25 @@ class GameController {
     + void initiateBattle(User user1, User user2)
 }
 
+class BattleLog {
+    - rounds: Round[]
+    - outcome: String
+    + void logRound(Round round)
+    + void setOutcome(String outcome)
+}
+
+class Round {
+    - cardsPlayed: Card[2]
+    - winner: User
+    - draw: boolean
+    + void determineRoundOutcome()
+}
+
+class BattleResult {
+    - opponent: User
+    - outcome: String
+}
+
 Card <|-- MonsterCard
 Card <|-- SpellCard
 
@@ -108,6 +136,7 @@ User "1" -- "1" Deck : has
 User "1" -- "1..*" Package : canAcquire
 User "1" -- "1" Stack : has
 User "1" -- "1" Profile : has
+User "1" -- "0..*" BattleResult : has
 
 Stack "1" o-- "1..*" Card : contains
 Package "1" o-- "1..*" Card : contains
@@ -115,8 +144,17 @@ Deck "1" o-- "1..*" Card : contains
 
 Battle "1" o-- "*" Deck : isFoughtWith
 Battle "1" o-- "2" User : isFoughtBy
+Battle "1" -- "1" BattleLog : has
 
 GameController "1" o-- "1..*" User : manages
 GameController "1" o-- "1..*" Battle : manages
+
+Card -- ElementType : has
+Requirement -- CardType : has
+Card -- Specialty : has
+
+Round -- Card : includes
+Round -- User : includes
+Round -- Battle : belongs to
 
 @enduml
