@@ -33,6 +33,7 @@ class Card {
     # elementType: String
     - specialties: Specialty[]
     + void getAttributes()
+    + void getDamage()
     + void displayCardInfo()
     + void upgradeCard()
     + void applySpecialty(Specialty specialty)
@@ -55,11 +56,13 @@ class Stack{
     + void attainCard(Card card)
     + void shuffleCards()
     + void organizeByElement()
+    + void getStackCards()
 }
 
 class Package {
     - packageCards: Card[5]
     + void openPackage()
+    + void getPackageCards()
     + void displayPackageInfo()
     + void applyDiscount()
 }
@@ -69,6 +72,7 @@ class Deck {
     + void addCardToDeck(Card card)
     + void removeCardFromDeck(Card card)
     + void reorganizeDeck()
+    + void getBestCards()
 }
 
 enum ElementType {
