@@ -57,17 +57,26 @@ public class SpellCard extends Card {
         System.out.println("SpellCard is casting a spell!");
     }
 
+    @Override
     public void calculateEffectiveDamage(ElementType opponentElementType) {
         // calculate effective damage based on opponent's ElementType
         int baseDamage = getDamage();
 
-        // example: if opponentElementType is FIRE, double the damage
-        if (opponentElementType == ElementType.FIRE) {
-            int effectiveDamage = baseDamage * 2;
-            System.out.println("Effective Damage against FIRE: " + effectiveDamage);
-        } else {
-            System.out.println("Effective Damage against " + opponentElementType + ": " + baseDamage);
+        // Example: Customized elemental effectiveness logic
+        int effectiveDamage;
+        switch (opponentElementType) {
+            case WATER:
+                effectiveDamage = baseDamage / 2;  // half damage against water
+                break;
+            case FIRE:
+                effectiveDamage = baseDamage * 2;  // double damage against fire
+                break;
+            case NORMAL:
+            default:
+                effectiveDamage = baseDamage;  // no effect against normal
+                break;
         }
+        System.out.println("Effective Damage against " + opponentElementType + ": " + effectiveDamage);
     }
 
     private String specialtiesToString() {

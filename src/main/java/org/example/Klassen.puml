@@ -46,7 +46,6 @@ class SpellCard {
 
 class MonsterCard {
     + void evolve()
-    + void reproduce()
     + void calculateEffectiveDamage(ElementType opponentElementType)
 }
 
