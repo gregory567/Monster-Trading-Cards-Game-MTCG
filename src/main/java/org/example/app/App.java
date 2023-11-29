@@ -9,7 +9,6 @@ import org.example.server.Response;
 import org.example.server.ServerApp;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
-import org.example.http.Method;
 
 public class App implements ServerApp {
     @Setter(AccessLevel.PRIVATE)

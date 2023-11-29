@@ -8,7 +8,7 @@ class User {
     - stack: Stack
     - deck: Deck
     - profile: Profile
-    + void tradeCard()
+    + void tradeCard(Card card, Requirement requirement)
     + void buyPackage(Package newPackage)
     + void selectBestCards()
     + void register()
@@ -28,7 +28,7 @@ class Profile {
 
 class Card {
     # name : String
-    # damage : Integer {static}
+    # damage : Integer
     # elementType: String
     + void getAttributes()
     + void displayCardInfo()
@@ -37,17 +37,19 @@ class Card {
 
 class SpellCard {
     + void castSpell()
+    + void calculateEffectiveDamage(ElementType opponentElementType)
 }
 
 class MonsterCard {
     + void evolve()
     + void reproduce()
+    + void calculateEffectiveDamage(ElementType opponentElementType)
 }
 
 class Stack{
     - stackCards: Card[]
-    + void removeCard()
-    + void attainCard()
+    + void removeCard(Card card)
+    + void attainCard(Card card)
     + void shuffleCards()
     + void organizeByElement()
 }
@@ -64,6 +66,23 @@ class Deck {
     + void addCardToDeck(Card card)
     + void removeCardFromDeck(Card card)
     + void reorganizeDeck()
+}
+
+enum ElementType {
+    WATER
+    FIRE
+    NORMAL
+}
+
+class Requirement {
+    - cardType: CardType
+    - minDamage: Integer
+    + satisfiesRequirement(Card card)
+}
+
+enum CardType {
+    MONSTER
+    SPELL
 }
 
 class Battle {
