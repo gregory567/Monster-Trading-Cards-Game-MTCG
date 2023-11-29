@@ -39,8 +39,20 @@ public class User {
     private Profile profile;
     private BattleResult[] battleResults;
 
-    // Jackson needs the default constructor
+    // default constructor for Jackson
     public User() {}
+
+    // constructor with custom values for initialization
+    public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile) {
+        this.username = username;
+        this.password = password;
+        this.coins = coins;
+        this.stack = stack;
+        this.deck = deck;
+        this.profile = profile;
+        // assume battleResults should be initialized with an empty array
+        this.battleResults = new BattleResult[0];
+    }
 
     public void tradeCard(Card card, Requirement requirement) {
         if (requirement.satisfiesRequirement(card)) {
