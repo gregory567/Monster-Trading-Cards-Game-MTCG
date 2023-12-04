@@ -14,34 +14,41 @@ public class MonsterCard extends Card {
     }
 
     public void evolve() {
-        // Implement the logic for evolving a monster card
+
         System.out.println("MonsterCard evolved!");
     }
 
     @Override
     public void getAttributes() {
-        // Implement the logic to get attributes of a monster card
-        System.out.println("Attributes of MonsterCard - Name: " + getName() + ", Damage: " + getDamage() +
-                ", ElementType: " + getElementType());
+        System.out.println("MonsterCard Attributes:");
+        System.out.println("Name: " + getName());
+        System.out.println("Damage: " + getDamage());
+        System.out.println("ElementType: " + getElementType());
     }
 
     @Override
     public void displayCardInfo() {
         // Implement the logic to display information about a monster card
-        System.out.println("MonsterCard Information - Name: " + getName() + ", Damage: " + getDamage() +
-                ", ElementType: " + getElementType());
+        System.out.println("MonsterCard Information:");
+        System.out.println("Name: " + getName());
+        System.out.println("Damage: " + getDamage());
+        System.out.println("ElementType: " + getElementType());
+        System.out.println("Specialties: " + specialtiesToString());
     }
 
     @Override
     public void upgradeCard() {
-        // Implement the logic to upgrade a monster card
-        System.out.println("MonsterCard upgraded!");
+
+        // increase the damage of the monster when upgraded
+        int upgradedDamage = getDamage() + 10;
+        setDamage(upgradedDamage);
+
+        System.out.println("MonsterCard upgraded! New damage: " + upgradedDamage);
     }
 
     @Override
     public void applySpecialty(Specialty specialty) {
         // Implement the logic to apply a specialty to a monster card
-        // (You can use the existing logic from the Card class or customize it for monsters)
         if (getSpecialties() != null) {
             for (Specialty cardSpecialty : getSpecialties()) {
                 if (cardSpecialty.getName().equals(specialty.getName())) {
@@ -52,16 +59,37 @@ public class MonsterCard extends Card {
         }
     }
 
+    @Override
     public void calculateEffectiveDamage(ElementType opponentElementType) {
-        // Implement the logic to calculate effective damage based on opponent's ElementType
+        // calculate effective damage based on opponent's ElementType
         int baseDamage = getDamage();
 
-        // Example: If opponentElementType is WATER, double the damage
-        if (opponentElementType == ElementType.WATER) {
-            int effectiveDamage = baseDamage * 2;
-            System.out.println("Effective Damage against WATER: " + effectiveDamage);
-        } else {
-            System.out.println("Effective Damage against " + opponentElementType + ": " + baseDamage);
+        // Example: Customized elemental effectiveness logic
+        int effectiveDamage;
+        switch (opponentElementType) {
+            case WATER:
+                effectiveDamage = baseDamage / 2;  // half damage against water
+                break;
+            case FIRE:
+                effectiveDamage = baseDamage * 2;  // double damage against fire
+                break;
+            case NORMAL:
+            default:
+                effectiveDamage = baseDamage;  // no effect against normal
+                break;
         }
+        System.out.println("Effective Damage against " + opponentElementType + ": " + effectiveDamage);
+    }
+
+    private String specialtiesToString() {
+        if (getSpecialties() != null) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (Specialty specialty : getSpecialties()) {
+                stringBuilder.append(specialty.getName()).append(", ");
+            }
+            // remove the trailing comma and space
+            return stringBuilder.substring(0, stringBuilder.length() - 2);
+        }
+        return "None";
     }
 }

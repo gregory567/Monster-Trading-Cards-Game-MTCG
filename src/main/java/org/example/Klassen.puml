@@ -36,17 +36,16 @@ class Card {
     + void getDamage()
     + void displayCardInfo()
     + void upgradeCard()
+    + void calculateEffectiveDamage(ElementType opponentElementType)
     + void applySpecialty(Specialty specialty)
 }
 
 class SpellCard {
     + void castSpell()
-    + void calculateEffectiveDamage(ElementType opponentElementType)
 }
 
 class MonsterCard {
     + void evolve()
-    + void calculateEffectiveDamage(ElementType opponentElementType)
 }
 
 class Stack{

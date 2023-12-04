@@ -1,5 +1,6 @@
 package org.example;
 import org.example.Specialty;
+import org.example.ElementType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,6 +21,8 @@ public abstract class Card {
 
     public abstract void upgradeCard();
 
+    public abstract void calculateEffectiveDamage(ElementType opponentElementType);
+
     public void applySpecialty(Specialty specialty) {
         if(specialties != null) {
             for (Specialty cardSpecialty : specialties) {
@@ -30,4 +33,5 @@ public abstract class Card {
             }
         }
     }
+
 }

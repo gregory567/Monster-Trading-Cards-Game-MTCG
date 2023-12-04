@@ -32,7 +32,6 @@ public class SpellCard extends Card {
 
     @Override
     public void upgradeCard() {
-        // implement upgradeCard for SpellCard
 
         // increase the damage of the spell when upgraded
         int upgradedDamage = getDamage() + 10;
@@ -54,6 +53,7 @@ public class SpellCard extends Card {
     }
 
     public void castSpell() {
+
         System.out.println("SpellCard is casting a spell!");
     }
 
