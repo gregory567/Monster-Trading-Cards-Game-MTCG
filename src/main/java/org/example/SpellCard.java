@@ -2,6 +2,7 @@ package org.example;
 
 import org.example.Specialty;
 import org.example.ElementType;
+import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ public class SpellCard extends Card {
 
     public SpellCard(String name, Integer damage, String elementType, Specialty[] specialties) {
         super(name, damage, elementType, specialties);
+        this.cardType = CardType.SPELL;
     }
 
     @Override
@@ -58,25 +60,56 @@ public class SpellCard extends Card {
     }
 
     @Override
-    public void calculateEffectiveDamage(ElementType opponentElementType) {
-        // calculate effective damage based on opponent's ElementType
+    public void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType) {
         int baseDamage = getDamage();
 
-        // Example: Customized elemental effectiveness logic
-        int effectiveDamage;
-        switch (opponentElementType) {
+        // we don't need to check if it's a monster or a spell we are fighting against
+
+        // Element-based spell attack
+        switch (getElementType()) {
             case WATER:
-                effectiveDamage = baseDamage / 2;  // half damage against water
+                switch (opponentElementType) {
+                    case FIRE:
+                        System.out.println("Effective Damage against FIRE: " + (baseDamage * 2));
+                        break;
+                    case NORMAL:
+                        System.out.println("Effective Damage against NORMAL: " + (baseDamage / 2));
+                        break;
+                    default:
+                        System.out.println("No Effect against WATER: " + baseDamage);
+                        break;
+                }
                 break;
             case FIRE:
-                effectiveDamage = baseDamage * 2;  // double damage against fire
+                switch (opponentElementType) {
+                    case NORMAL:
+                        System.out.println("Effective Damage against NORMAL: " + (baseDamage * 2));
+                        break;
+                    case WATER:
+                        System.out.println("Effective Damage against WATER: " + (baseDamage / 2));
+                        break;
+                    default:
+                        System.out.println("No Effect against FIRE: " + baseDamage);
+                        break;
+                }
                 break;
             case NORMAL:
+                switch (opponentElementType) {
+                    case WATER:
+                        System.out.println("Effective Damage against WATER: " + (baseDamage * 2));
+                        break;
+                    case FIRE:
+                        System.out.println("Effective Damage against FIRE: " + (baseDamage / 2));
+                        break;
+                    default:
+                        System.out.println("No Effect against NORMAL: " + baseDamage);
+                        break;
+                }
+                break;
             default:
-                effectiveDamage = baseDamage;  // no effect against normal
+                System.out.println("Invalid Element Type: " + getElementType());
                 break;
         }
-        System.out.println("Effective Damage against " + opponentElementType + ": " + effectiveDamage);
     }
 
     private String specialtiesToString() {

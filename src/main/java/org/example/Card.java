@@ -1,6 +1,8 @@
 package org.example;
+
 import org.example.Specialty;
 import org.example.ElementType;
+import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +13,7 @@ public abstract class Card {
     protected Integer damage;
     protected String elementType;
     protected Specialty[] specialties;
+    protected CardType cardType;
 
     public Card(String name, Integer damage, String elementType, Specialty[] specialties) {
     }
@@ -21,7 +24,7 @@ public abstract class Card {
 
     public abstract void upgradeCard();
 
-    public abstract void calculateEffectiveDamage(ElementType opponentElementType);
+    public abstract void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType);
 
     public void applySpecialty(Specialty specialty) {
         if(specialties != null) {
