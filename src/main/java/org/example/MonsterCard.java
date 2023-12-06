@@ -5,6 +5,8 @@ import org.example.ElementType;
 import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
+import org.example.app.models.User;
+
 import static org.example.ElementType.FIRE;
 import static org.example.ElementType.WATER;
 import static org.example.ElementType.NORMAL;
@@ -13,8 +15,8 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class MonsterCard extends Card {
 
-    public MonsterCard(String name, Integer damage, String elementType, Specialty[] specialties) {
-        super(name, damage, elementType, specialties);
+    public MonsterCard(String name, Integer damage, String elementType, Specialty[] specialties, User owner) {
+        super(name, damage, elementType, specialties, owner);
         this.cardType = CardType.MONSTER;
     }
 
