@@ -1,5 +1,6 @@
 package org.example;
 
+import org.example.app.models.User;
 import org.example.Specialty;
 import org.example.ElementType;
 import org.example.CardType;
@@ -14,8 +15,14 @@ public abstract class Card {
     protected String elementType;
     protected Specialty[] specialties;
     protected CardType cardType;
+    protected User owner;
 
-    public Card(String name, Integer damage, String elementType, Specialty[] specialties) {
+    public Card(String name, Integer damage, String elementType, Specialty[] specialties, User owner) {
+        this.name = name;
+        this.damage = damage;
+        this.elementType = elementType;
+        this.specialties = specialties;
+        this.owner = owner;
     }
 
     public abstract void getAttributes();
