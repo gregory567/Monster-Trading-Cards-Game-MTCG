@@ -5,6 +5,9 @@ import org.example.ElementType;
 import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
+import static org.example.ElementType.FIRE;
+import static org.example.ElementType.WATER;
+import static org.example.ElementType.NORMAL;
 
 @Getter
 @Setter
