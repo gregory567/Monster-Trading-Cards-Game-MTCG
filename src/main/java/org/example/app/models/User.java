@@ -12,6 +12,7 @@ import org.example.MonsterCard;
 import org.example.SpellCard;
 import org.example.BattleResult;
 import org.example.Requirement;
+import org.example.TradeDeal;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -40,11 +41,14 @@ public class User {
     @JsonAlias({"profile"})
     private Profile profile;
     private BattleResult[] battleResults;
+    private List<TradeDeal> initiatedTrades;
+    private List<TradeDeal> acceptedTrades;
 
-    // default constructor for Jackson
-    public User() {}
+    public User() {
+        this.initiatedTrades = new ArrayList<>();
+        this.acceptedTrades = new ArrayList<>();
+    }
 
-    // constructor with custom values for initialization
     public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile) {
         this.username = username;
         this.password = password;
@@ -52,8 +56,20 @@ public class User {
         this.stack = stack;
         this.deck = deck;
         this.profile = profile;
-        // assume battleResults should be initialized with an empty array
         this.battleResults = new BattleResult[0];
+        this.initiatedTrades = new ArrayList<>();
+        this.acceptedTrades = new ArrayList<>();
+    }
+
+    public void requestTrade(Card card, Requirement requirement) {
+        TradeDeal tradeDeal = new TradeDeal(this, card, requirement);
+        Store.addTradeDeal(tradeDeal);
+        initiatedTrades.add(tradeDeal);
+    }
+
+    public void acceptTrade(TradeDeal tradeDeal) {
+        tradeDeal.acceptDeal(this);
+        acceptedTrades.add(tradeDeal);
     }
 
     public void tradeCard(Card card, Requirement requirement) {
