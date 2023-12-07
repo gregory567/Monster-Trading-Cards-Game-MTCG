@@ -31,21 +31,34 @@ class Card {
     # name : String
     # damage : Integer
     # elementType: String
-    - specialties: Specialty[]
+    # specialties: String[]
+    # cardType: CardType
+    # owner: User
     + void getAttributes()
-    + void getDamage()
     + void displayCardInfo()
     + void upgradeCard()
-    + void calculateEffectiveDamage(ElementType opponentElementType)
-    + void applySpecialty(Specialty specialty)
+    + void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType)
+    + void applySpecialty(String specialty, Card opponentCard)
+    + boolean containsSpecialty(String[] specialties, String specialtyToFind)
+    + String specialtiesToString()
 }
 
 class SpellCard {
     + void castSpell()
+    + void getAttributes()
+    + void displayCardInfo()
+    + void upgradeCard()
+    + void applySpecialty(String specialty, Card opponentCard)
+    + void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType)
 }
 
 class MonsterCard {
     + void evolve()
+    + void getAttributes()
+    + void displayCardInfo()
+    + void upgradeCard()
+    + void applySpecialty(String specialty, Card opponentCard)
+    + void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType)
 }
 
 class Stack{
@@ -88,11 +101,6 @@ class Requirement {
 enum CardType {
     MONSTER
     SPELL
-}
-
-class Specialty {
-    - name: String
-    + applySpecialtyEffect(Card card)
 }
 
 class Battle {
@@ -154,7 +162,6 @@ GameController "1" o-- "1..*" Battle : manages
 Card -- ElementType : has
 Card -- Requirement : has
 Requirement -- CardType : has
-Card -- Specialty : has
 
 Round -- Card : includes
 Round -- User : includes

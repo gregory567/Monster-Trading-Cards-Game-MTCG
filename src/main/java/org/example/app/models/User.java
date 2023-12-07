@@ -10,6 +10,8 @@ import org.example.Stack;
 import org.example.Card;
 import org.example.MonsterCard;
 import org.example.SpellCard;
+import org.example.BattleResult;
+import org.example.Requirement;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -23,8 +25,8 @@ import java.util.stream.Collectors;
 @Setter
 public class User {
     // wenn man für einzelne variablen getter und setter haben möchte 
-    //@Getter
-    //@Setter
+    /*@Getter
+    @Setter*/
     @JsonAlias({"username"})
     private String username;
     @JsonAlias({"password"})
@@ -120,25 +122,48 @@ public class User {
     public void register() {
         // Implement logic for user registration
         // You might want to perform validation, store user data, etc.
+        System.out.println("User registered successfully!");
     }
 
     public void login() {
         // Implement logic for user login
         // You might want to authenticate the user, generate a session token, etc.
+        System.out.println("User logged in successfully!");
     }
 
     public void viewScores() {
         // Implement logic to view user scores
         // You might want to retrieve and display the user's scores or rankings
+        System.out.println("Viewing user scores...");
     }
 
     public void viewProfile() {
         // Implement logic to view user profile
         // You can display user profile information such as name, email, etc.
+        if (profile != null) {
+            System.out.println("User Profile:");
+            System.out.println("Name: " + profile.getName());
+            System.out.println("Email: " + profile.getEmail());
+            System.out.println("Other Details: " + profile.getOtherDetails());
+        } else {
+            System.out.println("User profile not available.");
+        }
     }
 
     public void editProfile() {
         // Implement logic to edit user profile
         // You might want to allow the user to update their profile information
+        if (profile != null) {
+            System.out.println("Editing user profile...");
+            // You can add logic here to update profile details
+            // For example, take input from the user to update name, email, etc.
+            // profile.setName(updatedName);
+            // profile.setEmail(updatedEmail);
+            // profile.setOtherDetails(updatedOtherDetails);
+            System.out.println("User profile updated successfully!");
+        } else {
+            System.out.println("User profile not available for editing.");
+        }
     }
+
 }

@@ -1,9 +1,6 @@
 package org.example;
 
 import org.example.app.models.User;
-import org.example.Specialty;
-import org.example.ElementType;
-import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,11 +10,11 @@ public abstract class Card {
     protected String name;
     protected Integer damage;
     protected String elementType;
-    protected Specialty[] specialties;
+    protected String[] specialties;
     protected CardType cardType;
     protected User owner;
 
-    public Card(String name, Integer damage, String elementType, Specialty[] specialties, User owner) {
+    public Card(String name, Integer damage, String elementType, String[] specialties, User owner) {
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;
@@ -33,15 +30,87 @@ public abstract class Card {
 
     public abstract void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType);
 
-    public void applySpecialty(Specialty specialty) {
-        if(specialties != null) {
-            for (Specialty cardSpecialty : specialties) {
-                if (cardSpecialty.getName().equals(specialty.getName())) {
-                    cardSpecialty.applySpecialtyEffect(this);
-                    // You might want to break here if each card can have only one instance of a specialty
+    public void applySpecialty(String specialty, Card opponentCard) {
+        if (getSpecialties() != null) {
+            for (String cardSpecialty : getSpecialties()) {
+                if (cardSpecialty.equals(specialty)) {
+                    // Implement the logic to apply the specialty effect to the card
+                    // This method should modify the card based on the specialty
+
+                    // Check the specialty type and apply the corresponding effect
+                    switch (specialty) {
+                        case "Goblin":
+                            // Goblins are too afraid of Dragons to attack
+                            if (opponentCard.getSpecialties() != null &&
+                                    containsSpecialty(opponentCard.getSpecialties(), "Dragon")) {
+                                // set damage to 0
+                                this.setDamage(0);
+                            }
+                            break;
+
+                        case "Wizzard":
+                            // Wizzard can control Orks so they are not able to damage them
+                            if (opponentCard.getSpecialties() != null &&
+                                    containsSpecialty(opponentCard.getSpecialties(), "Ork")) {
+                                // set damage to 0
+                                opponentCard.setDamage(0);
+                            }
+                            break;
+
+                        case "Knight":
+                            // The armor of Knights is so heavy that WaterSpells make them drown instantly
+                            if (opponentCard.getElementType() == ElementType.WATER) {
+                                // set damage to 0
+                                opponentCard.setDamage(100);
+                            }
+                            break;
+
+                        case "Kraken":
+                            // The Kraken is immune against spells
+                            if (opponentCard instanceof SpellCard) {
+                                // set damage to 0
+                                opponentCard.setDamage(0);
+                            }
+                            break;
+
+                        case "FireElves":
+                            // The FireElves know Dragons since they were little and can evade their attacks
+                            if (opponentCard.getSpecialties() != null &&
+                                    containsSpecialty(opponentCard.getSpecialties(), "Dragon")) {
+                                // set damage to 0
+                                opponentCard.setDamage(0);
+                            }
+                            break;
+
+                        default:
+                            // Handle other specialties or no effect
+                            break;
+                    }
                 }
             }
         }
+    }
+
+    // Helper method to check if the card has a specific specialty
+    protected boolean containsSpecialty(String[] specialties, String specialtyToFind) {
+        for (String specialty : specialties) {
+            if (specialty.equals(specialtyToFind)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected String specialtiesToString() {
+        if (getSpecialties() != null) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (String specialty : getSpecialties()) {
+                stringBuilder.append(specialty).append(", ");
+            }
+            // remove the trailing comma and space
+            return stringBuilder.substring(0, stringBuilder.length() - 2);
+        }
+        return "None";
     }
 
 }

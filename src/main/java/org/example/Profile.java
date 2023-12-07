@@ -1,8 +1,10 @@
 package org.example;
 
 import lombok.Setter;
+import lombok.Getter;
 
 @Setter
+@Getter
 public class Profile {
     private String name;
     private String email;

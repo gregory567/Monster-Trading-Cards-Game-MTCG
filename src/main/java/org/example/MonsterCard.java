@@ -1,8 +1,5 @@
 package org.example;
 
-import org.example.Specialty;
-import org.example.ElementType;
-import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.app.models.User;
@@ -15,14 +12,9 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class MonsterCard extends Card {
 
-    public MonsterCard(String name, Integer damage, String elementType, Specialty[] specialties, User owner) {
+    public MonsterCard(String name, Integer damage, String elementType, String[] specialties, User owner) {
         super(name, damage, elementType, specialties, owner);
         this.cardType = CardType.MONSTER;
-    }
-
-    public void evolve() {
-
-        System.out.println("MonsterCard evolved!");
     }
 
     @Override
@@ -44,7 +36,6 @@ public class MonsterCard extends Card {
 
     @Override
     public void upgradeCard() {
-
         // increase the damage of the monster when upgraded
         int upgradedDamage = getDamage() + 10;
         setDamage(upgradedDamage);
@@ -53,16 +44,69 @@ public class MonsterCard extends Card {
     }
 
     @Override
-    public void applySpecialty(Specialty specialty) {
-        // Implement the logic to apply a specialty to a monster card
+    public void applySpecialty(String specialty, Card opponentCard) {
         if (getSpecialties() != null) {
-            for (Specialty cardSpecialty : getSpecialties()) {
-                if (cardSpecialty.getName().equals(specialty.getName())) {
-                    cardSpecialty.applySpecialtyEffect(this);
-                    // You might want to break here if each card can have only one instance of a specialty
+            for (String cardSpecialty : getSpecialties()) {
+                if (cardSpecialty.equals(specialty)) {
+                    // Implement the logic to apply the specialty effect to the card
+                    // This method should modify the card based on the specialty
+
+                    // Check the specialty type and apply the corresponding effect
+                    switch (specialty) {
+                        case "Goblin":
+                            // Goblins are too afraid of Dragons to attack
+                            if (opponentCard.getSpecialties() != null &&
+                                    containsSpecialty(opponentCard.getSpecialties(), "Dragon")) {
+                                // set damage to 0
+                                this.setDamage(0);
+                            }
+                            break;
+
+                        case "Wizzard":
+                            // Wizzard can control Orks so they are not able to damage them
+                            if (opponentCard.getSpecialties() != null &&
+                                    containsSpecialty(opponentCard.getSpecialties(), "Ork")) {
+                                // set damage to 0
+                                opponentCard.setDamage(0);
+                            }
+                            break;
+
+                        case "Knight":
+                            // The armor of Knights is so heavy that WaterSpells make them drown instantly
+                            if (opponentCard.getElementType() == WATER) {
+                                // set damage to 0
+                                opponentCard.setDamage(100);
+                            }
+                            break;
+
+                        case "Kraken":
+                            // The Kraken is immune against spells
+                            if (opponentCard instanceof SpellCard) {
+                                // set damage to 0
+                                opponentCard.setDamage(0);
+                            }
+                            break;
+
+                        case "FireElves":
+                            // The FireElves know Dragons since they were little and can evade their attacks
+                            if (opponentCard.getSpecialties() != null &&
+                                    containsSpecialty(opponentCard.getSpecialties(), "Dragon")) {
+                                // set damage to 0
+                                opponentCard.setDamage(0);
+                            }
+                            break;
+
+                        default:
+                            // Handle other specialties or no effect
+                            break;
+                    }
                 }
             }
         }
+    }
+
+    public void evolve() {
+        System.out.println("MonsterCard evolved!");
     }
 
     @Override
@@ -122,15 +166,4 @@ public class MonsterCard extends Card {
         }
     }
 
-    private String specialtiesToString() {
-        if (getSpecialties() != null) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (Specialty specialty : getSpecialties()) {
-                stringBuilder.append(specialty.getName()).append(", ");
-            }
-            // remove the trailing comma and space
-            return stringBuilder.substring(0, stringBuilder.length() - 2);
-        }
-        return "None";
-    }
 }
