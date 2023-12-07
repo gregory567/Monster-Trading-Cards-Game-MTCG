@@ -17,6 +17,23 @@ class User {
     + void viewScores()
     + void viewProfile()
     + void editProfile()
+    + void requestTrade(Card card, Requirement requirement)
+    + void acceptTrade(TradeDeal tradeDeal)
+}
+
+class Store {
+    - tradeDeals: TradeDeal[]
+    + void addTradeDeal(TradeDeal tradeDeal)
+    + void removeTradeDeal(TradeDeal tradeDeal)
+    + void displayAvailableTrades()
+}
+
+class TradeDeal {
+    - offeringUser: User
+    - offeredCard: Card
+    - requirement: Requirement
+    + void acceptDeal(User acceptingUser)
+    + void rejectDeal()
 }
 
 class Profile {
@@ -166,5 +183,14 @@ Requirement -- CardType : has
 Round -- Card : includes
 Round -- User : includes
 Round -- Battle : belongs to
+
+TradeDeal -- User : offeringUser
+TradeDeal -- Card : offeredCard
+TradeDeal -- Requirement : requirement
+
+Store "1" -- "0..*" TradeDeal : tradeDeals
+
+User "1" -- "0..*" TradeDeal : initiatedTrades
+User "1" -- "0..*" TradeDeal : acceptedTrades
 
 @enduml
