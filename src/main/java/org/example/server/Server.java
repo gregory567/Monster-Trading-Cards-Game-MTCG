@@ -9,10 +9,18 @@ import lombok.Setter;
 
 import java.io.*;
 import java.net.*;
+/*
+import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+ */
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
 public class Server {
+    private static final int DEFAULT_BUFFER_SIZE = 1024;
+
     private Request request;
     private Response response;
     private ServerSocket serverSocket;
@@ -37,37 +45,56 @@ public class Server {
         while (true) {
             try {
                 setClientSocket(getServerSocket().accept());
-                setInputStream(new BufferedReader(new InputStreamReader(clientSocket.getInputStream())));
-                setRequest(new Request(getInputStream()));
-                setOutputStream(new PrintWriter(clientSocket.getOutputStream(), true));
-
-                if (request.getPathname() == null) {
-                    setResponse(new Response(
-                        HttpStatus.BAD_REQUEST,
-                        ContentType.TEXT,
-                        ""
-                    ));
-                } else {
-                    setResponse(getApp().handleRequest(request));
-                }
-
-                getOutputStream().write(getResponse().build());
+                handleClientConnection();
             } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (getOutputStream() != null) {
-                        getOutputStream().close();
-                    }
-                    if (getInputStream() != null) {
-                        getInputStream().close();
-                        getClientSocket().close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                handleException(e);
             }
         }
     }
 
+    private void handleClientConnection() {
+        try (
+                BufferedReader reader = new BufferedReader(new InputStreamReader(getClientSocket().getInputStream()));
+                PrintWriter writer = new PrintWriter(getClientSocket().getOutputStream(), true)
+        ) {
+            setInputStream(reader);
+            setRequest(new Request(getInputStream()));
+            setOutputStream(writer);
+
+            if (request.getPathname() == null) {
+                setResponse(new Response(
+                        HttpStatus.BAD_REQUEST,
+                        ContentType.TEXT,
+                        ""
+                ));
+            } else {
+                setResponse(getApp().handleRequest(request));
+            }
+
+            getOutputStream().write(getResponse().build());
+        } catch (IOException e) {
+            handleException(e);
+        } finally {
+            closeResources();
+        }
+    }
+
+    private void closeResources() {
+        try {
+            if (getOutputStream() != null) {
+                getOutputStream().close();
+            }
+            if (getInputStream() != null) {
+                getInputStream().close();
+                getClientSocket().close();
+            }
+        } catch (IOException e) {
+            handleException(e);
+        }
+    }
+
+    private void handleException(IOException e) {
+        // Handle the exception (e.g., log it)
+        e.printStackTrace();
+    }
 }
