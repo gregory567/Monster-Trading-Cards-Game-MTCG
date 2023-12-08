@@ -1,19 +1,19 @@
 package org.example.app.controllers;
 
-import org.example.app.services.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.example.app.services.UserService;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
+import org.example.server.Response;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.server.Response;
 
 import java.util.List;
-
+@Setter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PRIVATE)
 public class UserController extends Controller {
-    @Setter(AccessLevel.PRIVATE)
-    @Getter(AccessLevel.PRIVATE)
+
     private UserService userService;
 
     public UserController(UserService userService) {
@@ -27,36 +27,37 @@ public class UserController extends Controller {
     // GET /users -> gibt alle users zurück
     public Response getUsers() {
         try {
-            List userData = getUserService().getUsers();
+            List<?> userData = getUserService().getUsers();
             String userDataJSON = getObjectMapper().writeValueAsString(userData);
 
-            return new Response(
-                HttpStatus.OK,
-                ContentType.JSON,
-                "{ \"data\": " + userDataJSON + ", \"error\": null }"
-            );
+            return buildJsonResponse(HttpStatus.OK, userDataJSON, null);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return new Response(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                ContentType.JSON,
-                "{ \"error\": \"Internal Server Error\", \"data\": null }"
-            );
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
         }
     }
 
     // GET /users/:username
-    public void getUserByUsername(String username) {
-
+    public Response getUserByUsername(String username) {
+        return buildJsonResponse(HttpStatus.OK, null, null);
     }
 
     // POST /users
-    public void createUser() {
-
+    public Response createUser() {
+        return buildJsonResponse(HttpStatus.CREATED, null, null);
     }
 
     // DELETE /users/:username
-    public void deleteUser(String username) {
+    public Response deleteUser(String username) {
+        try {
+            getUserService().deleteUser(username);
+            return buildJsonResponse(HttpStatus.NO_CONTENT, null, null);
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete user");
+        }
+    }
 
+    private Response buildJsonResponse(HttpStatus status, String data, String error) {
+        String jsonResponse = String.format("{ \"data\": %s, \"error\": %s }", data, error);
+        return new Response(status, ContentType.JSON, jsonResponse);
     }
 }
