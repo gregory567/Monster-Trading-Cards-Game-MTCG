@@ -9,16 +9,21 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseService {
-    private String connectionString = "jdbc:postgresql://localhost:5432/mtcgdb?user=postgres&password=postgres";
+    private String connectionString = "jdbc:postgresql://localhost:5432/mtcgdb?user=mtcg_user&password=mtcg_password";
     @Setter(AccessLevel.PRIVATE)
     @Getter
     private Connection connection;
 
     public DatabaseService() {
         try {
+            // Load the PostgreSQL JDBC driver
+            Class.forName("org.postgresql.Driver");
+
+            // Establish the database connection
             Connection connection = DriverManager.getConnection(connectionString);
             setConnection(connection);
-        } catch (SQLException e) {
+            System.out.println("Connected to the database.");
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
     }
