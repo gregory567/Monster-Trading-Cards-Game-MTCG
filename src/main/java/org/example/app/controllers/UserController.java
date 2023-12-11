@@ -38,12 +38,54 @@ public class UserController extends Controller {
 
     // GET /users/:username
     public Response getUserByUsername(String username) {
-        return buildJsonResponse(HttpStatus.OK, null, null);
+        try {
+            // Retrieve the user data based on the username from the UserService
+            // For example:
+            // User user = getUserService().getUserByUsername(username);
+
+            // Check if the user is found
+            if (user != null) {
+                // Convert the user object to JSON
+                String userDataJSON = getObjectMapper().writeValueAsString(user);
+                // Return a successful response with the user data
+                return buildJsonResponse(HttpStatus.OK, userDataJSON, null);
+            } else {
+                // Return a not found response if the user is not found
+                return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
+            }
+        } catch (JsonProcessingException e) {
+            // Handle JSON processing exception
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
+        } catch (Exception e) {
+            // Handle other exceptions
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to retrieve user");
+        }
     }
 
     // POST /users
     public Response createUser() {
-        return buildJsonResponse(HttpStatus.CREATED, null, null);
+        try {
+            // Implement the logic to create a new user in the UserService
+            // For example:
+            // User newUser = getUserService().createUser();
+
+            // Check if the user creation is successful
+            if (newUser != null) {
+                // Convert the new user object to JSON
+                String newUserJSON = getObjectMapper().writeValueAsString(newUser);
+                // Return a successful response with the new user data
+                return buildJsonResponse(HttpStatus.CREATED, newUserJSON, null);
+            } else {
+                // Return a server error response if user creation fails
+                return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create user");
+            }
+        } catch (JsonProcessingException e) {
+            // Handle JSON processing exception
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
+        } catch (Exception e) {
+            // Handle other exceptions
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create user");
+        }
     }
 
     // DELETE /users/:username
