@@ -13,6 +13,7 @@ import org.example.SpellCard;
 import org.example.BattleResult;
 import org.example.Requirement;
 import org.example.TradeDeal;
+import org.example.Store;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -40,6 +41,8 @@ public class User {
     private Deck deck;
     @JsonAlias({"profile"})
     private Profile profile;
+    @JsonAlias({"eloscore"})
+    private Integer eloScore;
     private BattleResult[] battleResults;
     private List<TradeDeal> initiatedTrades;
     private List<TradeDeal> acceptedTrades;
@@ -49,16 +52,22 @@ public class User {
         this.acceptedTrades = new ArrayList<>();
     }
 
-    public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile) {
+    public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile, Integer eloScore, BattleResult[] battleResults, List<TradeDeal> initiatedTrades, List<TradeDeal> acceptedTrades) {
         this.username = username;
         this.password = password;
         this.coins = coins;
-        this.stack = stack;
-        this.deck = deck;
+
+        // Initialize stack and deck with empty instances
+        this.stack = (stack != null) ? stack : new Stack();
+        this.deck = (deck != null) ? deck : new Deck();
+
         this.profile = profile;
-        this.battleResults = new BattleResult[0];
-        this.initiatedTrades = new ArrayList<>();
-        this.acceptedTrades = new ArrayList<>();
+        this.eloScore = eloScore;
+
+        // Check if battleResults, initiatedTrades, and acceptedTrades are null or empty
+        this.battleResults = (battleResults != null && battleResults.length > 0) ? battleResults : new BattleResult[0];
+        this.initiatedTrades = (initiatedTrades != null && !initiatedTrades.isEmpty()) ? initiatedTrades : new ArrayList<>();
+        this.acceptedTrades = (acceptedTrades != null && !acceptedTrades.isEmpty()) ? acceptedTrades : new ArrayList<>();
     }
 
     public void requestTrade(Card card, Requirement requirement) {

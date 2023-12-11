@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public interface DAO<T> {
     void create(T type);
     ArrayList<T> readAll();
-    T read(int id);
+    T read(T type);
     void update(T type);
-    void delete(int id);
+    void delete(T type);
 }

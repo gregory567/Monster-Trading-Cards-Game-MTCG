@@ -46,7 +46,7 @@ public class App implements ServerApp {
                 case POST: {
                     if (request.getPathname().equals("/users")) {
                         String body = request.getBody();
-                        return this.userController.createUser(body);
+                        return getUserController().createUser(body);
                     }
                 }
             }

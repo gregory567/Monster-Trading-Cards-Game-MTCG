@@ -10,6 +10,12 @@ public class Profile {
     private String email;
     private String otherDetails;
 
+    public Profile(String profileName, String profileEmail, String profileOtherDetails) {
+        this.name = profileName;
+        this.email = profileEmail;
+        this.otherDetails = profileOtherDetails;
+    }
+
     public void displayProfile() {
         System.out.println("Name: " + name);
         System.out.println("Email: " + email);

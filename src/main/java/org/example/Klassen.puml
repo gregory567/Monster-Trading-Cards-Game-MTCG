@@ -8,6 +8,7 @@ class User {
     - stack: Stack
     - deck: Deck
     - profile: Profile
+    - eloScore: Integer
     - battleResults: BattleResult[]
     + void tradeCard(Card card, Requirement requirement)
     + void buyPackage(Package newPackage)

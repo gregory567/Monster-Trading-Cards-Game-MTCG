@@ -3,7 +3,11 @@ package org.example;
 import org.example.Card;
 import org.example.app.models.User;
 import org.example.Requirement;
+import lombok.Setter;
+import lombok.Getter;
 
+@Setter
+@Getter
 public class TradeDeal {
     private User offeringUser;
     private Card offeredCard;
