@@ -2,6 +2,7 @@ package org.example.app.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.app.services.UserService;
+import org.example.app.repositories.UserRepository;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
 import org.example.server.Response;
@@ -15,10 +16,10 @@ import java.util.List;
 @Getter(AccessLevel.PRIVATE)
 public class UserController extends Controller {
 
-    private UserService userService;
+    private UserRepository userRepository;
 
-    public UserController(UserService userService) {
-        setUserService(userService);
+    public UserController(UserRepository userRepository) {
+        setUserRepository(userRepository);
     }
 
     // DELETE /users/:username -> löscht einen user mit dem usernamen
@@ -28,7 +29,7 @@ public class UserController extends Controller {
     // GET /users -> gibt alle users zurück
     public Response getUsers() {
         try {
-            List<User> userData = getUserService().getUsers();
+            List<User> userData = getUserRepository().getAll();
             String userDataJSON = getObjectMapper().writeValueAsString(userData);
 
             return buildJsonResponse(HttpStatus.OK, userDataJSON, null);
@@ -41,7 +42,7 @@ public class UserController extends Controller {
     public Response getUserByUsername(String username) {
         try {
             // Retrieve the user data based on the username from the UserService
-            User user = getUserService().getUserByUsername(username);
+            User user = getUserRepository().getUserByUsername(username);
 
             // Check if the user is found
             if (user != null) {
@@ -66,7 +67,7 @@ public class UserController extends Controller {
     public Response createUser() {
         try {
             // Implement the logic to create a new user in the UserService
-            User newUser = getUserService().createUser("newUsername", "newPassword", 0.0, new Stack(), new Deck(), null);
+            User newUser = getUserRepository().createUser("newUsername", "newPassword", 0.0, new Stack(), new Deck(), null);
 
             // Check if the user creation is successful
             if (newUser != null) {
@@ -90,7 +91,7 @@ public class UserController extends Controller {
     // DELETE /users/:username
     public Response deleteUser(String username) {
         try {
-            getUserService().removeUser(username);
+            getUserRepository().removeUser(username);
             return buildJsonResponse(HttpStatus.NO_CONTENT, null, null);
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete user");
