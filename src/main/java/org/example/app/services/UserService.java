@@ -2,6 +2,7 @@ package org.example.app.services;
 
 import org.example.Deck;
 import org.example.Stack;
+import org.example.Profile;
 import org.example.app.models.User;
 import lombok.AccessLevel;
 import lombok.Setter;
@@ -37,15 +38,10 @@ public class UserService {
         return userData;
     }
 
-    public User createUser() {
-        // Implement logic to create a new user
-        // For example:
-        // User newUser = new User("newUser", "newPassword", 50.0, new Stack(), new Deck(), null);
-        // userData.add(newUser);
-        // return newUser;
-
-        // Return null for now as the creation logic is not provided
-        return null;
+    public User createUser(String username, String password, double coins, Stack stack, Deck deck, Profile profile) {
+        User newUser = new User(username, password, coins, stack, deck, profile);
+        userData.add(newUser);
+        return newUser;
     }
 
     public void removeUser(String username) {
