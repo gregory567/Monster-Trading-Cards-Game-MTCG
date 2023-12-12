@@ -39,8 +39,8 @@ class TradeDeal {
 
 class Profile {
     - name : String
-    - email : String
-    - otherDetails : String
+    - bio : String
+    - image : String
     + void displayProfile()
     + void updateStatus()
 }
@@ -133,7 +133,6 @@ class Battle {
 class GameController {
     - users: User[]
     - battles: Battle[]
-    + void createUser(String username, String password)
     + void initiateBattle(User user1, User user2)
 }
 

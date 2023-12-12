@@ -14,12 +14,6 @@ public class GameController {
         this.battles = new ArrayList<>();
     }
 
-    public void createUser(String username, String password, double coins, Stack stack, Deck deck, Profile profile) {
-        // Implement the logic to create a new user
-        User newUser = new User(username, password, coins, stack, deck, profile);
-        users.add(newUser);
-    }
-
     public void initiateBattle(User user1, User user2) {
         // Implement the logic to initiate a battle between two users
         Battle newBattle = new Battle(user1, user2);
