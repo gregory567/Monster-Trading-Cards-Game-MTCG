@@ -73,7 +73,7 @@ public class MonsterCard extends Card {
 
                         case "Knight":
                             // The armor of Knights is so heavy that WaterSpells make them drown instantly
-                            if (opponentCard.getElementType() == WATER) {
+                            if (opponentCard.getElementType().equals(ElementType.WATER)) {
                                 // set damage to 0
                                 opponentCard.setDamage(100);
                             }

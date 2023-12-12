@@ -1,7 +1,8 @@
 package org.example.app.daos;
 
-import org.example.*;
+
 import org.example.app.models.User;
+import org.example.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;

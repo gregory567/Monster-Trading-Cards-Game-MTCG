@@ -48,6 +48,7 @@ public class User {
     private List<TradeDeal> acceptedTrades;
 
     public User() {
+        this.battleResults = new BattleResult[0];
         this.initiatedTrades = new ArrayList<>();
         this.acceptedTrades = new ArrayList<>();
     }
@@ -57,7 +58,7 @@ public class User {
         this.password = password;
         this.coins = coins;
 
-        // Initialize stack and deck with empty instances
+        // Initialize stack and deck with empty instances, if the provided instances are empty
         this.stack = (stack != null) ? stack : new Stack();
         this.deck = (deck != null) ? deck : new Deck();
 

@@ -73,7 +73,7 @@ public class SpellCard extends Card {
 
                         case "Knight":
                             // The armor of Knights is so heavy that WaterSpells make them drown instantly
-                            if (opponentCard.getElementType() == ElementType.WATER) {
+                            if (opponentCard.getElementType().equals(ElementType.WATER)) {
                                 // set damage to 0
                                 opponentCard.setDamage(100);
                             }
