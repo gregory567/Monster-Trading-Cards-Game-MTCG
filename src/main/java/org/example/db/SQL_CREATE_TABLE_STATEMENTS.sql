@@ -6,9 +6,11 @@ CREATE TABLE IF NOT EXISTS "User" (
     "password" VARCHAR(255) NOT NULL,
     "coins" DOUBLE PRECISION NOT NULL,
     "profile_name" VARCHAR(255),
-    "profile_email" VARCHAR(255),
-    "profile_other_details" VARCHAR(255),
+    "profile_bio" VARCHAR(255),
+    "profile_image" VARCHAR(255),
     "elo_score" INTEGER,
+    "wins" INTEGER,
+    "losses" INTEGER,
     UNIQUE("username")
 );
 
@@ -94,6 +96,7 @@ CREATE TABLE IF NOT EXISTS "BattleLog" (
     "battle_id" INTEGER REFERENCES "Battle"("id"),
     "round_number" INTEGER,
     "winner_username" VARCHAR(255) REFERENCES "User"("username"),
+    "loser_username" VARCHAR(255) REFERENCES "User"("username"),
     "draw" BOOLEAN,
     "round_id" INTEGER REFERENCES "RoundDetail"("round_id"),
     UNIQUE("battle_id", "round_number")

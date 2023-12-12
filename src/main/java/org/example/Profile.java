@@ -7,18 +7,18 @@ import lombok.Getter;
 @Getter
 public class Profile {
     private String name;
-    private String email;
-    private String otherDetails;
+    private String bio;
+    private String image;
 
-    public Profile(String profileName, String profileEmail, String profileOtherDetails) {
-        this.name = profileName;
-        this.email = profileEmail;
-        this.otherDetails = profileOtherDetails;
+    public Profile(String name, String bio, String image) {
+        this.name = name;
+        this.bio = bio;
+        this.image = image;
     }
 
     public void displayProfile() {
         System.out.println("Name: " + name);
-        System.out.println("Email: " + email);
-        System.out.println("Other Details: " + otherDetails);
+        System.out.println("Bio: " + bio);
+        System.out.println("Image: " + image);
     }
 }

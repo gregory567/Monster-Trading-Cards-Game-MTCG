@@ -165,12 +165,12 @@ public class User {
 
     public void viewProfile() {
         // Implement logic to view user profile
-        // You can display user profile information such as name, email, etc.
+        // You can display user profile information such as name, bio, image.
         if (profile != null) {
             System.out.println("User Profile:");
             System.out.println("Name: " + profile.getName());
-            System.out.println("Email: " + profile.getEmail());
-            System.out.println("Other Details: " + profile.getOtherDetails());
+            System.out.println("Bio: " + profile.getBio());
+            System.out.println("Image: " + profile.getImage());
         } else {
             System.out.println("User profile not available.");
         }
