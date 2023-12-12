@@ -25,8 +25,8 @@ public class Server {
     private Response response;
     private ServerSocket serverSocket;
     private Socket clientSocket;
-    private PrintWriter outputStream;
-    private BufferedReader inputStream;
+    //private PrintWriter outputStream;
+    //private BufferedReader inputStream;
     private App app;
     private int port;
 
@@ -44,14 +44,16 @@ public class Server {
     private void run() {
         while (true) {
             try {
-                setClientSocket(getServerSocket().accept());
-                handleClientConnection();
+                Socket clientSocket = getServerSocket().accept();
+                Task task = new Task(clientSocket, getApp());
+                new Thread(task).start();
             } catch (IOException e) {
                 handleException(e);
             }
         }
     }
 
+    /*
     private void handleClientConnection() {
         try (
                 BufferedReader reader = new BufferedReader(new InputStreamReader(getClientSocket().getInputStream()));
@@ -92,6 +94,7 @@ public class Server {
             handleException(e);
         }
     }
+     */
 
     private void handleException(IOException e) {
         // Handle the exception (e.g., log it)

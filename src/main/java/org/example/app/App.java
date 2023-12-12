@@ -40,6 +40,8 @@ public class App implements ServerApp {
             switch (request.getMethod()) {
                 case GET: {
                     if (request.getPathname().equals("/users")) {
+                        Thread.sleep(2500);
+                        //thread.sleep() kommt hier um multithreadedness zu testen
                         return getUserController().getUsers();
                     }
                 }
