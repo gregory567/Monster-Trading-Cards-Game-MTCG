@@ -39,10 +39,10 @@ public class UserController extends Controller {
     }
 
     // GET /users/:username
-    public Response getUserByUsername(String username) {
+    public Response getUser(String username) {
         try {
             // Retrieve the user data based on the username from the UserService
-            User user = getUserRepository().getUserByUsername(username);
+            User user = getUserRepository().get(username);
 
             // Check if the user is found
             if (user != null) {
@@ -64,42 +64,77 @@ public class UserController extends Controller {
     }
 
     // POST /users
-    public Response createUser() {
+    public Response createUser(String body) {
         try {
-            // Implement the logic to create a new user in the UserService
-            User newUser = getUserRepository().createUser("newUsername", "newPassword", 0.0, new Stack(), new Deck(), null);
+            String username = extractUsernameFromBody(body);
+            String password = extractPasswordFromBody(body);
 
-            // Check if the user creation is successful
-            if (newUser != null) {
-                // Convert the new user object to JSON
-                String newUserJSON = getObjectMapper().writeValueAsString(newUser);
-                // Return a successful response with the new user data
-                return buildJsonResponse(HttpStatus.CREATED, newUserJSON, null);
-            } else {
-                // Return a server error response if user creation fails
-                return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create user");
-            }
-        } catch (JsonProcessingException e) {
-            // Handle JSON processing exception
-            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
+            getUserRepository().add(username, password);
+
+            return buildJsonResponse(HttpStatus.CREATED, null, null);
         } catch (Exception e) {
-            // Handle other exceptions
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create user");
+        }
+    }
+
+    public Response updateUser(String username, String body) {
+        try {
+            String name = extractNameFromBody(body);
+            String bio = extractBioFromBody(body);
+            String image = extractImageFromBody(body);
+
+            getUserRepository().updateUser(username, name, bio, image);
+
+            return buildJsonResponse(HttpStatus.OK, null, null);
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to update user");
         }
     }
 
     // DELETE /users/:username
     public Response deleteUser(String username) {
         try {
-            getUserRepository().removeUser(username);
+            getUserRepository().remove(username);
             return buildJsonResponse(HttpStatus.NO_CONTENT, null, null);
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete user");
         }
     }
 
+    public Response loginUser(String body) {
+        // Implement the logic for user login based on the request body
+        // Modify the logic based on your actual authentication mechanism
+        return null;
+    }
+
+    private String extractUsernameFromBody(String body) {
+        // Implement logic to extract the username from the request body
+        return null;
+    }
+
+    private String extractPasswordFromBody(String body) {
+        // Implement logic to extract the password from the request body
+        return null;
+    }
+
+    private String extractNameFromBody(String body) {
+        // Implement logic to extract the name from the request body
+        return null;
+    }
+
+    private String extractBioFromBody(String body) {
+        // Implement logic to extract the bio from the request body
+        return null;
+    }
+
+    private String extractImageFromBody(String body) {
+        // Implement logic to extract the image from the request body
+        return null;
+    }
+
     private Response buildJsonResponse(HttpStatus status, String data, String error) {
         String jsonResponse = String.format("{ \"data\": %s, \"error\": %s }", data, error);
         return new Response(status, ContentType.JSON, jsonResponse);
     }
+
 }

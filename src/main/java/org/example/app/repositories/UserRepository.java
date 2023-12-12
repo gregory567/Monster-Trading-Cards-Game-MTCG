@@ -29,43 +29,13 @@ public class UserRepository implements Repository<User> {
     }
 
     @Override
-    public void add(String username, String password, Integer coins, String profile_name, String profile_email, String profile_other_details) {
-        userDAO.create(username, password, coins, profile_name, profile_email, profile_other_details);
+    public void add(String username, String password) {
+        userDAO.create(username, password);
     }
 
     @Override
-    public void updateUsername(String oldUsername, String newUsername) {
-        userDAO.updateUsername(oldUsername, newUsername);
-    }
-
-    @Override
-    public void updatePassword(String username, String newPassword) {
-        userDAO.updatePassword(username, newPassword);
-    }
-
-    @Override
-    public void updateCoins(String username, Integer newCoins) {
-        userDAO.updateCoins(username, newCoins);
-    }
-
-    @Override
-    public void updateProfileName(String username, String newProfileName) {
-        userDAO.updateProfileName(username, newProfileName);
-    }
-
-    @Override
-    public void updateProfileEmail(String username, String newProfileEmail) {
-        userDAO.updateProfileEmail(username, newProfileEmail);
-    }
-
-    @Override
-    public void updateProfileOtherDetails(String username, String newProfileOtherDetails) {
-        userDAO.updateProfileOtherDetails(username, newProfileOtherDetails);
-    }
-
-    @Override
-    public void updateEloScore(String username, Integer newEloScore) {
-        userDAO.updateEloScore(username, newEloScore);
+    public void updateUser(String username, String name, String bio, String image) {
+        userDAO.updateUser(username, name, bio, image);
     }
 
     @Override

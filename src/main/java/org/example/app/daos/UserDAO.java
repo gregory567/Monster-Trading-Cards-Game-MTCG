@@ -27,17 +27,12 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public void create(String username, String password, Integer coins, String profile_name, String profile_email, String profile_other_details) {
+    public void create(String username, String password) {
 
-        String insertStmt = "INSERT INTO users (username, password, coins, profile_name, profile_email, profile_other_details, elo_score) VALUES (?, ?, ?, ?, ?, ?, ?);";
+        String insertStmt = "INSERT INTO users (username, password) VALUES (?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
-            preparedStatement.setDouble(3, coins);
-            preparedStatement.setString(4, profile_name);
-            preparedStatement.setString(5, profile_email);
-            preparedStatement.setString(6, profile_other_details);
-            preparedStatement.setInt(7, 0);
 
             preparedStatement.executeUpdate();
             getConnection().close();
@@ -95,95 +90,13 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public void updateUsername(String oldUsername, String newUsername) {
-        String updateStmt = "UPDATE users SET username = ? WHERE username = ?;";
+    public void updateUser(String username, String name, String bio, String image) {
+        String updateStmt = "UPDATE users SET name = ?, bio = ?, image = ? WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setString(1, newUsername);
-            preparedStatement.setString(2, oldUsername);
-
-            preparedStatement.executeUpdate();
-            clearCache();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updatePassword(String username, String newPassword) {
-        String updateStmt = "UPDATE users SET password = ? WHERE username = ?;";
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setString(1, newPassword);
-            preparedStatement.setString(2, username);
-
-            preparedStatement.executeUpdate();
-            clearCache();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updateCoins(String username, Integer newCoins) {
-        String updateStmt = "UPDATE users SET coins = ? WHERE username = ?;";
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setInt(1, newCoins);
-            preparedStatement.setString(2, username);
-
-            preparedStatement.executeUpdate();
-            clearCache();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updateProfileName(String username, String newProfileName) {
-        String updateStmt = "UPDATE users SET profile_name = ? WHERE username = ?;";
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setString(1, newProfileName);
-            preparedStatement.setString(2, username);
-
-            preparedStatement.executeUpdate();
-            clearCache();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updateProfileEmail(String username, String newProfileEmail) {
-        String updateStmt = "UPDATE users SET profile_email = ? WHERE username = ?;";
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setString(1, newProfileEmail);
-            preparedStatement.setString(2, username);
-
-            preparedStatement.executeUpdate();
-            clearCache();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updateProfileOtherDetails(String username, String newProfileOtherDetails) {
-        String updateStmt = "UPDATE users SET profile_other_details = ? WHERE username = ?;";
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setString(1, newProfileOtherDetails);
-            preparedStatement.setString(2, username);
-
-            preparedStatement.executeUpdate();
-            clearCache();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void updateEloScore(String username, Integer newEloScore) {
-        String updateStmt = "UPDATE users SET elo_score = ? WHERE username = ?;";
-        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
-            preparedStatement.setInt(1, newEloScore);
-            preparedStatement.setString(2, username);
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, bio);
+            preparedStatement.setString(3, image);
+            preparedStatement.setString(4, username);
 
             preparedStatement.executeUpdate();
             clearCache();
