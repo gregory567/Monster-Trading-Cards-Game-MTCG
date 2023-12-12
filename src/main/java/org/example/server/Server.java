@@ -21,12 +21,12 @@ import java.net.Socket;
 public class Server {
     private static final int DEFAULT_BUFFER_SIZE = 1024;
 
-    private Request request;
-    private Response response;
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
+    //private Socket clientSocket;
     //private PrintWriter outputStream;
     //private BufferedReader inputStream;
+    //private Request request;
+    //private Response response;
+    private ServerSocket serverSocket;
     private App app;
     private int port;
 

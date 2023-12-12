@@ -40,8 +40,8 @@ public class App implements ServerApp {
             switch (request.getMethod()) {
                 case GET: {
                     if (request.getPathname().equals("/users")) {
-                        Thread.sleep(2500);
-                        //thread.sleep() kommt hier um multithreadedness zu testen
+                        // Introduce a configurable sleep duration for testing
+                        testMultithreading();
                         return getUserController().getUsers();
                     }
                 }
@@ -52,9 +52,13 @@ public class App implements ServerApp {
                     }
                 }
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Restore interrupted status
+            // Log the InterruptedException
+            handleException(e);
         } catch (Exception e) {
             // Log the exception
-            e.printStackTrace();
+            handleException(e);
             return new Response(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     ContentType.JSON,
@@ -68,4 +72,14 @@ public class App implements ServerApp {
                 "{ \"error\": \"Not Found\", \"data\": null }"
         );
     }
+
+    private void testMultithreading() throws InterruptedException {
+        // Introduce a configurable sleep duration for testing
+        Thread.sleep(2500);
+    }
+
+    private void handleException(Exception e) {
+        e.printStackTrace();
+    }
+    
 }
