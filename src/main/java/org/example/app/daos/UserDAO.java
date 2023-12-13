@@ -29,7 +29,7 @@ public class UserDAO implements DAO<User> {
     @Override
     public void create(String username, String password) {
 
-        String insertStmt = "INSERT INTO users (username, password) VALUES (?, ?);";
+        String insertStmt = "INSERT INTO usercredentials (username, password) VALUES (?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
@@ -51,7 +51,7 @@ public class UserDAO implements DAO<User> {
             return usersCache;
         }
 
-        String selectStmt = "SELECT * FROM users;";
+        String selectStmt = "SELECT * FROM userdata;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
@@ -73,7 +73,7 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public User read(String username) {
-        String selectStmt = "SELECT * FROM users WHERE username = ?;";
+        String selectStmt = "SELECT * FROM userdata WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -91,7 +91,7 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public void updateUser(String username, String name, String bio, String image) {
-        String updateStmt = "UPDATE users SET name = ?, bio = ?, image = ? WHERE username = ?;";
+        String updateStmt = "UPDATE userdata SET name = ?, bio = ?, image = ? WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, bio);
@@ -107,7 +107,7 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public void delete(String username) {
-        String deleteStmt = "DELETE FROM users WHERE username = ?;";
+        String deleteStmt = "DELETE FROM usercredentials WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
             preparedStatement.setString(1, username);
             preparedStatement.executeUpdate();
