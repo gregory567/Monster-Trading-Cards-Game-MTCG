@@ -182,6 +182,51 @@ public class UserDAO implements DAO<User> {
         return 500;
     }
 
+    @Override
+    public Integer loginUser(String username, String password) {
+        // Check if the user already exists
+        if (!userExists(username)) {
+            // Username does not exist
+            System.out.println("Username does not exist.");
+            return 401;
+        } else {
+            // Check if the password matches
+            if (passwordMatches(username, password)) {
+                // Password matches, authentication successful
+                return 200;
+            } else {
+                // Password does not match
+                System.out.println("Password does not match.");
+                return 401;
+            }
+        }
+    }
+
+    public boolean passwordMatches(String username, String password) {
+        // SQL statement to retrieve the password for the given username
+        String selectStmt = "SELECT password FROM usercredentials WHERE username = ?;";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
+            // Set parameters in the prepared statement
+            preparedStatement.setString(1, username);
+
+            // Execute the SQL query and obtain the result set
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Check if the result set has any rows
+                if (resultSet.next()) {
+                    // Retrieve the stored password from the database
+                    String storedPassword = resultSet.getString("password");
+                    // Compare the stored password with the provided password
+                    return storedPassword.equals(password);
+                }
+            }
+        } catch (SQLException e) {
+            // Print any SQL exception that occurs during the password retrieval
+            e.printStackTrace();
+        }
+
+        // Return false if an exception occurred or no password for the specified username was found
+        return false;
+    }
 
     @Override
     public void delete(String username) {
