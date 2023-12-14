@@ -126,9 +126,35 @@ public class UserController extends Controller {
     }
 
     public Response loginUser(String body) {
-        // Implement the logic for user login based on the request body
-        // Modify the logic based on your actual authentication mechanism
-        return null;
+        try {
+            String username = extractUsernameFromBody(body);
+            String password = extractPasswordFromBody(body);
+
+            // Validate username and password
+            if (username == null || password == null) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid username or password");
+            }
+
+            // Authenticate the user using the UserDAO
+            int authenticationStatus = getUserRepository().loginUser(username, password);
+
+            switch (authenticationStatus) {
+                case 200:
+                    // Authentication successful
+                    return buildJsonResponse(HttpStatus.OK, null, "Login successful");
+                case 401:
+                    // Incorrect username or password
+                    return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Incorrect username or password");
+                case 404:
+                    // User not found
+                    return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
+                default:
+                    // Handle other scenarios as needed
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
+            }
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
+        }
     }
 
     private String extractUsernameFromBody(String body) {

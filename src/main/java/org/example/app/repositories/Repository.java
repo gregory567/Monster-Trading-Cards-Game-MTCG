@@ -7,5 +7,6 @@ public interface Repository<T> {
     T get(String username);
     Integer add(String username, String password);
     Integer updateUser(String username, String token, String name, String bio, String image);
+    Integer loginUser(String username, String password);
     void remove(String username);
 }
