@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS "User" (
 -- Create UserCredentials Table
 CREATE TABLE IF NOT EXISTS "UserCredentials" (
     "username" VARCHAR(255) PRIMARY KEY,
-    "password" VARCHAR(255) NOT NULL
+    "password" VARCHAR(255) NOT NULL,
+    "token" VARCHAR(255)
 );
 
 -- Create UserData Table

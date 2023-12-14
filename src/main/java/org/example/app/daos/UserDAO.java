@@ -22,18 +22,21 @@ public class UserDAO implements DAO<User> {
     @Setter(AccessLevel.PRIVATE)
     ArrayList<User> usersCache;
 
+    TokenValidator tokenValidator;
+
     public UserDAO(Connection connection) {
         setConnection(connection);
     }
 
     // Method to create a new user in the database
     @Override
-    public void create(String username, String password) {
+    public Integer create(String username, String password) {
         // Check if the user already exists
         if (userExists(username)) {
             // User with the same username already registered.
             System.out.println("User with the same username already registered.");
-            return; // You might want to throw an exception or handle it differently
+            // Return 0 to indicate unsuccessful user creation
+            return 0;
         }
 
         // SQL statement to insert a new user into the usercredentials table
@@ -51,9 +54,14 @@ public class UserDAO implements DAO<User> {
 
             // Clear the user cache to ensure the latest data is retrieved on subsequent queries
             clearCache();
+
+            // Return 1 to indicate successful user creation
+            return 1;
         } catch (SQLException e) {
             // Print any SQL exception that occurs during user creation
             e.printStackTrace();
+            // Return 0 to indicate unsuccessful user creation
+            return 0;
         }
     }
 
@@ -131,8 +139,24 @@ public class UserDAO implements DAO<User> {
         return null;
     }
 
+    private boolean isAuthorized(String token, String username) {
+        return tokenValidator.validateToken(token, username);
+    }
+
     @Override
-    public void updateUser(String username, String name, String bio, String image) {
+    public Integer updateUser(String username, String token, String name, String bio, String image) {
+        if (token == null || !isAuthorized(token, username)) {
+            // Access token is missing or invalid
+            return 401;
+        }
+
+        // Check if the user exists
+        if (!userExists(username)) {
+            // User not found
+            return 404;
+        }
+
+        // Update the user data
         String updateStmt = "UPDATE userdata SET name = ?, bio = ?, image = ? WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
             preparedStatement.setString(1, name);
@@ -140,12 +164,24 @@ public class UserDAO implements DAO<User> {
             preparedStatement.setString(3, image);
             preparedStatement.setString(4, username);
 
-            preparedStatement.executeUpdate();
-            clearCache();
+            int rowsUpdated = preparedStatement.executeUpdate();
+
+            // Clear the cache only if the update was successful
+            if (rowsUpdated > 0) {
+                clearCache();
+                // User successfully updated
+                return 200;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            // Return 500 for a generic error status if an exception occurred
+            return 500;
         }
+
+        // Return 500 for a generic error status if the update was unsuccessful (no rows updated)
+        return 500;
     }
+
 
     @Override
     public void delete(String username) {

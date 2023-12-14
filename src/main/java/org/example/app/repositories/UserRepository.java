@@ -29,13 +29,13 @@ public class UserRepository implements Repository<User> {
     }
 
     @Override
-    public void add(String username, String password) {
-        userDAO.create(username, password);
+    public Integer add(String username, String password) {
+        return userDAO.create(username, password);
     }
 
     @Override
-    public void updateUser(String username, String name, String bio, String image) {
-        userDAO.updateUser(username, name, bio, image);
+    public Integer updateUser(String username, String token, String name, String bio, String image) {
+        return userDAO.updateUser(username, token, name, bio, image);
     }
 
     @Override

@@ -73,9 +73,19 @@ public class UserController extends Controller {
             String username = extractUsernameFromBody(body);
             String password = extractPasswordFromBody(body);
 
-            getUserRepository().add(username, password);
+            // Attempt to add the user and check the result
+            int result = getUserRepository().add(username, password);
 
-            return buildJsonResponse(HttpStatus.CREATED, null, null);
+            if (result == 1) {
+                // User created successfully
+                return buildJsonResponse(HttpStatus.CREATED, null, "User successfully created");
+            } else if (result == 0) {
+                // User creation failed due to duplicate username
+                return buildJsonResponse(HttpStatus.CONFLICT, null, "User with the same username already registered");
+            } else {
+                // Handle other scenarios as needed
+                return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create user");
+            }
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create user");
         }
@@ -83,13 +93,23 @@ public class UserController extends Controller {
 
     public Response updateUser(String username, String body) {
         try {
+            String token = extractTokenFromBody(body);
             String name = extractNameFromBody(body);
             String bio = extractBioFromBody(body);
             String image = extractImageFromBody(body);
 
-            getUserRepository().updateUser(username, name, bio, image);
+            int updateStatus = getUserRepository().updateUser(username, token, name, bio, image);
 
-            return buildJsonResponse(HttpStatus.OK, null, null);
+            switch (updateStatus) {
+                case 200:
+                    return buildJsonResponse(HttpStatus.OK, null, "User successfully updated");
+                case 401:
+                    return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+                case 404:
+                    return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
+                default:
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to update user");
+            }
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to update user");
         }
@@ -131,19 +151,39 @@ public class UserController extends Controller {
         }
     }
 
-    private String extractNameFromBody(String body) {
-        // Implement logic to extract the name from the request body
+    private String extractTokenFromBody(String body) {
+        //implement
         return null;
+    }
+
+    private String extractNameFromBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Name").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private String extractBioFromBody(String body) {
-        // Implement logic to extract the bio from the request body
-        return null;
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Bio").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private String extractImageFromBody(String body) {
-        // Implement logic to extract the image from the request body
-        return null;
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Image").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private Response buildJsonResponse(HttpStatus status, String data, String error) {

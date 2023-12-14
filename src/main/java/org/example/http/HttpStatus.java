@@ -4,18 +4,19 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter
 public enum HttpStatus {
     OK(200, "OK"),
     CREATED(201, "CREATED"),
+    NO_CONTENT(204, "No Content"),
     BAD_REQUEST(400, "Bad Request"),
+    UNAUTHORIZED(401, "Unauthorized"),
     NOT_FOUND(404, "Not Found"),
-    INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
-    NO_CONTENT(204, "No Content");
+    CONFLICT(409, "Conflict"),
+    INTERNAL_SERVER_ERROR(500, "Internal Server Error");
 
-    @Getter
     @Setter(AccessLevel.PRIVATE)
     private int code;
-    @Getter
     @Setter(AccessLevel.PRIVATE)
     private String message;
 
