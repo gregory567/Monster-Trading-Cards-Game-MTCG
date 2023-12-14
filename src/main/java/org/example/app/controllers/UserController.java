@@ -1,5 +1,7 @@
 package org.example.app.controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.example.app.services.UserService;
 import org.example.app.repositories.UserRepository;
@@ -17,9 +19,11 @@ import java.util.List;
 public class UserController extends Controller {
 
     private UserRepository userRepository;
+    private ObjectMapper objectMapper;
 
     public UserController(UserRepository userRepository) {
         setUserRepository(userRepository);
+        setObjectMapper(new ObjectMapper());  // Initialize objectMapper
     }
 
     // DELETE /users/:username -> löscht einen user mit dem usernamen
@@ -108,13 +112,23 @@ public class UserController extends Controller {
     }
 
     private String extractUsernameFromBody(String body) {
-        // Implement logic to extract the username from the request body
-        return null;
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Username").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private String extractPasswordFromBody(String body) {
-        // Implement logic to extract the password from the request body
-        return null;
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Password").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private String extractNameFromBody(String body) {

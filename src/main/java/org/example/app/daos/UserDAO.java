@@ -26,20 +26,62 @@ public class UserDAO implements DAO<User> {
         setConnection(connection);
     }
 
+    // Method to create a new user in the database
     @Override
     public void create(String username, String password) {
+        // Check if the user already exists
+        if (userExists(username)) {
+            // User with the same username already registered.
+            System.out.println("User with the same username already registered.");
+            return; // You might want to throw an exception or handle it differently
+        }
 
+        // SQL statement to insert a new user into the usercredentials table
         String insertStmt = "INSERT INTO usercredentials (username, password) VALUES (?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
+            // Set parameters in the prepared statement
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
 
+            // Execute the SQL update statement to insert the new user
             preparedStatement.executeUpdate();
+
+            // Close the database connection
             getConnection().close();
+
+            // Clear the user cache to ensure the latest data is retrieved on subsequent queries
             clearCache();
         } catch (SQLException e) {
+            // Print any SQL exception that occurs during user creation
             e.printStackTrace();
         }
+    }
+
+    // Helper method to check if a user already exists in the database
+    private boolean userExists(String username) {
+        // SQL statement to count the number of users with the specified username
+        String selectStmt = "SELECT COUNT(*) FROM usercredentials WHERE username = ?;";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
+            // Set the username parameter in the prepared statement
+            preparedStatement.setString(1, username);
+
+            // Execute the SQL query and obtain the result set
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Check if the result set has any rows
+                if (resultSet.next()) {
+                    // Retrieve the count of users with the specified username
+                    int count = resultSet.getInt(1);
+                    // Return true if the count is greater than 0, indicating that the user already exists
+                    return count > 0;
+                }
+            }
+        } catch (SQLException e) {
+            // Print any SQL exception that occurs during the user existence check
+            e.printStackTrace();
+        }
+
+        // Return false if an exception occurred or no user with the specified username was found
+        return false;
     }
 
     @Override
