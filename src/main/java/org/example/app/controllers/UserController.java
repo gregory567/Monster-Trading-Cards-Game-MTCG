@@ -76,10 +76,10 @@ public class UserController extends Controller {
             // Attempt to add the user and check the result
             int result = getUserRepository().add(username, password);
 
-            if (result == 1) {
+            if (result == 201) {
                 // User created successfully
                 return buildJsonResponse(HttpStatus.CREATED, null, "User successfully created");
-            } else if (result == 0) {
+            } else if (result == 409) {
                 // User creation failed due to duplicate username
                 return buildJsonResponse(HttpStatus.CONFLICT, null, "User with the same username already registered");
             } else {

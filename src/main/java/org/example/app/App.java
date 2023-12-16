@@ -81,7 +81,8 @@ public class App implements ServerApp {
             return getUserController().createUser(body);
         } else if (request.getPathname().equals("/sessions")) {
             // Add route for login
-            return handleLoginRequest(request);
+            String body = request.getBody();
+            return getUserController().loginUser(body);
         }
         return notFoundResponse();
     }

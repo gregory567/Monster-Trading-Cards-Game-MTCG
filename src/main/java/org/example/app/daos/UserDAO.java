@@ -36,15 +36,17 @@ public class UserDAO implements DAO<User> {
             // User with the same username already registered.
             System.out.println("User with the same username already registered.");
             // Return 0 to indicate unsuccessful user creation
-            return 0;
+            return 409;
         }
 
+        String token = ""
         // SQL statement to insert a new user into the usercredentials table
-        String insertStmt = "INSERT INTO usercredentials (username, password) VALUES (?, ?);";
+        String insertStmt = "INSERT INTO usercredentials (username, password, token) VALUES (?, ?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
+            preparedStatement.setString(3, token);
 
             // Execute the SQL update statement to insert the new user
             preparedStatement.executeUpdate();
@@ -56,12 +58,12 @@ public class UserDAO implements DAO<User> {
             clearCache();
 
             // Return 1 to indicate successful user creation
-            return 1;
+            return 201;
         } catch (SQLException e) {
             // Print any SQL exception that occurs during user creation
             e.printStackTrace();
             // Return 0 to indicate unsuccessful user creation
-            return 0;
+            return 500;
         }
     }
 
