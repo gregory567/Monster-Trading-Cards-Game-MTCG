@@ -1,5 +1,6 @@
 package org.example.app;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -26,6 +27,7 @@ import java.sql.Connection;
 public class App implements ServerApp {
 
     private UserController userController;
+    private String authenticatedUserToken;
 
     public App() {
 
@@ -80,9 +82,21 @@ public class App implements ServerApp {
             String body = request.getBody();
             return getUserController().createUser(body);
         } else if (request.getPathname().equals("/sessions")) {
-            // Add route for login
             String body = request.getBody();
-            return getUserController().loginUser(body);
+            Response loginResponse = getUserController().loginUser(body);
+
+            // Save the token if login is successful
+            if (loginResponse.getStatusCode() == HttpStatus.OK.getCode()) {
+                JsonNode jsonData = null;
+                try {
+                    jsonData = loginResponse.parseJsonResponse();
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                setAuthenticatedUserToken(jsonData.get("data").get("token").asText());
+            }
+
+            return loginResponse;
         }
         return notFoundResponse();
     }
@@ -107,11 +121,6 @@ public class App implements ServerApp {
         return notFoundResponse();
     }
 
-    private Response handleLoginRequest(Request request) {
-        String body = request.getBody();
-        return getUserController().loginUser(body);
-    }
-
     private String getUsernameFromPath(String path) {
         // Extract username from path, e.g., "/users/john" -> "john"
         String[] parts = path.split("/");
@@ -126,14 +135,6 @@ public class App implements ServerApp {
         );
     }
 
-    private Response badRequestResponse() {
-        return new Response(
-                HttpStatus.BAD_REQUEST,
-                ContentType.JSON,
-                "{ \"error\": \"Bad Request\", \"data\": null }"
-        );
-    }
-
     private Response internalServerErrorResponse() {
         return new Response(
                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -143,11 +144,47 @@ public class App implements ServerApp {
     }
 
     private void authenticateRequest(Request request) {
-        // Implement authentication logic for general requests
+        // Extract the user token from the request
+        String userToken = request.getUserToken();
+
+        // Check if the user token is null or empty
+        if (userToken == null || userToken.isEmpty()) {
+            throw new UnauthorizedException("Missing or invalid user token");
+        }
     }
 
     private void authenticateUser(Request request, String username) {
-        // Implement authentication logic for user-specific requests
+        // Extract the user token from the request
+        String userToken = request.getUserToken();
+
+        // Check if the user token is null or empty
+        if (userToken == null || userToken.isEmpty()) {
+            throw new UnauthorizedException("Missing or invalid user token");
+        }
+
+        // Check if the user associated with the token has the necessary permissions
+        String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+        if (!authenticatedUsername.equals("admin") && !authenticatedUsername.equals(username)) {
+            throw new ForbiddenException("User does not have permission to access this resource");
+        }
+    }
+
+    private String getAuthenticatedUsernameFromToken(String userToken) {
+        // extract the username from the user token
+        return userToken.replace("-mtcgToken", "");
+    }
+
+    // Custom exception classes for better handling
+    private static class UnauthorizedException extends RuntimeException {
+        public UnauthorizedException(String message) {
+            super(message);
+        }
+    }
+
+    private static class ForbiddenException extends RuntimeException {
+        public ForbiddenException(String message) {
+            super(message);
+        }
     }
 
     private void testMultithreading() throws InterruptedException {

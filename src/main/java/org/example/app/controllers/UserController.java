@@ -20,6 +20,7 @@ public class UserController extends Controller {
 
     private UserRepository userRepository;
     private ObjectMapper objectMapper;
+    private String authenticatedUserToken;
 
     public UserController(UserRepository userRepository) {
         setUserRepository(userRepository);
@@ -93,12 +94,11 @@ public class UserController extends Controller {
 
     public Response updateUser(String username, String body) {
         try {
-            String token = extractTokenFromBody(body);
             String name = extractNameFromBody(body);
             String bio = extractBioFromBody(body);
             String image = extractImageFromBody(body);
 
-            int updateStatus = getUserRepository().updateUser(username, token, name, bio, image);
+            int updateStatus = getUserRepository().updateUser(username, name, bio, image);
 
             switch (updateStatus) {
                 case 200:
@@ -147,11 +147,10 @@ public class UserController extends Controller {
                     return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
                 default:
                     // Authentication successful
-                    return buildJsonResponse(HttpStatus.OK, null, "Login successful");
-                    /*
-                    // Handle other scenarios as needed
-                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
-                     */
+                    setAuthenticatedUserToken(authenticationStatus);  // Save the user's token
+                    // Include the token in the JSON response
+                    String jsonResponse = String.format("{ \"data\": { \"token\": \"%s\" }, \"error\": null }", authenticationStatus);
+                    return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             }
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");

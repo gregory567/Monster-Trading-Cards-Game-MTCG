@@ -22,6 +22,7 @@ public class Request {
     private String authorization;
     private Integer contentLength;
     private String body = "";
+    private String userToken;
 
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
@@ -31,10 +32,11 @@ public class Request {
     private final String CONTENT_LENGTH = "Content-Length: ";
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
-    private final String AUTHORIZATION = "Authorization: ";
+    private final String AUTHORIZATION = "Authorization: Bearer ";
 
     // Constructor taking a BufferedReader for reading the request
-    public Request(BufferedReader inputStream) {
+    public Request(BufferedReader inputStream, String userToken) {
+        this.userToken = userToken;
         // Call the method to build the request
         buildRequest(inputStream);
     }
@@ -71,6 +73,11 @@ public class Request {
                     }
                 }
 
+                // Include user token in Authorization header
+                if (userToken != null && !userToken.isEmpty()) {
+                    setAuthorization(userToken);
+                }
+
                 // Read request body for POST or PUT requests
                 if (getMethod() == Method.POST || getMethod() == Method.PUT) {
                     int asciiChar;
@@ -92,11 +99,6 @@ public class Request {
                 e.printStackTrace();
             }
         }
-    }
-
-    // Get Authorization header value from the input line
-    private String getAuthorizationFromInputLine(String line) {
-        return line.substring(AUTHORIZATION.length());
     }
 
     // Get the HTTP method from the input line
@@ -130,6 +132,11 @@ public class Request {
     // Get the content type from the input line
     private String getContentTypeFromInputLine(String line) {
         return line.substring(CONTENT_TYPE.length());
+    }
+
+    // Get Authorization header value from the input line
+    private String getAuthorizationFromInputLine(String line) {
+        return line.substring(AUTHORIZATION.length());
     }
 
     // Define the methods that require authorization

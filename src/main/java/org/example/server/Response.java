@@ -1,5 +1,8 @@
 package org.example.server;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
 import lombok.AccessLevel;
@@ -7,9 +10,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 
-@Getter(AccessLevel.PRIVATE)
-@Setter(AccessLevel.PRIVATE)
+@Getter
+@Setter
 public class Response {
+    // Accessor method for status code
     private int statusCode;
     private String statusMessage;
     private String contentType;
@@ -28,5 +32,11 @@ public class Response {
                 "Content-Length: " + getContent().length() + "\r\n" +
                 "\r\n" +
                 getContent();
+    }
+
+    // Method to parse JSON response and return JsonNode
+    public JsonNode parseJsonResponse() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readTree(getContent());
     }
 }

@@ -40,7 +40,7 @@ public class UserDAO implements DAO<User> {
         }
 
         // create token for later login
-        String token = "Bearer " + username + "-mtcgToken";
+        String token = username + "-mtcgToken";
         // SQL statement to insert a new user into the usercredentials table
         String insertStmt = "INSERT INTO usercredentials (username, password, token) VALUES (?, ?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
@@ -147,7 +147,7 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public Integer updateUser(String username, String token, String name, String bio, String image) {
+    public Integer updateUser(String username, String name, String bio, String image) {
         if (token == null || !isAuthorized(token, username)) {
             // Access token is missing or invalid
             return 401;
@@ -187,42 +187,41 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public String loginUser(String username, String password) {
-        // Check if the user already exists
-        if (!userExists(username)) {
-            // Username does not exist
-            System.out.println("Username does not exist.");
-            return "401";
-        } else {
-            // Check if the password matches
-            if (passwordMatches(username, password)) {
-                // Password matches, authentication successful
-                // Get usertoken from database
-                String selectStmt = "SELECT token FROM usercredentials WHERE username = ?;";
-                try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
-                    // Set parameters in the prepared statement
-                    preparedStatement.setString(1, username);
-
-                    // Execute the SQL query and obtain the result set
-                    try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                        // Check if the result set has any rows
-                        if (resultSet.next()) {
-                            // Retrieve the stored token from the database
-                            String storedToken = resultSet.getString("token");
-                            // return the token from the database
-                            return storedToken;
-                        }
-                    }
-                } catch (SQLException e) {
-                    // Print any SQL exception that occurs during the token retrieval
-                    e.printStackTrace();
-                }
-
+        try {
+            // Check if the user exists and the password matches
+            if (userExists(username) && passwordMatches(username, password)) {
+                // Authentication successful
+                return retrieveUserToken(username);
             } else {
-                // Password does not match
-                System.out.println("Password does not match.");
+                // Authentication failed
+                System.out.println("Authentication failed.");
                 return "401";
             }
+        } catch (SQLException e) {
+            // Handle SQL exception
+            e.printStackTrace();
+            return "500";
         }
+    }
+
+    // Helper method to retrieve the user token from the database
+    private String retrieveUserToken(String username) throws SQLException {
+        String selectStmt = "SELECT token FROM usercredentials WHERE username = ?;";
+
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
+            preparedStatement.setString(1, username);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                // Check if the result set has any rows
+                if (resultSet.next()) {
+                    // Retrieve the stored token from the database
+                    return resultSet.getString("token");
+                }
+            }
+        }
+
+        // Return "404" if no token is found (should not happen if the user exists)
+        return "404";
     }
 
     public boolean passwordMatches(String username, String password) {

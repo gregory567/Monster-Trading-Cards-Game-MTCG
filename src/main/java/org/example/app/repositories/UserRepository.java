@@ -34,8 +34,8 @@ public class UserRepository implements Repository<User> {
     }
 
     @Override
-    public Integer updateUser(String username, String token, String name, String bio, String image) {
-        return userDAO.updateUser(username, token, name, bio, image);
+    public Integer updateUser(String username, String name, String bio, String image) {
+        return userDAO.updateUser(username, name, bio, image);
     }
 
     @Override
