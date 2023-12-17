@@ -22,8 +22,6 @@ public class UserDAO implements DAO<User> {
     @Setter(AccessLevel.PRIVATE)
     ArrayList<User> usersCache;
 
-    TokenValidator tokenValidator;
-
     public UserDAO(Connection connection) {
         setConnection(connection);
     }
@@ -140,10 +138,6 @@ public class UserDAO implements DAO<User> {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private boolean isAuthorized(String token, String username) {
-        return tokenValidator.validateToken(token, username);
     }
 
     @Override
