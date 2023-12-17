@@ -24,7 +24,7 @@ public class UserController extends Controller {
 
     public UserController(UserRepository userRepository) {
         setUserRepository(userRepository);
-        setObjectMapper(new ObjectMapper());  // Initialize objectMapper
+        setObjectMapper(new ObjectMapper());
     }
 
     // DELETE /users/:username -> löscht einen user mit dem usernamen
@@ -103,8 +103,6 @@ public class UserController extends Controller {
             switch (updateStatus) {
                 case 200:
                     return buildJsonResponse(HttpStatus.OK, null, "User successfully updated");
-                case 401:
-                    return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
                 case 404:
                     return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
                 default:
@@ -141,7 +139,7 @@ public class UserController extends Controller {
             switch (authenticationStatus) {
                 case "401":
                     // Incorrect username or password
-                    return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Incorrect username or password");
+                    return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Invalid username or password provided");
                 case "404":
                     // User not found
                     return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");

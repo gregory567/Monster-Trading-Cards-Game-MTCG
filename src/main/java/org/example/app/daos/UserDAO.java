@@ -148,10 +148,6 @@ public class UserDAO implements DAO<User> {
 
     @Override
     public Integer updateUser(String username, String name, String bio, String image) {
-        if (token == null || !isAuthorized(token, username)) {
-            // Access token is missing or invalid
-            return 401;
-        }
 
         // Check if the user exists
         if (!userExists(username)) {

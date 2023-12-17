@@ -104,8 +104,9 @@ public class App implements ServerApp {
     private Response handlePutRequest(Request request) {
         if (request.getPathname().startsWith("/users/")) {
             String username = getUsernameFromPath(request.getPathname());
-            authenticateUser(request, username); // Add authentication check
-
+            if (!authenticateUser(request, username)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
             String body = request.getBody();
             return getUserController().updateUser(username, body);
         }
@@ -153,20 +154,22 @@ public class App implements ServerApp {
         }
     }
 
-    private void authenticateUser(Request request, String username) {
+    private boolean authenticateUser(Request request, String username) {
         // Extract the user token from the request
         String userToken = request.getUserToken();
 
         // Check if the user token is null or empty
         if (userToken == null || userToken.isEmpty()) {
-            throw new UnauthorizedException("Missing or invalid user token");
+            return false;
         }
 
         // Check if the user associated with the token has the necessary permissions
         String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
         if (!authenticatedUsername.equals("admin") && !authenticatedUsername.equals(username)) {
-            throw new ForbiddenException("User does not have permission to access this resource");
+            return false;
         }
+
+        return true;
     }
 
     private String getAuthenticatedUsernameFromToken(String userToken) {
@@ -190,6 +193,11 @@ public class App implements ServerApp {
     private void testMultithreading() throws InterruptedException {
         // Introduce a configurable sleep duration for testing
         Thread.sleep(2500);
+    }
+
+    private Response buildJsonResponse(HttpStatus status, String data, String error) {
+        String jsonResponse = String.format("{ \"data\": %s, \"error\": %s }", data, error);
+        return new Response(status, ContentType.JSON, jsonResponse);
     }
 
     private void handleException(Exception e) {
