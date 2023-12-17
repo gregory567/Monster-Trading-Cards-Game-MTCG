@@ -136,21 +136,22 @@ public class UserController extends Controller {
             }
 
             // Authenticate the user using the UserDAO
-            int authenticationStatus = getUserRepository().loginUser(username, password);
+            String authenticationStatus = getUserRepository().loginUser(username, password);
 
             switch (authenticationStatus) {
-                case 200:
-                    // Authentication successful
-                    return buildJsonResponse(HttpStatus.OK, null, "Login successful");
-                case 401:
+                case "401":
                     // Incorrect username or password
                     return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Incorrect username or password");
-                case 404:
+                case "404":
                     // User not found
                     return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
                 default:
+                    // Authentication successful
+                    return buildJsonResponse(HttpStatus.OK, null, "Login successful");
+                    /*
                     // Handle other scenarios as needed
                     return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
+                     */
             }
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");

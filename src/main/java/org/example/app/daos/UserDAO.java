@@ -35,11 +35,12 @@ public class UserDAO implements DAO<User> {
         if (userExists(username)) {
             // User with the same username already registered.
             System.out.println("User with the same username already registered.");
-            // Return 0 to indicate unsuccessful user creation
+            // Return 409 to indicate unsuccessful user creation
             return 409;
         }
 
-        String token = ""
+        // create token for later login
+        String token = "Bearer " + username + "-mtcgToken";
         // SQL statement to insert a new user into the usercredentials table
         String insertStmt = "INSERT INTO usercredentials (username, password, token) VALUES (?, ?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
@@ -57,12 +58,12 @@ public class UserDAO implements DAO<User> {
             // Clear the user cache to ensure the latest data is retrieved on subsequent queries
             clearCache();
 
-            // Return 1 to indicate successful user creation
+            // Return 201 to indicate successful user creation
             return 201;
         } catch (SQLException e) {
             // Print any SQL exception that occurs during user creation
             e.printStackTrace();
-            // Return 0 to indicate unsuccessful user creation
+            // Return 500 to indicate unsuccessful user creation
             return 500;
         }
     }
@@ -185,21 +186,41 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public Integer loginUser(String username, String password) {
+    public String loginUser(String username, String password) {
         // Check if the user already exists
         if (!userExists(username)) {
             // Username does not exist
             System.out.println("Username does not exist.");
-            return 401;
+            return "401";
         } else {
             // Check if the password matches
             if (passwordMatches(username, password)) {
                 // Password matches, authentication successful
-                return 200;
+                // Get usertoken from database
+                String selectStmt = "SELECT token FROM usercredentials WHERE username = ?;";
+                try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
+                    // Set parameters in the prepared statement
+                    preparedStatement.setString(1, username);
+
+                    // Execute the SQL query and obtain the result set
+                    try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                        // Check if the result set has any rows
+                        if (resultSet.next()) {
+                            // Retrieve the stored token from the database
+                            String storedToken = resultSet.getString("token");
+                            // return the token from the database
+                            return storedToken;
+                        }
+                    }
+                } catch (SQLException e) {
+                    // Print any SQL exception that occurs during the token retrieval
+                    e.printStackTrace();
+                }
+
             } else {
                 // Password does not match
                 System.out.println("Password does not match.");
-                return 401;
+                return "401";
             }
         }
     }

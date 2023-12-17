@@ -39,7 +39,7 @@ public class UserRepository implements Repository<User> {
     }
 
     @Override
-    public Integer loginUser(String username, String password) {
+    public String loginUser(String username, String password) {
         return userDAO.loginUser(username, password);
     }
 
