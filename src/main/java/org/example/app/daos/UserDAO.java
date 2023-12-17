@@ -2,6 +2,7 @@ package org.example.app.daos;
 
 
 import org.example.app.models.User;
+import org.example.app.models.Userdata;
 import org.example.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -14,13 +15,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDAO implements DAO<User> {
+public class UserDAO implements DAO<Userdata> {
     @Setter(AccessLevel.PRIVATE)
     @Getter(AccessLevel.PRIVATE)
     Connection connection;
 
     @Setter(AccessLevel.PRIVATE)
-    ArrayList<User> usersCache;
+    ArrayList<Userdata> usersCache;
 
     public UserDAO(Connection connection) {
         setConnection(connection);
@@ -94,8 +95,8 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public ArrayList<User> readAll() {
-        ArrayList<User> users = new ArrayList<>();
+    public ArrayList<Userdata> readAll() {
+        ArrayList<Userdata> users = new ArrayList<>();
 
         if (usersCache != null) {
             System.out.println("Cache hit");
@@ -107,9 +108,9 @@ public class UserDAO implements DAO<User> {
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
-                User user = createUserFromResultSet(resultSet);
-                initializeUserData(user);
-                users.add(user);
+                Userdata userdata = createUserdataFromResultSet(resultSet);
+                //initializeUserData(userdata);
+                users.add(userdata);
             }
 
             setUsersCache(users);
@@ -123,15 +124,15 @@ public class UserDAO implements DAO<User> {
     }
 
     @Override
-    public User read(String username) {
+    public Userdata read(String username) {
         String selectStmt = "SELECT * FROM userdata WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                User foundUser = createUserFromResultSet(resultSet);
-                initializeUserData(foundUser);
+                Userdata foundUser = createUserdataFromResultSet(resultSet);
+                //initializeUserData(foundUser);
                 return foundUser;
             }
         } catch (SQLException e) {
@@ -304,6 +305,18 @@ public class UserDAO implements DAO<User> {
         );
 
         return user;
+    }
+
+    // Helper method to create a User instance from a ResultSet
+    private Userdata createUserdataFromResultSet(ResultSet resultSet) throws SQLException {
+        Userdata userdata = new Userdata(
+                resultSet.getString("username"),
+                resultSet.getString("name"),
+                resultSet.getString("bio"),
+                resultSet.getString("image")
+        );
+
+        return userdata;
     }
 
     // Helper method to initialize Stack for a user

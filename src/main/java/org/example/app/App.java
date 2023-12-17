@@ -66,12 +66,16 @@ public class App implements ServerApp {
 
     private Response handleGetRequest(Request request) throws InterruptedException {
         if (request.getPathname().equals("/users")) {
-            authenticateRequest(request); // Add authentication check
+            if (!authenticateRequest(request)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
             testMultithreading();
             return getUserController().getUsers();
         } else if (request.getPathname().startsWith("/users/")) {
             String username = getUsernameFromPath(request.getPathname());
-            authenticateUser(request, username); // Add authentication check
+            if (!authenticateUser(request, username)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
             return getUserController().getUser(username);
         }
         return notFoundResponse();
@@ -144,14 +148,22 @@ public class App implements ServerApp {
         );
     }
 
-    private void authenticateRequest(Request request) {
+    private boolean authenticateRequest(Request request) {
         // Extract the user token from the request
         String userToken = request.getUserToken();
 
         // Check if the user token is null or empty
         if (userToken == null || userToken.isEmpty()) {
-            throw new UnauthorizedException("Missing or invalid user token");
+            return false;
         }
+
+        // Check if the user associated with the token has the necessary permissions
+        String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+        if (!authenticatedUsername.equals("admin")) {
+            return false;
+        }
+
+        return true;
     }
 
     private boolean authenticateUser(Request request, String username) {
@@ -175,19 +187,6 @@ public class App implements ServerApp {
     private String getAuthenticatedUsernameFromToken(String userToken) {
         // extract the username from the user token
         return userToken.replace("-mtcgToken", "");
-    }
-
-    // Custom exception classes for better handling
-    private static class UnauthorizedException extends RuntimeException {
-        public UnauthorizedException(String message) {
-            super(message);
-        }
-    }
-
-    private static class ForbiddenException extends RuntimeException {
-        public ForbiddenException(String message) {
-            super(message);
-        }
     }
 
     private void testMultithreading() throws InterruptedException {

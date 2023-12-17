@@ -9,6 +9,7 @@ import org.example.http.ContentType;
 import org.example.http.HttpStatus;
 import org.example.server.Response;
 import org.example.app.models.User;
+import org.example.app.models.Userdata;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,10 +35,12 @@ public class UserController extends Controller {
     // GET /users -> gibt alle users zurück
     public Response getUsers() {
         try {
-            List<User> userData = getUserRepository().getAll();
+            List<Userdata> userData = getUserRepository().getAll();
             String userDataJSON = getObjectMapper().writeValueAsString(userData);
 
-            return buildJsonResponse(HttpStatus.OK, userDataJSON, null);
+            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userDataJSON, "Data successfully retrieved");
+            return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+
         } catch (JsonProcessingException e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
         }
@@ -46,15 +49,16 @@ public class UserController extends Controller {
     // GET /users/:username
     public Response getUser(String username) {
         try {
-            // Retrieve the user data based on the username from the UserService
-            User user = getUserRepository().get(username);
+            // Retrieve the user data based on the username from the UserRepository
+            Userdata userdata = getUserRepository().get(username);
 
-            // Check if the user is found
-            if (user != null) {
-                // Convert the user object to JSON
-                String userDataJSON = getObjectMapper().writeValueAsString(user);
-                // Return a successful response with the user data
-                return buildJsonResponse(HttpStatus.OK, userDataJSON, null);
+            // Check if the userdata is found
+            if (userdata != null) {
+                // Convert the userdata object to JSON
+                String userDataJSON = getObjectMapper().writeValueAsString(userdata);
+                // Return a successful response with the user data and additional message
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userDataJSON, "Data successfully retrieved");
+                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             } else {
                 // Return a not found response if the user is not found
                 return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
@@ -71,6 +75,10 @@ public class UserController extends Controller {
     // POST /users
     public Response createUser(String body) {
         try {
+            if (!isValidUserRequestBody(body)) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid user request body");
+            }
+
             String username = extractUsernameFromBody(body);
             String password = extractPasswordFromBody(body);
 
@@ -94,6 +102,10 @@ public class UserController extends Controller {
 
     public Response updateUser(String username, String body) {
         try {
+            if (!isValidUserUpdateRequestBody(body)) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid user update request body");
+            }
+
             String name = extractNameFromBody(body);
             String bio = extractBioFromBody(body);
             String image = extractImageFromBody(body);
@@ -125,6 +137,10 @@ public class UserController extends Controller {
 
     public Response loginUser(String body) {
         try {
+            if (!isValidLoginRequestBody(body)) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid login request body");
+            }
+
             String username = extractUsernameFromBody(body);
             String password = extractPasswordFromBody(body);
 
@@ -175,11 +191,6 @@ public class UserController extends Controller {
         }
     }
 
-    private String extractTokenFromBody(String body) {
-        //implement
-        return null;
-    }
-
     private String extractNameFromBody(String body) {
         try {
             JsonNode jsonNode = getObjectMapper().readTree(body);
@@ -207,6 +218,37 @@ public class UserController extends Controller {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    // Validate the request body for the createUser method
+    private boolean isValidUserRequestBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.has("Username") && jsonNode.has("Password");
+        } catch (JsonProcessingException e) {
+            return false; // JSON parsing error
+        }
+    }
+
+    // Validate the request body for the updateUser method
+    private boolean isValidUserUpdateRequestBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            // Customize this logic based on the expected fields for user updates
+            return jsonNode.has("Name") || jsonNode.has("Bio") || jsonNode.has("Image");
+        } catch (JsonProcessingException e) {
+            return false; // JSON parsing error
+        }
+    }
+
+    // Validate the request body for the loginUser method
+    private boolean isValidLoginRequestBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.has("Username") && jsonNode.has("Password");
+        } catch (JsonProcessingException e) {
+            return false; // JSON parsing error
         }
     }
 
