@@ -27,7 +27,7 @@ public class Battle {
             Card card1 = user1.getDeck().getBestCards().get(roundNumber - 1);
             Card card2 = user2.getDeck().getBestCards().get(roundNumber - 1);
 
-            List cardsPlayed = new List<Card> (card1, card2);
+            List<Card> cardsPlayed = new List {card1, card2};
             // Create a Round object
             Round round = new Round(cardsPlayed);
 
@@ -57,7 +57,7 @@ public class Battle {
         System.out.println("Outcome: " + battleLog.getOutcome());
         System.out.println("Detailed Battle Log:");
         for (Round round : battleLog.getRounds()) {
-            System.out.println("Round " + round.getRoundNumber() + ": " + round.getOutcome());
+            System.out.println("Round " + round.getRoundNumber() + ": " + round.determineRoundOutcome());
         }
     }
 

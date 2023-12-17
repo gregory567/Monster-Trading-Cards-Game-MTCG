@@ -1,11 +1,18 @@
 package org.example;
 
 import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 import org.example.app.models.User;
 
+@Getter
+@Setter
 public class Round {
     private List<Card> cardsPlayed;
+    @Getter
     private User winner;
+    @Getter
     private boolean draw;
 
     public Round(List<Card> cardsPlayed) {
@@ -35,19 +42,6 @@ public class Round {
         // For simplicity, let's compare based on damage.
         return Integer.compare(card1.getDamage(), card2.getDamage());
     }
-
-    // Getters and setters for the fields
-
-    public List<Card> getCardsPlayed() {
-        return cardsPlayed;
-    }
-
-    public User getWinner() {
-        return winner;
-    }
-
-    public boolean isDraw() {
-        return draw;
-    }
+    
 }
 
