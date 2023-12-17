@@ -24,11 +24,12 @@ public class Battle {
         // Logic to start the battle and determine the outcome of each round
         for (int roundNumber = 1; roundNumber <= 100; roundNumber++) {
             // Get cards played by each user for the current round
-            Card card1 = user1.getDeck().getBestCards()[roundNumber - 1];
-            Card card2 = user2.getDeck().getBestCards()[roundNumber - 1];
+            Card card1 = user1.getDeck().getBestCards().get(roundNumber - 1);
+            Card card2 = user2.getDeck().getBestCards().get(roundNumber - 1);
 
+            List cardsPlayed = new List<Card> (card1, card2);
             // Create a Round object
-            Round round = new Round(card1, card2);
+            Round round = new Round(cardsPlayed);
 
             // Determine the outcome of the round
             round.determineRoundOutcome();

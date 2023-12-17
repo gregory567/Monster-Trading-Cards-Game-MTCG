@@ -4,15 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.app.models.User;
 
+import static org.example.ElementType.*;
 import static org.example.ElementType.FIRE;
-import static org.example.ElementType.WATER;
 import static org.example.ElementType.NORMAL;
 
 @Getter
 @Setter
 public class MonsterCard extends Card {
 
-    public MonsterCard(String name, Integer damage, String elementType, String[] specialties, User owner) {
+    public MonsterCard(Package.CardName name, Integer damage, ElementType elementType, String[] specialties, User owner) {
         super(name, damage, elementType, specialties, owner);
         this.cardType = CardType.MONSTER;
     }
@@ -73,7 +73,7 @@ public class MonsterCard extends Card {
 
                         case "Knight":
                             // The armor of Knights is so heavy that WaterSpells make them drown instantly
-                            if (opponentCard.getElementType().equals(ElementType.WATER)) {
+                            if (opponentCard.getElementType().equals(WATER)) {
                                 // set damage to 0
                                 opponentCard.setDamage(100);
                             }

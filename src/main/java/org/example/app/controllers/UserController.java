@@ -15,8 +15,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-@Setter(AccessLevel.PRIVATE)
-@Getter(AccessLevel.PRIVATE)
+@Setter
+@Getter
 public class UserController extends Controller {
 
     private UserRepository userRepository;

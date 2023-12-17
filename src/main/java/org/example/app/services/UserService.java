@@ -20,9 +20,9 @@ public class UserService {
 
     public UserService() {
         setUserData(new ArrayList<>());
-        userData.add(new User("user1", "password1", 100.0, new Stack(), new Deck(), null));
-        userData.add(new User("user2", "password2", 150.0, new Stack(), new Deck(), null));
-        userData.add(new User("user3", "password3", 200.0, new Stack(), new Deck(), null));
+        //userData.add(new User("user1", "password1", 100.0, new Stack(), new Deck(), null));
+        //userData.add(new User("user2", "password2", 150.0, new Stack(), new Deck(), null));
+        //userData.add(new User("user3", "password3", 200.0, new Stack(), new Deck(), null));
     }
 
     public User getUserByUsername(String username) {
@@ -38,11 +38,13 @@ public class UserService {
         return userData;
     }
 
+    /*
     public User createUser(String username, String password, double coins, Stack stack, Deck deck, Profile profile) {
         User newUser = new User(username, password, coins, stack, deck, profile);
         userData.add(newUser);
         return newUser;
     }
+     */
 
     public void removeUser(String username) {
         userData.removeIf(user -> Objects.equals(username, user.getUsername()));

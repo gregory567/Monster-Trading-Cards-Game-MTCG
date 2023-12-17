@@ -7,14 +7,15 @@ import lombok.Setter;
 @Getter
 @Setter
 public abstract class Card {
-    protected String name;
+
+    protected Package.CardName name;
     protected Integer damage;
-    protected String elementType;
+    protected ElementType elementType;
     protected String[] specialties;
     protected CardType cardType;
     protected User owner;
 
-    public Card(String name, Integer damage, String elementType, String[] specialties, User owner) {
+    public Card(Package.CardName name, Integer damage, ElementType elementType, String[] specialties, User owner) {
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;

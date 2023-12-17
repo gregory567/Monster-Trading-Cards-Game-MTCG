@@ -12,7 +12,7 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class SpellCard extends Card {
 
-    public SpellCard(String name, Integer damage, String elementType, String[] specialties, User owner) {
+    public SpellCard(Package.CardName name, Integer damage, ElementType elementType, String[] specialties, User owner) {
         super(name, damage, elementType, specialties, owner);
         this.cardType = CardType.SPELL;
     }

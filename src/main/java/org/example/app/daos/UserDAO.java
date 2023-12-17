@@ -1,6 +1,7 @@
 package org.example.app.daos;
 
 
+import org.example.Package;
 import org.example.app.models.User;
 import org.example.app.models.Userdata;
 import org.example.*;
@@ -375,9 +376,9 @@ public class UserDAO implements DAO<Userdata> {
             try (ResultSet cardResultSet = cardStatement.executeQuery()) {
                 if (cardResultSet.next()) {
                     String cardType = cardResultSet.getString("cardType");
-                    String name = cardResultSet.getString("name");
+                    Package.CardName name = Package.CardName.valueOf(cardResultSet.getString("name"));
                     int damage = cardResultSet.getInt("damage");
-                    String elementType = cardResultSet.getString("elementType");
+                    ElementType elementType = ElementType.valueOf(cardResultSet.getString("elementType"));
                     String[] specialties = (String[]) cardResultSet.getArray("specialties").getArray();
 
                     User owner = getUserByUsername(cardResultSet.getString("owner_username"));
