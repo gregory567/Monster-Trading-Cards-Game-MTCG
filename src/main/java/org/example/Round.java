@@ -10,13 +10,13 @@ import org.example.app.models.User;
 @Setter
 public class Round {
     private List<Card> cardsPlayed;
-    @Getter
+    private Integer roundNumber;
     private User winner;
-    @Getter
     private boolean draw;
 
-    public Round(List<Card> cardsPlayed) {
+    public Round(List<Card> cardsPlayed, Integer roundNumber) {
         this.cardsPlayed = cardsPlayed;
+        this.roundNumber = roundNumber;
     }
 
     public void determineRoundOutcome() {
@@ -41,6 +41,15 @@ public class Round {
         // Return a positive number if card1 wins, a negative number if card2 wins, and 0 for a draw.
         // For simplicity, let's compare based on damage.
         return Integer.compare(card1.getDamage(), card2.getDamage());
+    }
+
+    public String getRoundOutcome() {
+        // Return the outcome of the round as a string
+        if (draw) {
+            return "Draw";
+        } else {
+            return "Winner: " + winner.getUsername();  // assuming getName() is a method in the User class
+        }
     }
     
 }

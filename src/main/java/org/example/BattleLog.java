@@ -21,8 +21,5 @@ public class BattleLog {
         rounds.add(round);
     }
 
-    public void setOutcome(String outcome) {
-        this.outcome = outcome;
-    }
 }
 

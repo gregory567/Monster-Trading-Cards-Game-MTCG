@@ -15,6 +15,7 @@ import org.example.Requirement;
 import org.example.TradeDeal;
 import org.example.Store;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -190,6 +191,10 @@ public class User {
         } else {
             System.out.println("User profile not available for editing.");
         }
+    }
+
+    public List<BattleResult> getBattleResults() {
+        return Arrays.asList(battleResults);
     }
 
 }
