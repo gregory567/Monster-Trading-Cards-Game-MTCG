@@ -42,7 +42,7 @@ public class UserDAO implements DAO<Userdata> {
         // create token for later login
         String token = username + "-mtcgToken";
         // SQL statement to insert a new user into the usercredentials table
-        String insertStmt = "INSERT INTO usercredentials (username, password, token) VALUES (?, ?, ?);";
+        String insertStmt = "INSERT INTO \"UserCredentials\" (username, password, token) VALUES (?, ?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setString(1, username);
@@ -71,7 +71,7 @@ public class UserDAO implements DAO<Userdata> {
     // Helper method to check if a user already exists in the database
     private boolean userExists(String username) {
         // SQL statement to count the number of users with the specified username
-        String selectStmt = "SELECT COUNT(*) FROM usercredentials WHERE username = ?;";
+        String selectStmt = "SELECT COUNT(*) FROM \"UserCredentials\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             // Set the username parameter in the prepared statement
             preparedStatement.setString(1, username);
@@ -104,7 +104,7 @@ public class UserDAO implements DAO<Userdata> {
             return usersCache;
         }
 
-        String selectStmt = "SELECT * FROM userdata;";
+        String selectStmt = "SELECT * FROM \"UserData\";";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
@@ -126,7 +126,7 @@ public class UserDAO implements DAO<Userdata> {
 
     @Override
     public Userdata read(String username) {
-        String selectStmt = "SELECT * FROM userdata WHERE username = ?;";
+        String selectStmt = "SELECT * FROM \"UserData\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -152,7 +152,7 @@ public class UserDAO implements DAO<Userdata> {
         }
 
         // Update the user data
-        String updateStmt = "UPDATE userdata SET name = ?, bio = ?, image = ? WHERE username = ?;";
+        String updateStmt = "UPDATE UserData SET name = ?, bio = ?, image = ? WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, bio);
@@ -198,7 +198,7 @@ public class UserDAO implements DAO<Userdata> {
 
     // Helper method to retrieve the user token from the database
     private String retrieveUserToken(String username) throws SQLException {
-        String selectStmt = "SELECT token FROM usercredentials WHERE username = ?;";
+        String selectStmt = "SELECT token FROM \"UserCredentials\" WHERE username = ?;";
 
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
@@ -218,7 +218,7 @@ public class UserDAO implements DAO<Userdata> {
 
     public boolean passwordMatches(String username, String password) {
         // SQL statement to retrieve the password for the given username
-        String selectStmt = "SELECT password FROM usercredentials WHERE username = ?;";
+        String selectStmt = "SELECT password FROM \"UserCredentials\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setString(1, username);
@@ -244,7 +244,7 @@ public class UserDAO implements DAO<Userdata> {
 
     @Override
     public void delete(String username) {
-        String deleteStmt = "DELETE FROM usercredentials WHERE username = ?;";
+        String deleteStmt = "DELETE FROM UserCredentials WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
             preparedStatement.setString(1, username);
             preparedStatement.executeUpdate();

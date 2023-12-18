@@ -136,7 +136,12 @@ public class Request {
 
     // Get Authorization header value from the input line
     private String getAuthorizationFromInputLine(String line) {
-        return line.substring(AUTHORIZATION.length());
+        int startIndex = AUTHORIZATION.length();
+        if (line.length() > startIndex) {
+            return line.substring(startIndex);
+        } else {
+            return "";
+        }
     }
 
     // Define the methods that require authorization
