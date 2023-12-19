@@ -52,9 +52,6 @@ public class UserDAO implements DAO<Userdata> {
             // Execute the SQL update statement to insert the new user
             preparedStatement.executeUpdate();
 
-            // Close the database connection
-            getConnection().close();
-
             // Clear the user cache to ensure the latest data is retrieved on subsequent queries
             clearCache();
 
@@ -115,7 +112,6 @@ public class UserDAO implements DAO<Userdata> {
             }
 
             setUsersCache(users);
-            getConnection().close();
             return users;
         } catch (SQLException e) {
             e.printStackTrace();
