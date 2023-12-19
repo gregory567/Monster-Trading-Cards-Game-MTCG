@@ -52,11 +52,11 @@ public class Task implements Runnable {
 
             writer.write(response.build());
             // flush the stream to ensure data is sent immediately
-            writer.flush();
+            //writer.flush();
         } catch (IOException e) {
             handleException(e);
         } finally {
-            closeResources();
+            //closeResources();
         }
     }
 
