@@ -10,7 +10,6 @@ import org.example.http.HttpStatus;
 import org.example.server.Response;
 import org.example.app.models.User;
 import org.example.app.dtos.UserDataDTO;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 

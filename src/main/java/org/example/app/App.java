@@ -8,6 +8,9 @@ import lombok.Setter;
 import lombok.Getter;
 import lombok.AccessLevel;
 import org.example.app.controllers.UserController;
+import org.example.app.controllers.CardController;
+import org.example.app.daos.CardDAO;
+import org.example.app.repositories.CardRepository;
 import org.example.app.services.UserService;
 import org.example.app.daos.UserDAO;
 import org.example.app.repositories.UserRepository;
@@ -27,6 +30,7 @@ import java.sql.Connection;
 public class App implements ServerApp {
 
     private UserController userController;
+    private CardController cardController;
     private String authenticatedUserToken;
 
     public App() {
@@ -34,9 +38,12 @@ public class App implements ServerApp {
         DatabaseService databaseService = new DatabaseService();
 
         UserDAO userDAO = new UserDAO(databaseService.getConnection());
+        CardDAO cardDAO = new CardDAO(databaseService.getConnection());
         UserRepository userRepository = new UserRepository(userDAO);
+        CardRepository cardRepository = new CardRepository(cardDAO);
 
         setUserController(new UserController(userRepository));
+        setCardController(new CardController(cardRepository));
     }
 
     public Response handleRequest(Request request) {
@@ -77,6 +84,17 @@ public class App implements ServerApp {
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
             return getUserController().getUser(username);
+        } else if (request.getPathname().startsWith("/cards")) {
+            if (!authenticateRequest(request)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Get the user from the token
+            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+
+            return getCardController().getCards(authenticatedUsername);
         }
         return notFoundResponse();
     }
