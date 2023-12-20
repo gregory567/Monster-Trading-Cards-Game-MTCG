@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CardDAO implements DAO<CardDTO> {
+public class CardDAO {
 
     @Setter(AccessLevel.PRIVATE)
     @Getter(AccessLevel.PRIVATE)
@@ -26,14 +26,12 @@ public class CardDAO implements DAO<CardDTO> {
         setConnection(connection);
     }
 
-    @Override
     public Integer create(CardDTO cardDTO) {
         // Implement card creation logic here
         // Return appropriate HTTP status codes based on the result
         return null;
     }
 
-    @Override
     public ArrayList<CardDTO> readAll(String username) {
         List<CardDTO> cards = new ArrayList<>();
 
@@ -66,21 +64,18 @@ public class CardDAO implements DAO<CardDTO> {
     }
 
 
-    @Override
     public CardDTO read(String cardId) {
         // Implement logic to retrieve a card by its ID from the database
         // and return the Card object
         return null;
     }
 
-    @Override
     public Integer update(Card card) {
         // Implement logic to update the card in the database
         // Return appropriate HTTP status codes based on the result
         return null;
     }
 
-    @Override
     public void delete(String cardId) {
         // Implement logic to delete a card by its ID from the database
     }

@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS "User" (
     "profile_bio" VARCHAR(255),
     "profile_image" VARCHAR(255),
     "coins" DOUBLE PRECISION NOT NULL,
-    "elo_score" INTEGER,
-    "wins" INTEGER,
-    "losses" INTEGER,
+    "elo_score" INTEGER NOT NULL,
+    "wins" INTEGER NOT NULL,
+    "losses" INTEGER NOT NULL,
     UNIQUE("username")
 );
 
