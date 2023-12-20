@@ -4,10 +4,11 @@
 CREATE TABLE IF NOT EXISTS "User" (
     "username" VARCHAR(255) PRIMARY KEY,
     "password" VARCHAR(255) NOT NULL,
-    "coins" DOUBLE PRECISION NOT NULL,
+    "token" VARCHAR(255) NOT NULL,
     "profile_name" VARCHAR(255),
     "profile_bio" VARCHAR(255),
     "profile_image" VARCHAR(255),
+    "coins" DOUBLE PRECISION NOT NULL,
     "elo_score" INTEGER,
     "wins" INTEGER,
     "losses" INTEGER,
