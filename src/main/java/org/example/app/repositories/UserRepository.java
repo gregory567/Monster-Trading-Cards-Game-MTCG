@@ -1,8 +1,7 @@
 package org.example.app.repositories;
 
 import org.example.app.daos.UserDAO;
-import org.example.app.models.User;
-import org.example.app.models.Userdata;
+import org.example.app.dtos.UserDataDTO;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +10,7 @@ import java.util.List;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
-public class UserRepository implements Repository<Userdata> {
+public class UserRepository implements Repository<UserDataDTO> {
 
     private UserDAO userDAO;
 
@@ -20,12 +19,12 @@ public class UserRepository implements Repository<Userdata> {
     }
 
     @Override
-    public List<Userdata> getAll() {
+    public List<UserDataDTO> getAll() {
         return userDAO.readAll();
     }
 
     @Override
-    public Userdata get(String username) {
+    public UserDataDTO get(String username) {
         return userDAO.read(username);
     }
 

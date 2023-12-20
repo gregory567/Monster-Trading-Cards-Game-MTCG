@@ -9,7 +9,7 @@ import org.example.http.ContentType;
 import org.example.http.HttpStatus;
 import org.example.server.Response;
 import org.example.app.models.User;
-import org.example.app.models.Userdata;
+import org.example.app.dtos.UserDataDTO;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +35,7 @@ public class UserController extends Controller {
     // GET /users -> gibt alle users zurück
     public Response getUsers() {
         try {
-            List<Userdata> userData = getUserRepository().getAll();
+            List<UserDataDTO> userData = getUserRepository().getAll();
             String userDataJSON = getObjectMapper().writeValueAsString(userData);
 
             String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userDataJSON, "Data successfully retrieved");
@@ -50,7 +50,7 @@ public class UserController extends Controller {
     public Response getUser(String username) {
         try {
             // Retrieve the user data based on the username from the UserRepository
-            Userdata userdata = getUserRepository().get(username);
+            UserDataDTO userdata = getUserRepository().get(username);
 
             // Check if the userdata is found
             if (userdata != null) {

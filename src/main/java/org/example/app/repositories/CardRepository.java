@@ -11,7 +11,7 @@ import java.util.List;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
-public class CardRepository implements Repository<CardDTO> {
+public class CardRepository {
 
     private CardDAO cardDAO;
 
@@ -19,27 +19,24 @@ public class CardRepository implements Repository<CardDTO> {
         setCardDAO(cardDAO);
     }
 
-    @Override
+
     public List<CardDTO> getAll(String username) {
         return cardDAO.readAll(username);
     }
 
-    @Override
     public CardDTO get(String cardId) {
         return cardDAO.read(cardId);
     }
 
-    @Override
+
     public Integer add(CardDTO cardDTO) {
         return cardDAO.create(cardDTO);
     }
 
-    @Override
     public Integer update(CardDTO cardDTO) {
         return cardDAO.update(cardDTO);
     }
 
-    @Override
     public void remove(String cardId) {
         cardDAO.delete(cardId);
     }

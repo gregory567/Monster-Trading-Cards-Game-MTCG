@@ -3,7 +3,7 @@ package org.example.app.daos;
 
 import org.example.Package;
 import org.example.app.models.User;
-import org.example.app.models.Userdata;
+import org.example.app.dtos.UserDataDTO;
 import org.example.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,13 +16,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserDAO implements DAO<Userdata> {
+public class UserDAO implements DAO<UserDataDTO> {
     @Setter(AccessLevel.PRIVATE)
     @Getter(AccessLevel.PRIVATE)
     Connection connection;
 
     @Setter(AccessLevel.PRIVATE)
-    ArrayList<Userdata> usersCache;
+    ArrayList<UserDataDTO> usersCache;
 
     public UserDAO(Connection connection) {
         setConnection(connection);
@@ -93,8 +93,8 @@ public class UserDAO implements DAO<Userdata> {
     }
 
     @Override
-    public ArrayList<Userdata> readAll() {
-        ArrayList<Userdata> users = new ArrayList<>();
+    public ArrayList<UserDataDTO> readAll() {
+        ArrayList<UserDataDTO> users = new ArrayList<>();
 
         if (usersCache != null) {
             System.out.println("Cache hit");
@@ -106,7 +106,7 @@ public class UserDAO implements DAO<Userdata> {
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
-                Userdata userdata = createUserdataFromResultSet(resultSet);
+                UserDataDTO userdata = createUserdataFromResultSet(resultSet);
                 //initializeUserData(userdata);
                 users.add(userdata);
             }
@@ -121,14 +121,14 @@ public class UserDAO implements DAO<Userdata> {
     }
 
     @Override
-    public Userdata read(String username) {
+    public UserDataDTO read(String username) {
         String selectStmt = "SELECT * FROM \"UserData\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                Userdata foundUser = createUserdataFromResultSet(resultSet);
+                UserDataDTO foundUser = createUserdataFromResultSet(resultSet);
                 //initializeUserData(foundUser);
                 return foundUser;
             }
@@ -240,7 +240,7 @@ public class UserDAO implements DAO<Userdata> {
 
     @Override
     public void delete(String username) {
-        String deleteStmt = "DELETE FROM UserCredentials WHERE username = ?;";
+        String deleteStmt = "DELETE FROM \"UserCredentials\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
             preparedStatement.setString(1, username);
             preparedStatement.executeUpdate();
@@ -305,9 +305,8 @@ public class UserDAO implements DAO<Userdata> {
     }
 
     // Helper method to create a User instance from a ResultSet
-    private Userdata createUserdataFromResultSet(ResultSet resultSet) throws SQLException {
-        Userdata userdata = new Userdata(
-                resultSet.getString("username"),
+    private UserDataDTO createUserdataFromResultSet(ResultSet resultSet) throws SQLException {
+        UserDataDTO userdata = new UserDataDTO(
                 resultSet.getString("name"),
                 resultSet.getString("bio"),
                 resultSet.getString("image")

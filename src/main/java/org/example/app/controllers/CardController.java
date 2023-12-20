@@ -26,10 +26,12 @@ public class CardController extends Controller {
     }
 
     // GET /cards
-    public Response getCards() {
+    public Response getCards(String username) {
         try {
+
+
             // Assuming readAll is a method in CardRepository to get all cards
-            List<CardDTO> cardData = getCardRepository().getAll();
+            List<CardDTO> cardData = getCardRepository().getAll(username);
             String cardDataJSON = getObjectMapper().writeValueAsString(cardData);
 
             String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", cardDataJSON, "Data successfully retrieved");
