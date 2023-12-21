@@ -27,11 +27,29 @@ public class CardController extends Controller {
     // GET /cards
     public Response getCards(String username) {
         try {
-            List<CardDTO> cardData = getCardRepository().getAll(username);
+            List<CardDTO> cardData = getCardRepository().getCards(username);
 
             if (!cardData.isEmpty()) {
                 String cardDataJSON = getObjectMapper().writeValueAsString(cardData);
                 String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", cardDataJSON, "Data successfully retrieved");
+                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+            } else {
+                return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, null);
+            }
+
+        } catch (JsonProcessingException e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
+        }
+    }
+
+    // GET /deck
+    public Response getDeck(String username) {
+        try {
+            List<CardDTO> deckData = getCardRepository().getDeck(username);
+
+            if (!deckData.isEmpty()) {
+                String deckDataJSON = getObjectMapper().writeValueAsString(deckData);
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", deckDataJSON, "Deck successfully retrieved");
                 return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             } else {
                 return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, null);

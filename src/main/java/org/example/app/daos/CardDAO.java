@@ -32,7 +32,7 @@ public class CardDAO {
         return null;
     }
 
-    public ArrayList<CardDTO> readAll(String username) {
+    public ArrayList<CardDTO> getUserCards(String username) {
         List<CardDTO> cards = new ArrayList<>();
 
         String query = "SELECT * FROM \"Stack\" s JOIN \"Card\" c ON s.card_id = c.id WHERE s.username = ?";
@@ -63,6 +63,28 @@ public class CardDAO {
         return cardDTO;
     }
 
+    public List<CardDTO> getDeckCards(String username) {
+        String query = "SELECT c.* FROM \"Deck\" d " +
+                "JOIN \"Card\" c ON c.id = ANY(ARRAY[d.card1_id, d.card2_id, d.card3_id, d.card4_id]) " +
+                "WHERE d.username = ?";
+
+        List<CardDTO> cards = new ArrayList<>();
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, username); // Set the parameter for the username
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                CardDTO cardDTO = createCardDTOFromResultSet(resultSet);
+                cards.add(cardDTO);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return cards;
+    }
 
     public CardDTO read(String cardId) {
         // Implement logic to retrieve a card by its ID from the database
@@ -78,20 +100,6 @@ public class CardDAO {
 
     public void delete(String cardId) {
         // Implement logic to delete a card by its ID from the database
-    }
-
-    // Additional methods specific to the CardDAO
-
-    public List<Card> getUserCards(String username) {
-        // Implement logic to retrieve cards owned by the specified user
-        // and return the list of cards
-        return null;
-    }
-
-    public List<Card> getDeckCards(String username) {
-        // Implement logic to retrieve cards in the user's deck
-        // and return the list of cards
-        return null;
     }
 
     public Integer configureDeck(String username, List<String> cardIds) {

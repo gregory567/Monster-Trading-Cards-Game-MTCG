@@ -1,5 +1,29 @@
 
 
+-- Create UserCredentials Table
+CREATE TABLE IF NOT EXISTS "UserCredentials" (
+    "username" VARCHAR(255) PRIMARY KEY,
+    "password" VARCHAR(255) NOT NULL,
+    "token" VARCHAR(255) NOT NULL
+    );
+
+-- Create UserData Table
+CREATE TABLE IF NOT EXISTS "UserData" (
+    "username" VARCHAR(255) PRIMARY KEY REFERENCES "UserCredentials"("username"),
+    "name" VARCHAR(255),
+    "bio" VARCHAR(255),
+    "image" VARCHAR(255),
+    "coins" DOUBLE PRECISION NOT NULL
+    );
+
+-- Create UserStats Table
+CREATE TABLE IF NOT EXISTS "UserStats" (
+    "username" VARCHAR(255) PRIMARY KEY REFERENCES "UserData"("username"),
+    "elo" INTEGER,
+    "wins" INTEGER,
+    "losses" INTEGER
+    );
+
 -- Create User Table
 CREATE TABLE IF NOT EXISTS "User" (
     "username" VARCHAR(255) PRIMARY KEY,
@@ -13,30 +37,6 @@ CREATE TABLE IF NOT EXISTS "User" (
     "wins" INTEGER NOT NULL,
     "losses" INTEGER NOT NULL,
     UNIQUE("username")
-);
-
--- Create UserCredentials Table
-CREATE TABLE IF NOT EXISTS "UserCredentials" (
-    "username" VARCHAR(255) PRIMARY KEY,
-    "password" VARCHAR(255) NOT NULL,
-    "token" VARCHAR(255) NOT NULL
-);
-
--- Create UserData Table
-CREATE TABLE IF NOT EXISTS "UserData" (
-    "username" VARCHAR(255) PRIMARY KEY REFERENCES "UserCredentials"("username"),
-    "name" VARCHAR(255),
-    "bio" VARCHAR(255),
-    "image" VARCHAR(255),
-    "coins" DOUBLE PRECISION NOT NULL
-);
-
--- Create UserStats Table
-CREATE TABLE IF NOT EXISTS "UserStats" (
-    "username" VARCHAR(255) PRIMARY KEY REFERENCES "UserData"("username"),
-    "elo" INTEGER,
-    "wins" INTEGER,
-    "losses" INTEGER
 );
 
 -- Create Card Table

@@ -20,8 +20,12 @@ public class CardRepository {
     }
 
 
-    public List<CardDTO> getAll(String username) {
-        return cardDAO.readAll(username);
+    public List<CardDTO> getCards(String username) {
+        return cardDAO.getUserCards(username);
+    }
+
+    public List<CardDTO> getDeck(String username) {
+        return cardDAO.getDeckCards(username);
     }
 
     public CardDTO get(String cardId) {
