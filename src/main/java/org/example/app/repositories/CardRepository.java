@@ -28,17 +28,16 @@ public class CardRepository {
         return cardDAO.getDeckCards(username);
     }
 
+    public Integer updateDeck(String username, List<String> cardIds) {
+        return cardDAO.updateUserDeck(username, cardIds);
+    }
+
     public CardDTO get(String cardId) {
         return cardDAO.read(cardId);
     }
 
-
     public Integer add(CardDTO cardDTO) {
         return cardDAO.create(cardDTO);
-    }
-
-    public Integer update(CardDTO cardDTO) {
-        return cardDAO.update(cardDTO);
     }
 
     public void remove(String cardId) {

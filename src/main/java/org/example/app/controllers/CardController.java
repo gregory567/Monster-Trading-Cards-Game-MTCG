@@ -11,6 +11,7 @@ import org.example.app.dtos.CardDTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 @Setter
 @Getter
@@ -86,6 +87,46 @@ public class CardController extends Controller {
         }
     }
 
+    // PUT /deck
+    public Response updateDeck(String username, String body) {
+        try {
+            List<String> cardIds = extractCardIdsFromBody(body);
+
+            // Check if the provided deck includes the required amount of cards
+            if (cardIds.size() != 4) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "The provided deck must include exactly four cards");
+            }
+
+            // Configure the deck with the provided cards
+            int configurationStatus = getCardRepository().updateDeck(username, cardIds);
+
+            switch (configurationStatus) {
+                case 200:
+                    return buildJsonResponse(HttpStatus.OK, null, "Deck successfully configured");
+                case 403:
+                    return buildJsonResponse(HttpStatus.FORBIDDEN, null, "At least one of the provided cards does not belong to the user or is not available");
+                default:
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to configure deck");
+            }
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to configure deck");
+        }
+    }
+
+
+    private List<String> extractCardIdsFromBody(String body) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(body);
+
+        List<String> cardIds = new ArrayList<>();
+
+        for (JsonNode nodeId : jsonNode) {
+            cardIds.add(nodeId.asText());
+        }
+
+        return cardIds;
+    }
+
     // POST /cards
     public Response createCard(String body) {
         try {
@@ -104,28 +145,6 @@ public class CardController extends Controller {
             }
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create card");
-        }
-    }
-
-    // PUT /cards/:cardId
-    public Response updateCard(String cardId, String body) {
-        try {
-            // Assuming update is a method in CardRepository to update a card
-            CardDTO cardDTO = parseCardDTOFromBody(body);
-            cardDTO.setId(cardId); // Set the ID from the path parameter
-
-            int updateStatus = getCardRepository().update(cardDTO);
-
-            switch (updateStatus) {
-                case 200:
-                    return buildJsonResponse(HttpStatus.OK, null, "Card successfully updated");
-                case 404:
-                    return buildJsonResponse(HttpStatus.NOT_FOUND, null, "Card not found");
-                default:
-                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to update card");
-            }
-        } catch (Exception e) {
-            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to update card");
         }
     }
 
