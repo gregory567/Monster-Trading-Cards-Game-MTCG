@@ -27,14 +27,15 @@ public class CardController extends Controller {
     // GET /cards
     public Response getCards(String username) {
         try {
-
-
-            // Assuming readAll is a method in CardRepository to get all cards
             List<CardDTO> cardData = getCardRepository().getAll(username);
-            String cardDataJSON = getObjectMapper().writeValueAsString(cardData);
 
-            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", cardDataJSON, "Data successfully retrieved");
-            return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+            if (!cardData.isEmpty()) {
+                String cardDataJSON = getObjectMapper().writeValueAsString(cardData);
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", cardDataJSON, "Data successfully retrieved");
+                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+            } else {
+                return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, null);
+            }
 
         } catch (JsonProcessingException e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");

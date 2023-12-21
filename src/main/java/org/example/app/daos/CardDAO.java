@@ -35,7 +35,7 @@ public class CardDAO {
     public ArrayList<CardDTO> readAll(String username) {
         List<CardDTO> cards = new ArrayList<>();
 
-        String query = "SELECT * FROM \"Stack\" s JOIN \"Card\" c ON s.\"card_id\" = c.\"id\" WHERE s.\"username\" = ?";
+        String query = "SELECT * FROM \"Stack\" s JOIN \"Card\" c ON s.card_id = c.id WHERE s.username = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, username); // Set the parameter for the username
