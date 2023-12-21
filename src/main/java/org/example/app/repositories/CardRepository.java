@@ -32,6 +32,10 @@ public class CardRepository {
         return cardDAO.updateUserDeck(username, cardIds);
     }
 
+    public Integer createPackage(List<CardDTO> cards) {
+        return cardDAO.createPackage(cards);
+    }
+
     public CardDTO get(String cardId) {
         return cardDAO.read(cardId);
     }

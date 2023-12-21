@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class CardDAO {
 
@@ -182,6 +183,71 @@ public class CardDAO {
         }
 
         return false;
+    }
+
+    public Integer createPackage(List<CardDTO> cards) {
+
+        // Validate that the cards in the package are unique
+        Set<String> uniqueCardIds = cards.stream().map(CardDTO::getId).collect(Collectors.toSet());
+        if (uniqueCardIds.size() != 5) {
+            return 400; // Return 400 for non-unique card IDs
+        }
+
+        // Validate that each card in the package is not part of any other package
+        if (!areCardsNotInOtherPackages(cards)) {
+            return 409; // Return 409 for cards already in another package
+        }
+
+        // If validation passes, proceed with creating the package
+        String insertQuery = "INSERT INTO \"Package\" (id, card1_id, card2_id, card3_id, card4_id, card5_id) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+            // Generate a new UUID for the package
+            java.util.UUID packageId = java.util.UUID.randomUUID();
+            preparedStatement.setObject(1, packageId);
+
+            // Set the card IDs for each card in the package
+            for (int i = 0; i < 5; i++) {
+                preparedStatement.setObject(i + 2, java.util.UUID.fromString(cards.get(i).getId()));
+            }
+
+            int rowsInserted = preparedStatement.executeUpdate();
+
+            return rowsInserted > 0 ? 201 : 500; // Return 201 for success, 500 for other failures
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 500; // Return 500 for SQL exceptions
+        }
+    }
+
+    /**
+     * Checks if the provided cards are not part of any other package.
+     *
+     * @param cards The list of cards to be validated.
+     * @return True if the cards are not part of any other package, false otherwise.
+     */
+    private boolean areCardsNotInOtherPackages(List<CardDTO> cards) {
+        String query = "SELECT COUNT(*) FROM \"Package\" WHERE card1_id = ? OR card2_id = ? OR card3_id = ? OR card4_id = ? OR card5_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            for (CardDTO card : cards) {
+                preparedStatement.setObject(1, java.util.UUID.fromString(card.getId()));
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                if (resultSet.next()) {
+                    int count = resultSet.getInt(1);
+                    if (count > 0) {
+                        return false; // At least one card is part of another package
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return true;
     }
 
     public CardDTO read(String cardId) {

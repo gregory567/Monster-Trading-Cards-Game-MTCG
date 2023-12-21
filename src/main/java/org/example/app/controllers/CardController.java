@@ -13,6 +13,8 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Setter
 @Getter
 public class CardController extends Controller {
@@ -126,6 +128,48 @@ public class CardController extends Controller {
 
         return cardIds;
     }
+
+    // POST /packages
+    public Response createPackage(String body) {
+        try {
+            List<CardDTO> cards = parseCardDTOsFromBody(body);
+
+            // Check if the provided package includes the required amount of cards
+            if (cards.size() != 5) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "The provided package must include exactly 5 cards");
+            }
+
+            // Configure the user's deck with the provided cards
+            int configurationStatus = getCardRepository().createPackage(cards);
+
+            switch (configurationStatus) {
+                case 201:
+                    return buildJsonResponse(HttpStatus.CREATED, null, "Package and cards successfully created");
+                case 409:
+                    return buildJsonResponse(HttpStatus.CONFLICT, null, "At least one card in the packages already exists");
+                default:
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create package and cards");
+            }
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create package and cards");
+        }
+    }
+
+    // Helper method to parse CardDTO objects from the JSON body
+    private List<CardDTO> parseCardDTOsFromBody(String body) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(body);
+
+        List<CardDTO> cards = new ArrayList<>();
+
+        for (JsonNode node : jsonNode) {
+            CardDTO cardDTO = objectMapper.treeToValue(node, CardDTO.class);
+            cards.add(cardDTO);
+        }
+
+        return cards;
+    }
+
 
     // POST /cards
     public Response createCard(String body) {
