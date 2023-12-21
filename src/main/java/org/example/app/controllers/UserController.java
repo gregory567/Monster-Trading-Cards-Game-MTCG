@@ -3,7 +3,6 @@ package org.example.app.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.example.app.services.UserService;
 import org.example.app.repositories.UserRepository;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
