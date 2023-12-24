@@ -536,6 +536,37 @@ public class UserDAO {
         return null;
     }
 
+    public List<UserStatDTO> getScoreBoard() {
+        List<UserStatDTO> scoreBoard = new ArrayList<>();
+
+        // SQL statement to retrieve user stats ordered by ELO
+        String selectScoreBoardStmt = "SELECT profile_name, elo_score, wins, losses FROM \"User\" ORDER BY elo_score DESC;";
+        try (PreparedStatement scoreBoardStatement = getConnection().prepareStatement(selectScoreBoardStmt);
+             ResultSet scoreBoardResultSet = scoreBoardStatement.executeQuery()) {
+
+            while (scoreBoardResultSet.next()) {
+                UserStatDTO userStat = createUserStatFromResultSet(scoreBoardResultSet);
+                scoreBoard.add(userStat);
+            }
+
+            return scoreBoard;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // Helper method to create a UserStatDTO instance from a ResultSet
+    private UserStatDTO createUserStatFromResultSet(ResultSet resultSet) throws SQLException {
+        String name = resultSet.getString("profile_name");
+        String eloScore = resultSet.getString("elo_score");
+        String wins = resultSet.getString("wins");
+        String losses = resultSet.getString("losses");
+
+        return new UserStatDTO(name, eloScore, wins, losses);
+    }
+
 }
 
 

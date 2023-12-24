@@ -43,6 +43,10 @@ public class UserRepository {
         return userDAO.getStats(username);
     }
 
+    public List<UserStatDTO> getScoreBoard() {
+        return userDAO.getScoreBoard();
+    }
+
     public void remove(String username) {
         userDAO.delete(username);
     }

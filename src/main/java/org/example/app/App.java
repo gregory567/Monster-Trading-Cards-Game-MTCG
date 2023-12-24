@@ -132,6 +132,22 @@ public class App implements ServerApp {
             }
 
             return getUserController().getStats(authenticatedUsername);
+        } else if (request.getPathname().equals("/scoreboard")) {
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Check if the user token is null or empty
+            if (userToken == null || userToken.isEmpty()) {
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            // Get the user from the token
+            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            return getUserController().getScoreBoard();
         }
         return notFoundResponse();
     }

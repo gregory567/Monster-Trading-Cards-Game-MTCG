@@ -215,6 +215,33 @@ public class UserController extends Controller {
         }
     }
 
+    // GET /scoreboard
+    public Response getScoreBoard() {
+        try {
+            // Retrieve the scoreboard data from the UserRepository
+            List<UserStatDTO> scoreboard = getUserRepository().getScoreBoard();
+
+            ArrayNode scoreboardArray = getObjectMapper().createArrayNode();
+
+            // Create a JSON object for each user in the scoreboard
+            for (UserStatDTO userStat : scoreboard) {
+                ObjectNode userStatNode = getObjectMapper().createObjectNode()
+                        .put("Name", userStat.getName())
+                        .put("Elo", userStat.getElo_score())
+                        .put("Wins", userStat.getWins())
+                        .put("Losses", userStat.getLosses());
+                scoreboardArray.add(userStatNode);
+            }
+
+            // Convert the scoreboardArray to a string
+            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", scoreboardArray.toString(), "Scoreboard successfully retrieved");
+            return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+        } catch (Exception e) {
+            // Handle exceptions
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to retrieve scoreboard");
+        }
+    }
+
     private String extractUsernameFromBody(String body) {
         try {
             JsonNode jsonNode = getObjectMapper().readTree(body);
