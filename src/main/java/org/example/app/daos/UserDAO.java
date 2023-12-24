@@ -2,6 +2,7 @@ package org.example.app.daos;
 
 
 import org.example.Package;
+import org.example.app.dtos.UserStatDTO;
 import org.example.app.models.User;
 import org.example.app.dtos.UserDataDTO;
 import org.example.*;
@@ -504,6 +505,29 @@ public class UserDAO {
 
             if (userResultSet.next()) {
                 return createUserFromResultSet(userResultSet);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public UserStatDTO getStats(String username) {
+        String selectStatsStmt = "SELECT profile_name, elo_score, wins, losses FROM \"User\" WHERE username = ?;";
+
+        try (PreparedStatement statsStatement = getConnection().prepareStatement(selectStatsStmt)) {
+            statsStatement.setString(1, username);
+
+            try (ResultSet statsResultSet = statsStatement.executeQuery()) {
+                if (statsResultSet.next()) {
+                    String name = statsResultSet.getString("profile_name");
+                    String eloScore = statsResultSet.getString("elo_score");
+                    String wins = statsResultSet.getString("wins");
+                    String losses = statsResultSet.getString("losses");
+
+                    return new UserStatDTO(name, eloScore, wins, losses);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

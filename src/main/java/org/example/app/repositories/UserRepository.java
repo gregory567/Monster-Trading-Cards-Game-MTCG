@@ -2,6 +2,7 @@ package org.example.app.repositories;
 
 import org.example.app.daos.UserDAO;
 import org.example.app.dtos.UserDataDTO;
+import org.example.app.dtos.UserStatDTO;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +37,10 @@ public class UserRepository {
 
     public String loginUser(String username, String password) {
         return userDAO.loginUser(username, password);
+    }
+
+    public UserStatDTO getStats(String username) {
+        return userDAO.getStats(username);
     }
 
     public void remove(String username) {

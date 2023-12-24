@@ -9,6 +9,7 @@ import org.example.http.HttpStatus;
 import org.example.server.Response;
 import org.example.app.models.User;
 import org.example.app.dtos.UserDataDTO;
+import org.example.app.dtos.UserStatDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -166,6 +167,36 @@ public class UserController extends Controller {
             }
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
+        }
+    }
+
+    // GET /stats
+    public Response getStats(String username) {
+        try {
+            // Retrieve user statistics from the UserRepository for the specified username
+            UserStatDTO userStat = getUserRepository().getStats(username);
+
+            if (userStat != null) {
+                // Create a JSON object representing the user statistics
+                JsonNode userStatNode = getObjectMapper().createObjectNode()
+                        .put("Name", userStat.getName())
+                        .put("Elo", userStat.getElo_score())
+                        .put("Wins", userStat.getWins())
+                        .put("Losses", userStat.getLosses());
+
+                // Convert the JSON object to a string
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userStatNode.toString(), "User statistics successfully retrieved");
+
+                // Return a successful response with user statistics
+                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+            } else {
+                // Return a not found response if user statistics are not available
+                return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User statistics not found");
+            }
+
+        } catch (Exception e) {
+            // Handle exceptions
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to retrieve user statistics");
         }
     }
 
