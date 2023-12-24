@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.app.dtos.CardDTO;
+import org.example.app.repositories.CardRepository;
 
 import java.sql.*;
 import java.util.*;
@@ -21,12 +22,6 @@ public class CardDAO {
 
     public CardDAO(Connection connection) {
         setConnection(connection);
-    }
-
-    public Integer create(CardDTO cardDTO) {
-        // Implement card creation logic here
-        // Return appropriate HTTP status codes based on the result
-        return null;
     }
 
     public ArrayList<CardDTO> getUserCards(String username) {
@@ -94,7 +89,7 @@ public class CardDAO {
      * - 500 for other failures
      */
     public Integer updateUserDeck(String username, List<String> cardIds) {
-        // Validate that cardIds are unique
+        // Validate that the cardIds are unique
         Set<String> uniqueCardIds = new HashSet<>(cardIds);
         if (uniqueCardIds.size() != 4) {
             return 400; // Return 400 for non-unique card IDs
@@ -193,11 +188,11 @@ public class CardDAO {
         }
 
         // create a Card entry in the Card table for each card object in the package
-        for (int i = 0; i < 5; i++){
-            createCard(cards.get(i));
+        for (CardDTO card : cards) {
+            createCard(card);
         }
 
-        // If validation passes, proceed with creating the package
+        // If validation passes and cards are created, proceed with creating the package
         String insertQuery = "INSERT INTO \"Package\" (id, card1_id, card2_id, card3_id, card4_id, card5_id) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -221,14 +216,6 @@ public class CardDAO {
 
     // method to create a new card from a CardDTO object
     private void createCard(CardDTO cardDTO) {
-        // Enum to represent card names
-        enum CardName {
-            WaterGoblin, FireGoblin, RegularGoblin,
-            WaterTroll, FireTroll, RegularTroll,
-            WaterElf, FireElf, RegularElf,
-            WaterSpell, FireSpell, RegularSpell,
-            Knight, Dragon, Ork, Kraken
-        }
 
         // Get values from CardDTO
         UUID id = UUID.fromString(cardDTO.getId());
@@ -237,9 +224,9 @@ public class CardDAO {
         String elementType;
 
         // Determine elementType based on card name
-        if (name.equals("WaterGoblin") || name.equals("WaterTroll") || name.equals("WaterElf") || name.equals("WaterSpell") || name.equals("Kraken")) {
+        if (name.contains("Water")) {
             elementType = "WATER";
-        } else if (name.equals("FireGoblin") || name.equals("FireTroll") || name.equals("FireElf") || name.equals("FireSpell") || name.equals("Dragon")) {
+        } else if (name.contains("Fire")) {
             elementType = "FIRE";
         } else {
             elementType = "NORMAL";
@@ -308,20 +295,171 @@ public class CardDAO {
         return true;
     }
 
+    public List<CardDTO> buyPackage(String username) throws CardRepository.InsufficientFundsException, CardRepository.CardPackageNotFoundException {
+        // Select a random package from the "Package" table
+        List<CardDTO> purchasedCards = getRandomPackage();
+
+        // Check if the purchasedCards list is empty, indicating that no package was found
+        if (purchasedCards.isEmpty()) {
+            throw new CardRepository.CardPackageNotFoundException("No card package available for buying");
+        }
+
+        // Check if the user has enough funds
+        if (userHasSufficientFunds(username)) {
+
+            try{
+                connection.setAutoCommit(false); // Start a transaction
+                // Deduct the funds from the user's account
+                updateUserCoins(username, getUserCoins(username) - 5);
+
+                // Add the purchased cards to the user's stack
+                addCardsToUserStack(username, purchasedCards);
+
+                connection.commit(); // Commit the transaction
+
+                // Return the purchased cards
+                return purchasedCards;
+            } catch (SQLException e) {
+                try {
+                    connection.rollback(); // Rollback the transaction in case of exception
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+                e.printStackTrace();
+                throw new CardRepository.InsufficientFundsException("Not enough money for buying a card package");
+            } finally {
+                try {
+                    connection.setAutoCommit(true); // Reset auto-commit to true
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            throw new CardRepository.InsufficientFundsException("Not enough money for buying a card package");
+        }
+    }
+
+    /**
+     * Selects a random package from the "Package" table.
+     *
+     * @return A list of CardDTO representing the cards in the selected package.
+     */
+    private List<CardDTO> getRandomPackage() {
+        String query = "SELECT * FROM \"Package\" ORDER BY RANDOM() LIMIT 1";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                List<CardDTO> cards = new ArrayList<>();
+                for (int i = 2; i <= 6; i++) {
+                    String cardId = resultSet.getObject(i, UUID.class).toString();
+                    cards.add(read(cardId)); // read() method retrieves a CardDTO by cardId
+                }
+                return cards;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return Collections.emptyList();
+    }
+
+    // method to check if the user has sufficient funds
+    private boolean userHasSufficientFunds(String username) throws CardRepository.InsufficientFundsException {
+
+        double packageCost = 5;
+        double userCoins = getUserCoins(username);
+
+        if (userCoins >= packageCost) {
+            return true;
+        } else {
+            throw new CardRepository.InsufficientFundsException("Not enough money for buying a card package");
+        }
+    }
+
+    // Example method to update the user's coins
+    private void updateUserCoins(String username, double updatedCoins) throws SQLException {
+
+        String updateQuery = "UPDATE \"User\" SET coins = ? WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+            preparedStatement.setDouble(1, updatedCoins);
+            preparedStatement.setString(2, username);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+    }
+
+    /**
+     * Gets the user's current coins from the database.
+     *
+     * @param username The username of the user.
+     * @return The user's current coins.
+     */
+    private double getUserCoins(String username) {
+        String query = "SELECT coins FROM \"User\" WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, username);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getDouble("coins");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Return a default value or throw an exception based on your application requirements
+        return 0.0;
+    }
+
+    // method to add purchased cards to the user's stack
+    private void addCardsToUserStack(String username, List<CardDTO> purchasedCards) throws SQLException {
+
+        String insertQuery = "INSERT INTO \"Stack\" (username, card_id) VALUES (?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+            for (CardDTO card : purchasedCards) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setObject(2, UUID.fromString(card.getId()));
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+
+    }
+
     public CardDTO read(String cardId) {
         // Implement logic to retrieve a card by its ID from the database
-        // and return the Card object
+        String query = "SELECT * FROM \"Card\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setObject(1, java.util.UUID.fromString(cardId));
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return createCardDTOFromResultSet(resultSet);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Return null if the card with the specified ID is not found
         return null;
     }
 
     public void delete(String cardId) {
         // Implement logic to delete a card by its ID from the database
-    }
-
-    public Integer configureDeck(String username, List<String> cardIds) {
-        // Implement logic to configure the user's deck with the provided cards
-        // Return appropriate HTTP status codes based on the result
-        return null;
     }
 }
 

@@ -15,6 +15,20 @@ public class CardRepository {
 
     private CardDAO cardDAO;
 
+    // Define InsufficientFundsException as a nested static class
+    public static class InsufficientFundsException extends Exception {
+        public InsufficientFundsException(String message) {
+            super(message);
+        }
+    }
+
+    // Define CardPackageNotFoundException as a nested static class
+    public static class CardPackageNotFoundException extends Exception {
+        public CardPackageNotFoundException(String message) {
+            super(message);
+        }
+    }
+
     public CardRepository(CardDAO cardDAO) {
         setCardDAO(cardDAO);
     }

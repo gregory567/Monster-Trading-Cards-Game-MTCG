@@ -187,10 +187,10 @@ public class CardController extends Controller {
                 // Handle scenarios where no cards are purchased
                 return buildJsonResponse(HttpStatus.NOT_FOUND, null, "No card package available for buying");
             }
-        } catch (InsufficientFundsException e) {
+        } catch (CardRepository.InsufficientFundsException e) {
             // Handle insufficient funds scenario
             return buildJsonResponse(HttpStatus.FORBIDDEN, null, "Not enough money for buying a card package");
-        } catch (CardPackageNotFoundException e) {
+        } catch (CardRepository.CardPackageNotFoundException e) {
             // Handle scenario where no card package is available
             return buildJsonResponse(HttpStatus.NOT_FOUND, null, "No card package available for buying");
         } catch (Exception e) {
