@@ -95,10 +95,6 @@ public class CardRepository {
         return cardDAO.read(cardId);
     }
 
-    public Integer add(CardDTO cardDTO) {
-        return cardDAO.create(cardDTO);
-    }
-
     public void remove(String cardId) {
         cardDAO.delete(cardId);
     }

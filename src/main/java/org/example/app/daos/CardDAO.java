@@ -215,7 +215,7 @@ public class CardDAO {
     }
 
     // method to create a new card from a CardDTO object
-    private void createCard(CardDTO cardDTO) {
+    public void createCard(CardDTO cardDTO) {
 
         // Get values from CardDTO
         UUID id = UUID.fromString(cardDTO.getId());

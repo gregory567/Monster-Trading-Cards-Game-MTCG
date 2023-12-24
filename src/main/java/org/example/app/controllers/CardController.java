@@ -199,28 +199,6 @@ public class CardController extends Controller {
         }
     }
 
-
-    // POST /cards
-    public Response createCard(String body) {
-        try {
-            // Assuming create is a method in CardRepository to add a new card
-            CardDTO cardDTO = parseCardDTOFromBody(body);
-
-            // Attempt to add the card and check the result
-            int result = getCardRepository().add(cardDTO);
-
-            if (result == 201) {
-                // Card created successfully
-                return buildJsonResponse(HttpStatus.CREATED, null, "Card successfully created");
-            } else {
-                // Handle other scenarios as needed
-                return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create card");
-            }
-        } catch (Exception e) {
-            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create card");
-        }
-    }
-
     // DELETE /cards/:cardId
     public Response deleteCard(String cardId) {
         try {
