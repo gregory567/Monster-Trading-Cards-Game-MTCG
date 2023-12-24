@@ -3,6 +3,8 @@ package org.example.app.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.example.app.repositories.UserRepository;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
@@ -32,15 +34,27 @@ public class UserController extends Controller {
     // PUT/PATCH /users/:username -> updated einen user mit dem usernamen
     // GET /users/:username -> gibt einen user zurück mit dem usernamen
     // GET /users -> gibt alle users zurück
+
+    // GET /users
     public Response getUsers() {
         try {
             List<UserDataDTO> userData = getUserRepository().getAll();
-            String userDataJSON = getObjectMapper().writeValueAsString(userData);
+            ArrayNode userArray = getObjectMapper().createArrayNode();
 
-            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userDataJSON, "Data successfully retrieved");
+            for (UserDataDTO user : userData) {
+                // Create a JSON object for each user
+                ObjectNode userNode = getObjectMapper().createObjectNode()
+                        .put("Name", user.getName())
+                        .put("Bio", user.getBio())
+                        .put("Image", user.getImage());
+                userArray.add(userNode);
+            }
+
+            // Convert the userArray to a string
+            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userArray.toString(), "Data successfully retrieved");
             return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
-
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
+            // Handle JSON processing exception
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
         }
     }
@@ -53,18 +67,19 @@ public class UserController extends Controller {
 
             // Check if the userdata is found
             if (userdata != null) {
-                // Convert the userdata object to JSON
-                String userDataJSON = getObjectMapper().writeValueAsString(userdata);
-                // Return a successful response with the user data and additional message
-                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userDataJSON, "Data successfully retrieved");
+                // Create a JSON object for the user
+                ObjectNode userNode = getObjectMapper().createObjectNode()
+                        .put("Name", userdata.getName())
+                        .put("Bio", userdata.getBio())
+                        .put("Image", userdata.getImage());
+
+                // Convert the userNode to a string
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userNode.toString(), "Data successfully retrieved");
                 return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             } else {
                 // Return a not found response if the user is not found
                 return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
             }
-        } catch (JsonProcessingException e) {
-            // Handle JSON processing exception
-            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
         } catch (Exception e) {
             // Handle other exceptions
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to retrieve user");
