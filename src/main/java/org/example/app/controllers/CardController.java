@@ -145,6 +145,8 @@ public class CardController extends Controller {
             switch (configurationStatus) {
                 case 201:
                     return buildJsonResponse(HttpStatus.CREATED, null, "Package and cards successfully created");
+                case 400:
+                    return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "The provided package must include exactly 5 cards");
                 case 409:
                     return buildJsonResponse(HttpStatus.CONFLICT, null, "At least one card in the packages already exists");
                 default:

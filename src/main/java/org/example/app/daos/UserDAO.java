@@ -52,9 +52,9 @@ public class UserDAO {
             preparedStatement.setString(2, password);
             preparedStatement.setString(3, token);
             preparedStatement.setInt(4, coins);
-            preparedStatement.setInt(4, elo_score);
-            preparedStatement.setInt(5, wins);
-            preparedStatement.setInt(6, losses);
+            preparedStatement.setInt(5, elo_score);
+            preparedStatement.setInt(6, wins);
+            preparedStatement.setInt(7, losses);
 
             // Execute the SQL update statement to insert the new user
             preparedStatement.executeUpdate();

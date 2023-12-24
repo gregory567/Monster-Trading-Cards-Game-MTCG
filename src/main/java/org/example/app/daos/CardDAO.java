@@ -6,14 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.app.dtos.CardDTO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Set;
+import java.sql.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CardDAO {
@@ -198,6 +192,11 @@ public class CardDAO {
             return 409; // Return 409 for cards already in another package
         }
 
+        // create a Card entry in the Card table for each card object in the package
+        for (int i = 0; i < 5; i++){
+            createCard(cards.get(i));
+        }
+
         // If validation passes, proceed with creating the package
         String insertQuery = "INSERT INTO \"Package\" (id, card1_id, card2_id, card3_id, card4_id, card5_id) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -217,6 +216,65 @@ public class CardDAO {
         } catch (SQLException e) {
             e.printStackTrace();
             return 500; // Return 500 for SQL exceptions
+        }
+    }
+
+    // method to create a new card from a CardDTO object
+    private void createCard(CardDTO cardDTO) {
+        // Enum to represent card names
+        enum CardName {
+            WaterGoblin, FireGoblin, RegularGoblin,
+            WaterTroll, FireTroll, RegularTroll,
+            WaterElf, FireElf, RegularElf,
+            WaterSpell, FireSpell, RegularSpell,
+            Knight, Dragon, Ork, Kraken
+        }
+
+        // Get values from CardDTO
+        UUID id = UUID.fromString(cardDTO.getId());
+        String name = cardDTO.getName();
+        double damage = cardDTO.getDamage();
+        String elementType;
+
+        // Determine elementType based on card name
+        if (name.equals("WaterGoblin") || name.equals("WaterTroll") || name.equals("WaterElf") || name.equals("WaterSpell") || name.equals("Kraken")) {
+            elementType = "WATER";
+        } else if (name.equals("FireGoblin") || name.equals("FireTroll") || name.equals("FireElf") || name.equals("FireSpell") || name.equals("Dragon")) {
+            elementType = "FIRE";
+        } else {
+            elementType = "NORMAL";
+        }
+
+        // Set specialties array
+        String[] specialties = {name};
+
+        // Determine cardType based on card name
+        String cardType;
+        if (name.equals("WaterGoblin") || name.equals("FireGoblin") || name.equals("RegularGoblin") ||
+                name.equals("WaterTroll") || name.equals("FireTroll") || name.equals("RegularTroll") ||
+                name.equals("WaterElf") || name.equals("FireElf") || name.equals("RegularElf") ||
+                name.equals("Knight") || name.equals("Dragon") || name.equals("Ork") || name.equals("Kraken")) {
+            cardType = "MONSTER";
+        } else {
+            cardType = "SPELL";
+        }
+
+        // SQL statement to insert a new card into the Card table
+        String insertStmt = "INSERT INTO \"Card\" (id, name, damage, elementType, specialties, cardType) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
+            // Set parameters in the prepared statement
+            preparedStatement.setObject(1, id);
+            preparedStatement.setString(2, name);
+            preparedStatement.setDouble(3, damage);
+            preparedStatement.setString(4, elementType);
+            preparedStatement.setArray(5, getConnection().createArrayOf("VARCHAR", specialties));
+            preparedStatement.setString(6, cardType);
+
+            // Execute the SQL update statement to insert the new card
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            // Print any SQL exception that occurs during card creation
+            e.printStackTrace();
         }
     }
 
