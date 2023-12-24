@@ -172,6 +172,33 @@ public class CardController extends Controller {
         return cards;
     }
 
+    // POST /transactions/packages
+    public Response buyPackage(String username) {
+        try {
+            // Assuming buyPackage is a method in CardRepository to handle package purchase
+            List<CardDTO> purchasedCards = getCardRepository().buyPackage(username);
+
+            if (!purchasedCards.isEmpty()) {
+                // Return a successful response with the purchased cards
+                String purchasedCardsJSON = getObjectMapper().writeValueAsString(purchasedCards);
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", purchasedCardsJSON, "Package and cards successfully bought");
+                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+            } else {
+                // Handle scenarios where no cards are purchased
+                return buildJsonResponse(HttpStatus.NOT_FOUND, null, "No card package available for buying");
+            }
+        } catch (InsufficientFundsException e) {
+            // Handle insufficient funds scenario
+            return buildJsonResponse(HttpStatus.FORBIDDEN, null, "Not enough money for buying a card package");
+        } catch (CardPackageNotFoundException e) {
+            // Handle scenario where no card package is available
+            return buildJsonResponse(HttpStatus.NOT_FOUND, null, "No card package available for buying");
+        } catch (Exception e) {
+            // Handle other exceptions
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to buy package");
+        }
+    }
+
 
     // POST /cards
     public Response createCard(String body) {
