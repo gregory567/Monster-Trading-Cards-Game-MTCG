@@ -58,8 +58,5 @@ public class CardRepository {
         return cardDAO.read(cardId);
     }
 
-    public void remove(String cardId) {
-        cardDAO.delete(cardId);
-    }
 }
 

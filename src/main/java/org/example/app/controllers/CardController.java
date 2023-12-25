@@ -199,17 +199,6 @@ public class CardController extends Controller {
         }
     }
 
-    // DELETE /cards/:cardId
-    public Response deleteCard(String cardId) {
-        try {
-            // Assuming delete is a method in CardRepository to delete a card by ID
-            getCardRepository().remove(cardId);
-            return buildJsonResponse(HttpStatus.NO_CONTENT, null, null);
-        } catch (Exception e) {
-            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete card");
-        }
-    }
-
     private CardDTO parseCardDTOFromBody(String body) throws JsonProcessingException {
         return getObjectMapper().readValue(body, CardDTO.class);
     }
