@@ -13,7 +13,7 @@ public class TradeDealDTO {
     private String id;
     private String cardToTrade;
     private String cardType;
-    private Integer minimumDamage;
+    private Double minimumDamage;
 
 }
 

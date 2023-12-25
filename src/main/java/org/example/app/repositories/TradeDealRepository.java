@@ -20,7 +20,9 @@ public class TradeDealRepository {
         setTradeDealDAO(tradeDealDAO);
     }
 
-
+    public List<TradeDealDTO> getTradeDeals() {
+        return tradeDealDAO.getTradeDeals();
+    }
 
 }
 

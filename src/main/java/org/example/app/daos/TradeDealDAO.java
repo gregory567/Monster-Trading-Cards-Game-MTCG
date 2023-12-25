@@ -24,7 +24,33 @@ public class TradeDealDAO {
         setConnection(connection);
     }
 
+    public List<TradeDealDTO> getTradeDeals() {
+        String sql = "SELECT * FROM \"TradeDeal\"";
+        List<TradeDealDTO> tradeDeals = new ArrayList<>();
 
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                TradeDealDTO tradeDealDTO = mapResultSetToTradeDealDTO(resultSet);
+                tradeDeals.add(tradeDealDTO);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return tradeDeals;
+    }
+
+    private TradeDealDTO mapResultSetToTradeDealDTO(ResultSet resultSet) throws SQLException {
+        TradeDealDTO tradeDealDTO = new TradeDealDTO();
+        tradeDealDTO.setId(resultSet.getString("id"));
+        tradeDealDTO.setCardToTrade(resultSet.getString("offeredCard_id"));
+        tradeDealDTO.setCardType(resultSet.getString("requirement_cardType"));
+        tradeDealDTO.setMinimumDamage(resultSet.getDouble("requirement_minDamage"));
+        return tradeDealDTO;
+    }
 
 }
 
