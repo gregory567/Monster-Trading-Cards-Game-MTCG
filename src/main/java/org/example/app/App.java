@@ -227,6 +227,23 @@ public class App implements ServerApp {
             }
 
             return getCardController().buyPackage(authenticatedUsername);
+        } else if (request.getPathname().equals("/tradings")) {
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Check if the user token is null or empty
+            if (userToken == null || userToken.isEmpty()) {
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            // Get the user from the token
+            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            String body = request.getBody();
+            return getTradeDealController().createTrade(authenticatedUsername, body);
         }
         return notFoundResponse();
     }

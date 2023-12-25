@@ -58,6 +58,65 @@ public class TradeDealController extends Controller {
         }
     }
 
+    public Response createTrade(String authenticatedUsername, String tradeRequestBody) {
+        try {
+
+
+            // Parse the trade deal request body into TradeDealDTO
+            TradeDealDTO tradeDealDTO = getObjectMapper().readValue(tradeRequestBody, TradeDealDTO.class);
+
+            // Set the offering user's username
+            tradeDealDTO.setOfferingUserUsername(authenticatedUsername);
+
+            // Create the trade deal
+            TradeDealDTO createdTradeDeal = getTradeDealRepository().createTradeDeal(tradeDealDTO);
+
+            // Build and return the response
+            ObjectNode tradeDealNode = getObjectMapper().createObjectNode()
+                    .put("Id", createdTradeDeal.getId())
+                    .put("CardToTrade", createdTradeDeal.getCardToTrade())
+                    .put("Type", createdTradeDeal.getCardType())
+                    .put("MinimumDamage", createdTradeDeal.getMinimumDamage());
+
+            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", tradeDealNode.toString(), "Trade Deal created successfully");
+            return new Response(HttpStatus.CREATED, ContentType.JSON, jsonResponse);
+        } catch (JsonProcessingException e) {
+            return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid JSON format in trade deal request");
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create Trade Deal");
+        }
+    }
+
+    private String extractIdFromBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Id").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String extractCardToTradeFromBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("CardToTrade").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String extractTypeFromBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("Type").asText();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     private Response buildJsonResponse(HttpStatus status, String data, String error) {
         String jsonResponse = String.format("{ \"data\": %s, \"error\": %s }", data, error);
         return new Response(status, ContentType.JSON, jsonResponse);
