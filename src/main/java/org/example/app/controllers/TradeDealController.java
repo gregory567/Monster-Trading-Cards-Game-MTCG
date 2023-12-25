@@ -58,32 +58,43 @@ public class TradeDealController extends Controller {
         }
     }
 
-    public Response createTrade(String authenticatedUsername, String tradeRequestBody) {
+    public Response createTrade(String username, String body) {
         try {
 
+            /*
+            if (!isValidTradeDealRequestBody(body)) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid user update request body");
+            }
 
-            // Parse the trade deal request body into TradeDealDTO
-            TradeDealDTO tradeDealDTO = getObjectMapper().readValue(tradeRequestBody, TradeDealDTO.class);
+            String Id = extractIdFromBody(body);
+            String CardToTrade = extractCardToTradeFromBody(body);
+            String Type = extractTypeFromBody(body);
+            Double MinimumDamage = extractMinimumDamageFromBody(body);
+             */
 
-            // Set the offering user's username
-            tradeDealDTO.setOfferingUserUsername(authenticatedUsername);
+            // Deserialize the request body into TradingDealDTO
+            TradeDealDTO tradeDealDTO = getObjectMapper().readValue(body, TradeDealDTO.class);
+
+            // Ensure the trading deal is valid
+            if (!isValidTradeDeal(tradeDealDTO)) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid trading deal request body");
+            }
 
             // Create the trade deal
-            TradeDealDTO createdTradeDeal = getTradeDealRepository().createTradeDeal(tradeDealDTO);
+            Integer statusCode = getTradeDealRepository().createTradeDeal(username, tradeDealDTO);
 
-            // Build and return the response
-            ObjectNode tradeDealNode = getObjectMapper().createObjectNode()
-                    .put("Id", createdTradeDeal.getId())
-                    .put("CardToTrade", createdTradeDeal.getCardToTrade())
-                    .put("Type", createdTradeDeal.getCardType())
-                    .put("MinimumDamage", createdTradeDeal.getMinimumDamage());
-
-            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", tradeDealNode.toString(), "Trade Deal created successfully");
-            return new Response(HttpStatus.CREATED, ContentType.JSON, jsonResponse);
-        } catch (JsonProcessingException e) {
-            return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid JSON format in trade deal request");
+            switch (statusCode) {
+                case 201:
+                    return buildJsonResponse(HttpStatus.CREATED, null, "Trading deal successfully created");
+                case 403:
+                    return buildJsonResponse(HttpStatus.FORBIDDEN, null, "The deal contains a card that is not owned by the user or locked in the deck");
+                case 409:
+                    return buildJsonResponse(HttpStatus.CONFLICT, null, "A deal with this deal ID already exists");
+                default:
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create trading deal");
+            }
         } catch (Exception e) {
-            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create Trade Deal");
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to create trading deal");
         }
     }
 
@@ -115,6 +126,32 @@ public class TradeDealController extends Controller {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private Double extractMinimumDamageFromBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.get("MinimumDamage").asDouble();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Validate the request body for the createTrade method
+    private boolean isValidTradeDealRequestBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.has("Id") && jsonNode.has("CardToTrade") && jsonNode.has("Type") && jsonNode.has("MinimumDamage");
+        } catch (JsonProcessingException e) {
+            return false; // JSON parsing error
+        }
+    }
+
+    // Validate the request body for the createTrade method
+    private boolean isValidTradeDeal(TradeDealDTO tradeDealDTO) {
+        return tradeDealDTO != null && tradeDealDTO.getId() != null && tradeDealDTO.getCardToTrade() != null
+                && tradeDealDTO.getCardType() != null && tradeDealDTO.getMinimumDamage() != null;
     }
 
     private Response buildJsonResponse(HttpStatus status, String data, String error) {

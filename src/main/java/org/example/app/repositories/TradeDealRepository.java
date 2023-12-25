@@ -24,5 +24,9 @@ public class TradeDealRepository {
         return tradeDealDAO.getTradeDeals();
     }
 
+    public Integer createTradeDeal(String username, TradeDealDTO tradeDealDTO) {
+        return tradeDealDAO.createTradeDeal(username, tradeDealDTO);
+    }
+
 }
 
