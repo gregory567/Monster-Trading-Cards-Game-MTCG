@@ -7,22 +7,21 @@ import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
 import lombok.AccessLevel;
-import org.example.app.controllers.UserController;
 import org.example.app.controllers.CardController;
 import org.example.app.controllers.TradeDealController;
-import org.example.app.daos.UserDAO;
-import org.example.app.repositories.UserRepository;
+import org.example.app.controllers.UserController;
 import org.example.app.daos.CardDAO;
-import org.example.app.repositories.CardRepository;
 import org.example.app.daos.TradeDealDAO;
+import org.example.app.daos.UserDAO;
+import org.example.app.repositories.CardRepository;
 import org.example.app.repositories.TradeDealRepository;
+import org.example.app.repositories.UserRepository;
 import org.example.app.services.DatabaseService;
+import org.example.http.ContentType;
+import org.example.http.HttpStatus;
 import org.example.server.Request;
 import org.example.server.Response;
 import org.example.server.ServerApp;
-import org.example.http.ContentType;
-import org.example.http.HttpStatus;
-
 
 import java.sql.Connection;
 
@@ -37,12 +36,11 @@ public class App implements ServerApp {
     private String authenticatedUserToken;
 
     public App() {
-
         DatabaseService databaseService = new DatabaseService();
-
         UserDAO userDAO = new UserDAO(databaseService.getConnection());
         CardDAO cardDAO = new CardDAO(databaseService.getConnection());
         TradeDealDAO tradeDealDAO = new TradeDealDAO(databaseService.getConnection());
+
         UserRepository userRepository = new UserRepository(userDAO);
         CardRepository cardRepository = new CardRepository(cardDAO);
         TradeDealRepository tradeDealRepository = new TradeDealRepository(tradeDealDAO);
@@ -53,7 +51,6 @@ public class App implements ServerApp {
     }
 
     public Response handleRequest(Request request) {
-
         try {
             switch (request.getMethod()) {
                 case GET:
@@ -77,17 +74,28 @@ public class App implements ServerApp {
 
     private Response handleGetRequest(Request request) throws InterruptedException {
         if (request.getPathname().equals("/users")) {
-            if (!authenticateRequest(request)) { // authentication check
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Check if the user token is null or empty
+            if (userToken == null || userToken.isEmpty()) {
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
+
+            // Check if the user associated with the token has the necessary permissions
+            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticatedUsername.equals("admin")) {
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
             testMultithreading();
             return getUserController().getUsers();
         } else if (request.getPathname().startsWith("/users/")) {
-            String username = getUsernameFromPath(request.getPathname());
-            if (!authenticateUser(request, username)) { // authentication check
+            String usernameFromPath = getUsernameFromPath(request.getPathname());
+            if (!authenticateUser(request, usernameFromPath)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
-            return getUserController().getUser(username);
+            return getUserController().getUser(usernameFromPath);
         } else if (request.getPathname().equals("/cards")) {
 
             // Extract the user token from the request
@@ -99,12 +107,12 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            return getCardController().getCards(authenticatedUsername);
+            return getCardController().getCards(usernameFromToken);
         } else if (request.getPathname().equals("/deck")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -115,12 +123,12 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            return getCardController().getDeck(authenticatedUsername);
+            return getCardController().getDeck(usernameFromToken);
         } else if (request.getPathname().equals("/stats")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -131,12 +139,12 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            return getUserController().getStats(authenticatedUsername);
+            return getUserController().getStats(usernameFromToken);
         } else if (request.getPathname().equals("/scoreboard")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -147,8 +155,8 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
@@ -163,8 +171,8 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
@@ -190,9 +198,10 @@ public class App implements ServerApp {
                     throw new RuntimeException(e);
                 }
                 setAuthenticatedUserToken(jsonData.get("data").get("token").asText());
+                return loginResponse;
+            } else {
+                return loginResponse;
             }
-
-            return loginResponse;
         } else if (request.getPathname().equals("/packages")) {
 
             // Extract the user token from the request
@@ -204,8 +213,8 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticatedUsername.equals("admin")) {
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!usernameFromToken.equals("admin")) {
                 return buildJsonResponse(HttpStatus.FORBIDDEN, null, "Provided user is not \"admin\"");
             }
 
@@ -221,12 +230,12 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            return getCardController().buyPackage(authenticatedUsername);
+            return getCardController().buyPackage(usernameFromToken);
         } else if (request.getPathname().equals("/tradings")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -237,13 +246,13 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
             String body = request.getBody();
-            return getTradeDealController().createTrade(authenticatedUsername, body);
+            return getTradeDealController().createTrade(usernameFromToken, body);
         } else if (request.getPathname().startsWith("/tradings/")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -254,26 +263,26 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
             String body = request.getBody();
             String tradeDealId = getTradeDealIdFromPath(request.getPathname());
-            return getTradeDealController().carryOutTrade(authenticatedUsername, tradeDealId, body);
+            return getTradeDealController().carryOutTrade(usernameFromToken, tradeDealId, body);
         }
         return notFoundResponse();
     }
 
     private Response handlePutRequest(Request request) {
         if (request.getPathname().startsWith("/users/")) {
-            String username = getUsernameFromPath(request.getPathname());
-            if (!authenticateUser(request, username)) { // authentication check
+            String usernameFromPath = getUsernameFromPath(request.getPathname());
+            if (!authenticateUser(request, usernameFromPath)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
             String body = request.getBody();
-            return getUserController().updateUser(username, body);
+            return getUserController().updateUser(usernameFromPath, body);
         } else if (request.getPathname().equals("/deck")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -284,22 +293,24 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
             String body = request.getBody();
-            return getCardController().updateDeck(authenticatedUsername, body);
+            return getCardController().updateDeck(usernameFromToken, body);
         }
         return notFoundResponse();
     }
 
     private Response handleDeleteRequest(Request request) {
         if (request.getPathname().startsWith("/users/")) {
-            String username = getUsernameFromPath(request.getPathname());
-            authenticateUser(request, username);
-            return getUserController().deleteUser(username);
+            String usernameFromPath = getUsernameFromPath(request.getPathname());
+            if (!authenticateUser(request, usernameFromPath)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+            return getUserController().deleteUser(usernameFromPath);
         } else if (request.getPathname().startsWith("/tradings/")) {
             // Extract the user token from the request
             String userToken = request.getUserToken();
@@ -310,13 +321,13 @@ public class App implements ServerApp {
             }
 
             // Get the user from the token
-            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            String tradeDealId = getTradeDealIdFromPath(request.getPathname());
-            return getTradeDealController().deleteTradeDeal(authenticatedUsername, tradeDealId);
+            String tradeDealIdFromPath = getTradeDealIdFromPath(request.getPathname());
+            return getTradeDealController().deleteTradeDeal(usernameFromToken, tradeDealIdFromPath);
         }
         return notFoundResponse();
     }
@@ -349,24 +360,6 @@ public class App implements ServerApp {
         );
     }
 
-    private boolean authenticateRequest(Request request) {
-        // Extract the user token from the request
-        String userToken = request.getUserToken();
-
-        // Check if the user token is null or empty
-        if (userToken == null || userToken.isEmpty()) {
-            return false;
-        }
-
-        // Check if the user associated with the token has the necessary permissions
-        String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-        if (!authenticatedUsername.equals("admin")) {
-            return false;
-        }
-
-        return true;
-    }
-
     private boolean authenticateUser(Request request, String username) {
         // Extract the user token from the request
         String userToken = request.getUserToken();
@@ -377,8 +370,8 @@ public class App implements ServerApp {
         }
 
         // Check if the user associated with the token has the necessary permissions
-        String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
-        if (!authenticatedUsername.equals("admin") && !authenticatedUsername.equals(username)) {
+        String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+        if (!usernameFromToken.equals("admin") && !usernameFromToken.equals(username)) {
             return false;
         }
 

@@ -29,30 +29,28 @@ public class UserController extends Controller {
         setObjectMapper(new ObjectMapper());
     }
 
-    // DELETE /users/:username -> löscht einen user mit dem usernamen
-    // POST /users -> erstellt einen neuen user
-    // PUT/PATCH /users/:username -> updated einen user mit dem usernamen
-    // GET /users/:username -> gibt einen user zurück mit dem usernamen
-    // GET /users -> gibt alle users zurück
-
     // GET /users
     public Response getUsers() {
         try {
-            List<UserDataDTO> userData = getUserRepository().getAll();
+            List<UserDataDTO> userData = getUserRepository().getUsers();
             ArrayNode userArray = getObjectMapper().createArrayNode();
 
-            for (UserDataDTO user : userData) {
-                // Create a JSON object for each user
-                ObjectNode userNode = getObjectMapper().createObjectNode()
-                        .put("Name", user.getName())
-                        .put("Bio", user.getBio())
-                        .put("Image", user.getImage());
-                userArray.add(userNode);
-            }
+            if (userData != null) {
+                for (UserDataDTO user : userData) {
+                    // Create a JSON object for each user
+                    ObjectNode userNode = getObjectMapper().createObjectNode()
+                            .put("Name", user.getName())
+                            .put("Bio", user.getBio())
+                            .put("Image", user.getImage());
+                    userArray.add(userNode);
+                }
 
-            // Convert the userArray to a string
-            String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userArray.toString(), "Data successfully retrieved");
-            return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+                // Convert the userArray to a string
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", userArray.toString(), "Data successfully retrieved");
+                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+            } else {
+                return buildJsonResponse(HttpStatus.NOT_FOUND, null, "Users not found");
+            }
         } catch (Exception e) {
             // Handle JSON processing exception
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Internal Server Error");
@@ -63,7 +61,7 @@ public class UserController extends Controller {
     public Response getUser(String username) {
         try {
             // Retrieve the user data based on the username from the UserRepository
-            UserDataDTO userdata = getUserRepository().get(username);
+            UserDataDTO userdata = getUserRepository().getUser(username);
 
             // Check if the userdata is found
             if (userdata != null) {
@@ -97,7 +95,7 @@ public class UserController extends Controller {
             String password = extractPasswordFromBody(body);
 
             // Attempt to add the user and check the result
-            int result = getUserRepository().add(username, password);
+            int result = getUserRepository().createUser(username, password);
 
             if (result == 201) {
                 // User created successfully
@@ -142,7 +140,7 @@ public class UserController extends Controller {
     // DELETE /users/:username
     public Response deleteUser(String username) {
         try {
-            getUserRepository().remove(username);
+            getUserRepository().deleteUser(username);
             return buildJsonResponse(HttpStatus.NO_CONTENT, null, null);
         } catch (Exception e) {
             return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete user");
@@ -160,7 +158,7 @@ public class UserController extends Controller {
 
             // Validate username and password
             if (username == null || password == null) {
-                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid username or password");
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Missing username or password");
             }
 
             // Authenticate the user using the UserDAO

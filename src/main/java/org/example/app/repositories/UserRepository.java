@@ -19,16 +19,16 @@ public class UserRepository {
         setUserDAO(userDAO);
     }
 
-    public List<UserDataDTO> getAll() {
-        return userDAO.readAll();
+    public List<UserDataDTO> getUsers() {
+        return userDAO.getUsers();
     }
 
-    public UserDataDTO get(String username) {
-        return userDAO.read(username);
+    public UserDataDTO getUser(String username) {
+        return userDAO.getUser(username);
     }
 
-    public Integer add(String username, String password) {
-        return userDAO.create(username, password);
+    public Integer createUser(String username, String password) {
+        return userDAO.createUser(username, password);
     }
 
     public Integer updateUser(String username, String name, String bio, String image) {
@@ -47,7 +47,7 @@ public class UserRepository {
         return userDAO.getScoreBoard();
     }
 
-    public void remove(String username) {
-        userDAO.delete(username);
+    public void deleteUser(String username) {
+        userDAO.deleteUser(username);
     }
 }

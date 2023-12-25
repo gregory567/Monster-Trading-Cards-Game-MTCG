@@ -30,18 +30,16 @@ public class UserDAO {
     }
 
     // Method to create a new user in the database
-    public Integer create(String username, String password) {
+    public Integer createUser(String username, String password) {
         // Check if the user already exists
         if (userExists(username)) {
             // User with the same username already registered.
-            System.out.println("User with the same username already registered.");
-            // Return 409 to indicate unsuccessful user creation
             return 409;
         }
 
         // create token for later login
         String token = username + "-mtcgToken";
-        Integer coins = 20;
+        Double coins = 20.0;
         Integer elo_score = 0;
         Integer wins = 0;
         Integer losses = 0;
@@ -52,7 +50,7 @@ public class UserDAO {
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
             preparedStatement.setString(3, token);
-            preparedStatement.setInt(4, coins);
+            preparedStatement.setDouble(4, coins);
             preparedStatement.setInt(5, elo_score);
             preparedStatement.setInt(6, wins);
             preparedStatement.setInt(7, losses);
@@ -100,7 +98,7 @@ public class UserDAO {
         return false;
     }
 
-    public ArrayList<UserDataDTO> readAll() {
+    public ArrayList<UserDataDTO> getUsers() {
         ArrayList<UserDataDTO> users = new ArrayList<>();
 
         if (usersCache != null) {
@@ -127,7 +125,7 @@ public class UserDAO {
         return null;
     }
 
-    public UserDataDTO read(String username) {
+    public UserDataDTO getUser(String username) {
         String selectStmt = "SELECT profile_name, profile_bio, profile_image FROM \"User\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
@@ -242,7 +240,7 @@ public class UserDAO {
         return false;
     }
 
-    public void delete(String username) {
+    public void deleteUser(String username) {
         String deleteStmt = "DELETE FROM \"User\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
             preparedStatement.setString(1, username);
