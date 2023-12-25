@@ -280,14 +280,37 @@ public class App implements ServerApp {
     private Response handleDeleteRequest(Request request) {
         if (request.getPathname().startsWith("/users/")) {
             String username = getUsernameFromPath(request.getPathname());
-            authenticateUser(request, username); // Add authentication check
+            authenticateUser(request, username);
             return getUserController().deleteUser(username);
+        } else if (request.getPathname().startsWith("/tradings/")) {
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Check if the user token is null or empty
+            if (userToken == null || userToken.isEmpty()) {
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            // Get the user from the token
+            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            String tradeDealId = getTradeDealIdFromPath(request.getPathname());
+            return getTradeDealController().deleteTradeDeal(authenticatedUsername, tradeDealId);
         }
         return notFoundResponse();
     }
 
     private String getUsernameFromPath(String path) {
         // Extract username from path, e.g., "/users/john" -> "john"
+        String[] parts = path.split("/");
+        return parts.length > 2 ? parts[2] : null;
+    }
+
+    private String getTradeDealIdFromPath(String path) {
+        // Extract trade deal ID from path, e.g., "/tradings/3fa85f64-5717-4562-b3fc-2c963f66afa6" -> "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         String[] parts = path.split("/");
         return parts.length > 2 ? parts[2] : null;
     }

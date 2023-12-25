@@ -28,5 +28,9 @@ public class TradeDealRepository {
         return tradeDealDAO.createTradeDeal(username, tradeDealDTO);
     }
 
+    public Integer deleteTradeDeal(String username, String tradeDealId) {
+        return tradeDealDAO.deleteTradeDeal(username, tradeDealId);
+    }
+
 }
 

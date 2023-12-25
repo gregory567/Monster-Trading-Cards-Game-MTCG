@@ -98,6 +98,27 @@ public class TradeDealController extends Controller {
         }
     }
 
+    public Response deleteTradeDeal(String username, String tradeDealId) {
+        try {
+
+            // Delete the trade deal
+            int statusCode = getTradeDealRepository().deleteTradeDeal(username, tradeDealId);
+
+            switch (statusCode) {
+                case 200:
+                    return buildJsonResponse(HttpStatus.NO_CONTENT, null, "Trade deal successfully deleted");
+                case 403:
+                    return buildJsonResponse(HttpStatus.FORBIDDEN, null, "The deal contains a card that is not owned by the user");
+                case 404:
+                    return buildJsonResponse(HttpStatus.NOT_FOUND, null, "The provided deal ID was not found.");
+                default:
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete trade deal");
+            }
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to delete trade deal");
+        }
+    }
+
     private String extractIdFromBody(String body) {
         try {
             JsonNode jsonNode = getObjectMapper().readTree(body);

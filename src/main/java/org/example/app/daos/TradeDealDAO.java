@@ -139,6 +139,54 @@ public class TradeDealDAO {
         return false;
     }
 
+    public Integer deleteTradeDeal(String username, String tradeDealId) {
+        // Check if the trade deal exists
+        if (!isTradeDealIdExists(tradeDealId)) {
+            return 404; // HTTP status code for Not Found
+        }
+
+        // Check if the user owns the card associated with the trade deal
+        String cardId = getCardIdFromTradeDeal(tradeDealId);
+        if (!isCardOwnedByUser(username, cardId)) {
+            return 403; // HTTP status code for Forbidden
+        }
+
+        String sql = "DELETE FROM \"TradeDeal\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
+                return 200; // HTTP status code for OK
+            } else {
+                return 500; // HTTP status code for Internal Server Error
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 500; // HTTP status code for Internal Server Error
+        }
+    }
+
+    private String getCardIdFromTradeDeal(String tradeDealId) {
+        String sql = "SELECT offeredCard_id FROM \"TradeDeal\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getObject(1, UUID.class).toString();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
 
 }
 
