@@ -438,6 +438,67 @@ public class CardDAO {
 
     }
 
+    // method to delete unwanted cards from the user's stack
+    private void deleteCardsFromUserStack(String username, List<CardDTO> cardsToRemove) throws SQLException {
+
+        String deleteQuery = "DELETE FROM \"Stack\" WHERE username = ? AND card_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+            for (CardDTO card : cardsToRemove) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setObject(2, UUID.fromString(card.getId()));
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+    }
+
+    // method to add purchased card to the user's stack
+    public void addCardToUserStack(String username, String cardId) throws SQLException {
+
+        String insertQuery = "INSERT INTO \"Stack\" (username, card_id) VALUES (?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+
+    }
+
+    // method to delete unwanted card from the user's stack
+    public void deleteCardFromUserStack(String username, String cardId) throws SQLException {
+
+        String deleteQuery = "DELETE FROM \"Stack\" WHERE username = ? AND card_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+    }
+
+    public void updateCardOwner(String cardId, String newOwnerUsername) throws SQLException {
+        String updateQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+            preparedStatement.setString(1, newOwnerUsername);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+    }
+
     public CardDTO read(String cardId) {
         // Implement logic to retrieve a card by its ID from the database
         String query = "SELECT * FROM \"Card\" WHERE id = ?";
@@ -458,8 +519,5 @@ public class CardDAO {
         return null;
     }
 
-    public void delete(String cardId) {
-        // Implement logic to delete a card by its ID from the database
-    }
 }
 

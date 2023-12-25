@@ -5,7 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.app.dtos.TradeDealDTO;
-import org.example.app.repositories.TradeDealRepository;
+import org.example.app.daos.CardDAO;
 
 import java.sql.*;
 import java.util.*;
@@ -20,8 +20,12 @@ public class TradeDealDAO {
     @Setter(AccessLevel.PRIVATE)
     ArrayList<TradeDealDTO> tradeDealCache;
 
+    @Setter(AccessLevel.PRIVATE)
+    private CardDAO cardDAO;
+
     public TradeDealDAO(Connection connection) {
         setConnection(connection);
+        setCardDAO(cardDAO);
     }
 
     public List<TradeDealDTO> getTradeDeals() {
@@ -186,6 +190,141 @@ public class TradeDealDAO {
         return null;
     }
 
+    public Integer carryOutTrade(String username, String tradeDealId, String offeredCardId) {
+        // Check if the trade deal exists
+        if (!isTradeDealIdExists(tradeDealId)) {
+            return 404; // HTTP status code for Not Found
+        }
+
+        // Check if the user owns the offered card
+        if (!isCardOwnedByUser(username, offeredCardId)) {
+            return 403; // HTTP status code for Forbidden
+        }
+
+        // Check if the offered card meets the trade deal requirements
+        if (!doesOfferedCardMeetRequirements(tradeDealId, offeredCardId)) {
+            return 403; // HTTP status code for Forbidden
+        }
+
+        // Carry out the trade
+        String sql = "UPDATE \"TradeDeal\" SET status = 'COMPLETED' WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected > 0) {
+
+                // Add cards to the user's stacks
+                cardDAO.addCardToUserStack(getOfferingUserUsername(tradeDealId), offeredCardId);
+                cardDAO.addCardToUserStack(username, getOfferedCardId(tradeDealId));
+
+                // Delete the corresponding cards from the stacks
+                cardDAO.deleteCardFromUserStack(getOfferingUserUsername(tradeDealId), getOfferedCardId(tradeDealId));
+                cardDAO.deleteCardFromUserStack(username, offeredCardId);
+
+                // Update the owner_username attribute in the card table
+                cardDAO.updateCardOwner(getOfferedCardId(tradeDealId), username);
+                cardDAO.updateCardOwner(offeredCardId, getOfferingUserUsername(tradeDealId));
+
+                return 200; // HTTP status code for OK
+            } else {
+                return 500; // HTTP status code for Internal Server Error
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 500; // HTTP status code for Internal Server Error
+        }
+    }
+
+    private boolean doesOfferedCardMeetRequirements(String tradeDealId, String offeredCardId) {
+        String sql = "SELECT requirement_cardType, requirement_minDamage FROM \"TradeDeal\" " +
+                "WHERE id = ? AND status = 'PENDING'";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                String requiredCardType = resultSet.getString("requirement_cardType");
+                Double requiredMinDamage = resultSet.getDouble("requirement_minDamage");
+
+                String offeredCardType = getCardTypeFromCardId(offeredCardId);
+                Double offeredDamage = getDamageFromCardId(offeredCardId);
+
+                // Check if the offered card meets the requirements
+                return offeredCardType.equals(requiredCardType) && offeredDamage >= requiredMinDamage;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    // Helper method to get card type from card ID
+    private String getCardTypeFromCardId(String cardId) {
+        String sql = "SELECT cardType FROM \"Card\" WHERE id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(cardId));
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next() ? resultSet.getString("cardType") : null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Helper method to get damage from card ID
+    private double getDamageFromCardId(String cardId) {
+        String sql = "SELECT damage FROM \"Card\" WHERE id = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(cardId));
+            ResultSet resultSet = preparedStatement.executeQuery();
+            return resultSet.next() ? resultSet.getDouble("damage") : 0.0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+
+    private String getOfferingUserUsername(String tradeDealId) throws SQLException {
+        String sql = "SELECT offeringUser_username FROM \"TradeDeal\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getString("offeringUser_username");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper error handling
+        }
+
+        return null;
+    }
+
+    private String getOfferedCardId(String tradeDealId) throws SQLException {
+        String sql = "SELECT offeredCard_id FROM \"TradeDeal\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getObject("offeredCard_id", UUID.class).toString();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper error handling
+        }
+
+        return null;
+    }
 
 
 }

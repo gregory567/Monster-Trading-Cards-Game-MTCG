@@ -32,5 +32,9 @@ public class TradeDealRepository {
         return tradeDealDAO.deleteTradeDeal(username, tradeDealId);
     }
 
+    public Integer carryOutTrade(String username, String tradeDealId, String offeredCardId) {
+        return tradeDealDAO.carryOutTrade(username, tradeDealId, offeredCardId);
+    }
+
 }
 

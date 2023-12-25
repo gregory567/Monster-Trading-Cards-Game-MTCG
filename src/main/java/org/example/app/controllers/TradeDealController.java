@@ -119,6 +119,35 @@ public class TradeDealController extends Controller {
         }
     }
 
+    public Response carryOutTrade(String username, String tradeDealId, String body) {
+        try {
+
+            String offeredCardId = extractOfferedCardIdFromBody(body);
+            // Validate the provided card ID
+            if (offeredCardId == null || offeredCardId.isEmpty()) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Invalid offered card ID");
+            }
+
+            // Carry out the trade
+            Integer statusCode = getTradeDealRepository().carryOutTrade(username, tradeDealId, offeredCardId);
+
+            switch (statusCode) {
+                case 200:
+                    return buildJsonResponse(HttpStatus.OK, null, "Trade deal successfully executed");
+                case 401:
+                    return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Unauthorized to execute the trade deal");
+                case 403:
+                    return buildJsonResponse(HttpStatus.FORBIDDEN, null, "The offered card is not owned by the user, or the requirements are not met, or the offered card is locked in the deck");
+                case 404:
+                    return buildJsonResponse(HttpStatus.NOT_FOUND, null, "The provided deal ID was not found");
+                default:
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to carry out trade deal");
+            }
+        } catch (Exception e) {
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to carry out trade deal");
+        }
+    }
+
     private String extractIdFromBody(String body) {
         try {
             JsonNode jsonNode = getObjectMapper().readTree(body);
@@ -153,6 +182,16 @@ public class TradeDealController extends Controller {
         try {
             JsonNode jsonNode = getObjectMapper().readTree(body);
             return jsonNode.get("MinimumDamage").asDouble();
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private String extractOfferedCardIdFromBody(String body) {
+        try {
+            JsonNode jsonNode = getObjectMapper().readTree(body);
+            return jsonNode.asText();
         } catch (JsonProcessingException e) {
             e.printStackTrace();
             return null;
