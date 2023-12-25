@@ -9,10 +9,13 @@ import lombok.Getter;
 import lombok.AccessLevel;
 import org.example.app.controllers.UserController;
 import org.example.app.controllers.CardController;
+import org.example.app.controllers.TradeDealController;
 import org.example.app.daos.UserDAO;
 import org.example.app.repositories.UserRepository;
 import org.example.app.daos.CardDAO;
 import org.example.app.repositories.CardRepository;
+import org.example.app.daos.TradeDealDAO;
+import org.example.app.repositories.TradeDealRepository;
 import org.example.app.services.DatabaseService;
 import org.example.server.Request;
 import org.example.server.Response;
@@ -30,6 +33,7 @@ public class App implements ServerApp {
 
     private UserController userController;
     private CardController cardController;
+    private TradeDealController tradeDealController;
     private String authenticatedUserToken;
 
     public App() {
@@ -38,11 +42,14 @@ public class App implements ServerApp {
 
         UserDAO userDAO = new UserDAO(databaseService.getConnection());
         CardDAO cardDAO = new CardDAO(databaseService.getConnection());
+        TradeDealDAO tradeDealDAO = new TradeDealDAO(databaseService.getConnection());
         UserRepository userRepository = new UserRepository(userDAO);
         CardRepository cardRepository = new CardRepository(cardDAO);
+        TradeDealRepository tradeDealRepository = new TradeDealRepository(tradeDealDAO);
 
         setUserController(new UserController(userRepository));
         setCardController(new CardController(cardRepository));
+        setTradeDealController(new TradeDealController(tradeDealRepository));
     }
 
     public Response handleRequest(Request request) {
@@ -60,10 +67,8 @@ public class App implements ServerApp {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt(); // Restore interrupted status
-            // Log the InterruptedException
             handleException(e);
         } catch (Exception e) {
-            // Log the exception
             handleException(e);
             return internalServerErrorResponse();
         }
@@ -148,6 +153,22 @@ public class App implements ServerApp {
             }
 
             return getUserController().getScoreBoard();
+        } else if (request.getPathname().equals("/tradings")) {
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Check if the user token is null or empty
+            if (userToken == null || userToken.isEmpty()) {
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            // Get the user from the token
+            String authenticatedUsername = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, authenticatedUsername)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            return getTradeDealController().getTradeDeals();
         }
         return notFoundResponse();
     }
