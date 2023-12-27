@@ -10,12 +10,15 @@ import lombok.AccessLevel;
 import org.example.app.controllers.CardController;
 import org.example.app.controllers.TradeDealController;
 import org.example.app.controllers.UserController;
+import org.example.app.controllers.GameController;
 import org.example.app.daos.CardDAO;
 import org.example.app.daos.TradeDealDAO;
 import org.example.app.daos.UserDAO;
+import org.example.app.daos.GameDAO;
 import org.example.app.repositories.CardRepository;
 import org.example.app.repositories.TradeDealRepository;
 import org.example.app.repositories.UserRepository;
+import org.example.app.repositories.GameRepository;
 import org.example.app.services.DatabaseService;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
@@ -33,6 +36,7 @@ public class App implements ServerApp {
     private UserController userController;
     private CardController cardController;
     private TradeDealController tradeDealController;
+    private GameController gameController;
     private String authenticatedUserToken;
 
     public App() {
@@ -40,14 +44,17 @@ public class App implements ServerApp {
         UserDAO userDAO = new UserDAO(databaseService.getConnection());
         CardDAO cardDAO = new CardDAO(databaseService.getConnection());
         TradeDealDAO tradeDealDAO = new TradeDealDAO(databaseService.getConnection());
+        GameDAO gameDAO = new GameDAO(databaseService.getConnection());
 
         UserRepository userRepository = new UserRepository(userDAO);
         CardRepository cardRepository = new CardRepository(cardDAO);
         TradeDealRepository tradeDealRepository = new TradeDealRepository(tradeDealDAO);
+        GameRepository gameRepository = new GameRepository(gameDAO);
 
         setUserController(new UserController(userRepository));
         setCardController(new CardController(cardRepository));
         setTradeDealController(new TradeDealController(tradeDealRepository));
+        setGameController(new GameController(gameRepository));
     }
 
     public Response handleRequest(Request request) {
@@ -271,6 +278,22 @@ public class App implements ServerApp {
             String body = request.getBody();
             String tradeDealId = getTradeDealIdFromPath(request.getPathname());
             return getTradeDealController().carryOutTrade(usernameFromToken, tradeDealId, body);
+        } else if (request.getPathname().equals("/battles")) {
+            // Extract the user token from the request
+            String userToken = request.getUserToken();
+
+            // Check if the user token is null or empty
+            if (userToken == null || userToken.isEmpty()) {
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            // Get the user from the token
+            String usernameFromToken = getAuthenticatedUsernameFromToken(userToken);
+            if (!authenticateUser(request, usernameFromToken)) { // authentication check
+                return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
+            }
+
+            return getGameController().carryOutBattle(usernameFromToken);
         }
         return notFoundResponse();
     }
