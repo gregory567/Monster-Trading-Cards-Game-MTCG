@@ -50,6 +50,11 @@ public class Task implements Runnable {
                 }
             }
 
+            // Handle entering the lobby for battles
+            if (request.getPathname().equals("/battles")) {
+                handleBattleLobbyEntry();
+            }
+
             writer.write(response.build());
             // flush the stream to ensure data is sent immediately
             //writer.flush();
@@ -62,11 +67,39 @@ public class Task implements Runnable {
 
     private void closeResources() {
         try {
-            if (clientSocket != null) {
+            if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close();
             }
         } catch (IOException e) {
             handleException(e);
+        }
+    }
+
+    private void handleBattleLobbyEntry() {
+        // Check if the lobby is open; if not, wait until it is
+        synchronized (app) {
+            while (!app.isBattleLobbyOpen()) {
+                try {
+                    // Notify the app that a new user is in the lobby
+                    app.notifyNewUserInLobby();
+                    /*
+                    When a new user enters the lobby (represented by a task/thread),
+                    it notifies other waiting threads that the lobby is no longer empty,
+                    potentially allowing them to proceed.
+                    This is essential for coordinating multiple threads waiting for the lobby to open.
+                     */
+
+                    // Add the username to the list when a user enters the lobby
+                    app.addUsernameToLobby(getAuthenticatedUsernameFromToken(authenticatedUserToken));
+
+                    // Wait for another user to enter the lobby
+                    app.wait();
+                } catch (InterruptedException e) {
+                    // Restore interrupted status and handle the exception
+                    Thread.currentThread().interrupt();
+                    handleException(e);
+                }
+            }
         }
     }
 
@@ -80,7 +113,17 @@ public class Task implements Runnable {
         }
     }
 
+    private String getAuthenticatedUsernameFromToken(String userToken) {
+        // extract the username from the user token
+        return userToken.replace("-mtcgToken", "");
+    }
+
     private void handleException(IOException e) {
+        // Handle the exception (e.g., log it)
+        e.printStackTrace();
+    }
+
+    private void handleException(InterruptedException e) {
         // Handle the exception (e.g., log it)
         e.printStackTrace();
     }

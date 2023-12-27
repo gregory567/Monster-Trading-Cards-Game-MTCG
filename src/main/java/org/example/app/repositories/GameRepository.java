@@ -17,7 +17,7 @@ public class GameRepository {
         setGameDAO(gameDAO);
     }
 
-    public String carryOutBattle(String username) {
-        return gameDAO.carryOutBattle(username);
+    public String carryOutBattle(String username1, String username2) {
+        return gameDAO.carryOutBattle(username1, username2);
     }
 }

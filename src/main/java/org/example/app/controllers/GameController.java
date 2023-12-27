@@ -32,9 +32,9 @@ public class GameController extends Controller {
         setObjectMapper(new ObjectMapper());
     }
 
-    public Response carryOutBattle(String username) {
+    public Response carryOutBattle(String username1, String username2) {
         try {
-            String battleLog = getGameRepository().carryOutBattle(username);
+            String battleLog = getGameRepository().carryOutBattle(username1, username2);
 
             if (!battleLog.isEmpty()) {
                 String battleLogJSON = getObjectMapper().writeValueAsString(battleLog);

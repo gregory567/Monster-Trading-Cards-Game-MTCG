@@ -27,6 +27,8 @@ import org.example.server.Response;
 import org.example.server.ServerApp;
 
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @Setter(AccessLevel.PRIVATE)
@@ -38,6 +40,26 @@ public class App implements ServerApp {
     private TradeDealController tradeDealController;
     private GameController gameController;
     private String authenticatedUserToken;
+    private boolean isBattleLobbyOpen = false;
+    private List<String> usernamesInLobby = new ArrayList<>();
+
+    public synchronized void notifyNewUserInLobby() {
+        isBattleLobbyOpen = true;
+        // Notify any waiting threads that the lobby is now open
+        notifyAll();
+    }
+
+    public synchronized boolean isBattleLobbyOpen() {
+        return isBattleLobbyOpen;
+    }
+
+    public synchronized void addUsernameToLobby(String username) {
+        usernamesInLobby.add(username);
+    }
+
+    public synchronized List<String> getUsernamesInLobby() {
+        return new ArrayList<>(usernamesInLobby);
+    }
 
     public App() {
         DatabaseService databaseService = new DatabaseService();
@@ -293,7 +315,22 @@ public class App implements ServerApp {
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            return getGameController().carryOutBattle(usernameFromToken);
+            // Notify the waiting threads that a new user is in the lobby
+            notifyNewUserInLobby();
+            /*
+            In this case, when a user requests to enter the battles endpoint,
+            the server notifies waiting threads that a new user is in the lobby.
+            This is important for signaling other threads waiting for a user to enter the lobby and potentially start a battle.
+             */
+
+            // If there is another user in the lobby, start the battle immediately
+            List<String> usernamesInLobby = getUsernamesInLobby();
+            if (isBattleLobbyOpen() && usernamesInLobby.size() == 2) {
+                return getGameController().carryOutBattle(usernamesInLobby.get(0), usernamesInLobby.get(1));
+            } else {
+                // Otherwise, return a response indicating that the user is in the lobby
+                return buildJsonResponse(HttpStatus.OK, null, "Waiting for another user to enter the lobby");
+            }
         }
         return notFoundResponse();
     }

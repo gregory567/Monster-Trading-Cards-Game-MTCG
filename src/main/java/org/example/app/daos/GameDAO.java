@@ -20,7 +20,7 @@ public class GameDAO {
         setConnection(connection);
     }
 
-    public String carryOutBattle(String username) {
+    public String carryOutBattle(String username1, String username2) {
 
     }
 
