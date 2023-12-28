@@ -4,20 +4,12 @@ import java.util.Random;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.ElementType;
+import org.example.CardName;
 
 
 @Getter
 @Setter
 public class Package {
-
-    // Enum representing possible card names
-    public enum CardName {
-        WaterGoblin, FireGoblin, RegularGoblin,
-        WaterTroll, FireTroll, RegularTroll,
-        WaterElf, FireElf, RegularElf,
-        WaterSpell, FireSpell, RegularSpell,
-        Knight, Dragon, Ork, Kraken
-    }
 
     // array to store the cards in the package
     private Card[] packageCards;

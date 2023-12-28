@@ -12,7 +12,7 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class MonsterCard extends Card {
 
-    public MonsterCard(Package.CardName name, Integer damage, ElementType elementType, String[] specialties, User owner) {
+    public MonsterCard(CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
         super(name, damage, elementType, specialties, owner);
         this.cardType = CardType.MONSTER;
     }
@@ -35,88 +35,15 @@ public class MonsterCard extends Card {
     }
 
     @Override
-    public void upgradeCard() {
-        // increase the damage of the monster when upgraded
-        int upgradedDamage = getDamage() + 10;
-        setDamage(upgradedDamage);
-
-        System.out.println("MonsterCard upgraded! New damage: " + upgradedDamage);
-    }
-
-    @Override
-    public void applySpecialty(String specialty, Card opponentCard) {
-        if (getSpecialties() != null) {
-            for (String cardSpecialty : getSpecialties()) {
-                if (cardSpecialty.equals(specialty)) {
-                    // Implement the logic to apply the specialty effect to the card
-                    // This method should modify the card based on the specialty
-
-                    // Check the specialty type and apply the corresponding effect
-                    switch (specialty) {
-                        case "Goblin":
-                            // Goblins are too afraid of Dragons to attack
-                            if (opponentCard.getSpecialties() != null &&
-                                    containsSpecialty(opponentCard.getSpecialties(), "Dragon")) {
-                                // set damage to 0
-                                this.setDamage(0);
-                            }
-                            break;
-
-                        case "Wizzard":
-                            // Wizzard can control Orks so they are not able to damage them
-                            if (opponentCard.getSpecialties() != null &&
-                                    containsSpecialty(opponentCard.getSpecialties(), "Ork")) {
-                                // set damage to 0
-                                opponentCard.setDamage(0);
-                            }
-                            break;
-
-                        case "Knight":
-                            // The armor of Knights is so heavy that WaterSpells make them drown instantly
-                            if (opponentCard.getElementType().equals(WATER)) {
-                                // set damage to 0
-                                opponentCard.setDamage(100);
-                            }
-                            break;
-
-                        case "Kraken":
-                            // The Kraken is immune against spells
-                            if (opponentCard instanceof SpellCard) {
-                                // set damage to 0
-                                opponentCard.setDamage(0);
-                            }
-                            break;
-
-                        case "FireElves":
-                            // The FireElves know Dragons since they were little and can evade their attacks
-                            if (opponentCard.getSpecialties() != null &&
-                                    containsSpecialty(opponentCard.getSpecialties(), "Dragon")) {
-                                // set damage to 0
-                                opponentCard.setDamage(0);
-                            }
-                            break;
-
-                        default:
-                            // Handle other specialties or no effect
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    public void evolve() {
-        System.out.println("MonsterCard evolved!");
-    }
-
-    @Override
-    public void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType) {
+    public Integer calculateEffectiveDamage(Card opponentCard) {
+        ElementType opponentElementType = opponentCard.getElementType();
+        CardType opponentCardType = opponentCard.getCardType();
         int baseDamage = getDamage();
 
         // Check if it's a pure monster fight (no effect based on element type)
         if (opponentCardType == CardType.MONSTER) {
             System.out.println("Pure monster fight! Effective Damage against a monster card: " + baseDamage);
-            return;
+            return baseDamage;
         }
 
         // Element-based spell attack
@@ -125,44 +52,41 @@ public class MonsterCard extends Card {
                 switch (opponentElementType) {
                     case FIRE:
                         System.out.println("Effective Damage against FIRE: " + (baseDamage * 2));
-                        break;
+                        return baseDamage * 2;
                     case NORMAL:
                         System.out.println("Effective Damage against NORMAL: " + (baseDamage / 2));
-                        break;
+                        return baseDamage / 2;
                     default:
                         System.out.println("No Effect against WATER: " + baseDamage);
-                        break;
+                        return baseDamage;
                 }
-                break;
             case FIRE:
                 switch (opponentElementType) {
                     case NORMAL:
                         System.out.println("Effective Damage against NORMAL: " + (baseDamage * 2));
-                        break;
+                        return baseDamage * 2;
                     case WATER:
                         System.out.println("Effective Damage against WATER: " + (baseDamage / 2));
-                        break;
+                        return baseDamage / 2;
                     default:
                         System.out.println("No Effect against FIRE: " + baseDamage);
-                        break;
+                        return baseDamage;
                 }
-                break;
             case NORMAL:
                 switch (opponentElementType) {
                     case WATER:
                         System.out.println("Effective Damage against WATER: " + (baseDamage * 2));
-                        break;
+                        return baseDamage * 2;
                     case FIRE:
                         System.out.println("Effective Damage against FIRE: " + (baseDamage / 2));
-                        break;
+                        return baseDamage / 2;
                     default:
                         System.out.println("No Effect against NORMAL: " + baseDamage);
-                        break;
+                        return baseDamage;
                 }
-                break;
             default:
                 System.out.println("Invalid Element Type: " + getElementType());
-                break;
+                return baseDamage;
         }
     }
 

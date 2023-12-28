@@ -62,7 +62,6 @@ class Card {
 }
 
 class SpellCard {
-    + void castSpell()
     + void getAttributes()
     + void displayCardInfo()
     + void upgradeCard()
@@ -71,7 +70,6 @@ class SpellCard {
 }
 
 class MonsterCard {
-    + void evolve()
     + void getAttributes()
     + void displayCardInfo()
     + void upgradeCard()

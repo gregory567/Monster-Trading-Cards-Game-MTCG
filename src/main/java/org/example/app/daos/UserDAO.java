@@ -372,12 +372,12 @@ public class UserDAO {
             try (ResultSet cardResultSet = cardStatement.executeQuery()) {
                 if (cardResultSet.next()) {
                     String cardType = cardResultSet.getString("cardType");
-                    Package.CardName name = Package.CardName.valueOf(cardResultSet.getString("name"));
+                    CardName name = CardName.valueOf(cardResultSet.getString("name"));
                     int damage = cardResultSet.getInt("damage");
                     ElementType elementType = ElementType.valueOf(cardResultSet.getString("elementType"));
                     String[] specialties = (String[]) cardResultSet.getArray("specialties").getArray();
 
-                    User owner = getUserByUsername(cardResultSet.getString("owner_username"));
+                    String owner = cardResultSet.getString("owner_username");
 
                     switch (cardType) {
                         case "Monster":
