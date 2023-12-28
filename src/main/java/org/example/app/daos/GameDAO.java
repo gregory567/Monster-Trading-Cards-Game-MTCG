@@ -17,6 +17,14 @@ public class GameDAO {
     @Getter(AccessLevel.PRIVATE)
     Connection connection;
 
+    public static final String GOBLIN_SPECIALTY = "Goblin";
+    public static final String WIZZARD_SPECIALTY = "Wizzard";
+    public static final String KNIGHT_SPECIALTY = "Knight";
+    public static final String KRAKEN_SPECIALTY = "Kraken";
+    public static final String FIREELF_SPECIALTY = "FireElf";
+    public static final String ORK_SPECIALTY = "Ork";
+    public static final String DRAGON_SPECIALTY = "Dragon";
+
     public GameDAO(Connection connection) {
         setConnection(connection);
     }
@@ -105,6 +113,75 @@ public class GameDAO {
         // Implement logic to log battle details to the database
         // You need to insert data into the BattleLog, RoundDetail, and other related tables
         // Use prepared statements for database operations to prevent SQL injection
+    }
+
+    public void applySpecialty(Card cardUser1, Card cardUser2) {
+        if (cardUser1.getSpecialties() != null) {
+            for (String cardSpecialty : cardUser1.getSpecialties()) {
+                // logic to apply the specialty effect to the card
+                // This method modifies the card based on the specialty
+
+                // Check the specialty type and apply the corresponding effect
+                switch (cardSpecialty) {
+                    case GOBLIN_SPECIALTY:
+                        // Goblins are too afraid of Dragons to attack
+                        if (cardUser2.getSpecialties() != null &&
+                                containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
+                            // set damage to 0
+                            cardUser1.setDamage(0);
+                        }
+                        break;
+
+                    case WIZZARD_SPECIALTY:
+                        // Wizzard can control Orks so they are not able to damage them
+                        if (cardUser2.getSpecialties() != null &&
+                                containsSpecialty(cardUser2.getSpecialties(), ORK_SPECIALTY)) {
+                            // set damage to 0
+                            cardUser2.setDamage(0);
+                        }
+                        break;
+
+                    case KNIGHT_SPECIALTY:
+                        // The armor of Knights is so heavy that WaterSpells make them drown instantly
+                        if (cardUser2.getElementType().equals(ElementType.WATER)) {
+                            // set damage to 0
+                            cardUser2.setDamage(100);
+                        }
+                        break;
+
+                    case KRAKEN_SPECIALTY:
+                        // The Kraken is immune against spells
+                        if (cardUser2 instanceof SpellCard) {
+                            // set damage to 0
+                            cardUser2.setDamage(0);
+                        }
+                        break;
+
+                    case FIREELF_SPECIALTY:
+                        // The FireElves know Dragons since they were little and can evade their attacks
+                        if (cardUser2.getSpecialties() != null &&
+                                containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
+                            // set damage to 0
+                            cardUser2.setDamage(0);
+                        }
+                        break;
+
+                    default:
+                        // Handle other specialties or no effect
+                        break;
+                }
+            }
+        }
+    }
+
+    // Helper method to check if the card has a specific specialty
+    protected boolean containsSpecialty(String[] specialties, String specialtyToFind) {
+        for (String specialty : specialties) {
+            if (specialty.equals(specialtyToFind)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
