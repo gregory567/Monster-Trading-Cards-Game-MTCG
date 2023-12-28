@@ -17,11 +17,13 @@ public class GameDAO {
     @Getter(AccessLevel.PRIVATE)
     Connection connection;
 
-    public static final String GOBLIN_SPECIALTY = "Goblin";
+    public static final String WATER_GOBLIN_SPECIALTY = "WaterGoblin";
+    public static final String FIRE_GOBLIN_SPECIALTY = "FireGoblin";
+    public static final String REGULAR_GOBLIN_SPECIALTY = "RegularGoblin";
     public static final String WIZZARD_SPECIALTY = "Wizzard";
     public static final String KNIGHT_SPECIALTY = "Knight";
     public static final String KRAKEN_SPECIALTY = "Kraken";
-    public static final String FIREELF_SPECIALTY = "FireElf";
+    public static final String FIRE_ELF_SPECIALTY = "FireElf";
     public static final String ORK_SPECIALTY = "Ork";
     public static final String DRAGON_SPECIALTY = "Dragon";
 
@@ -123,7 +125,7 @@ public class GameDAO {
 
                 // Check the specialty type and apply the corresponding effect
                 switch (cardSpecialty) {
-                    case GOBLIN_SPECIALTY:
+                    case WATER_GOBLIN_SPECIALTY, FIRE_GOBLIN_SPECIALTY, REGULAR_GOBLIN_SPECIALTY:
                         // Goblins are too afraid of Dragons to attack
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
@@ -157,7 +159,7 @@ public class GameDAO {
                         }
                         break;
 
-                    case FIREELF_SPECIALTY:
+                    case FIRE_ELF_SPECIALTY:
                         // The FireElves know Dragons since they were little and can evade their attacks
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
