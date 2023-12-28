@@ -24,6 +24,15 @@ public class GameDAO {
     public static final String FIRE_ELF_SPECIALTY = "FireElf";
     public static final String ORK_SPECIALTY = "Ork";
     public static final String DRAGON_SPECIALTY = "Dragon";
+    private static final int NUMBER_OF_ROUNDS = 100;
+
+    @Setter
+    @Getter
+    private String winner = null;
+
+    @Setter
+    @Getter
+    private String loser = null;
 
     public GameDAO(Connection connection) {
         setConnection(connection);
@@ -31,20 +40,37 @@ public class GameDAO {
 
     public String carryOutBattle(String username1, String username2) {
 
-        createBattle(username1, username2);
+        Integer battleId = createBattle(username1, username2);
 
-        for (int round = 1; round <= 100; round++) {
+        for (int round = 1; round <= NUMBER_OF_ROUNDS; round++) {
             try {
+                boolean draw = false;
                 // Select one card for each user from their decks
                 Card cardUser1 = selectRandomCardFromDeck(username1);
                 Card cardUser2 = selectRandomCardFromDeck(username2);
 
                 // Implement the logic for the battle using the selected cards
                 // (Apply specialties, calculate damage, compare damage, etc.)
-                applySpecialty();
+                applySpecialty(cardUser1, cardUser2, username1, username2);
+                applySpecialty(cardUser2, cardUser1, username2, username1);
 
-                // Log the battle details, winner, loser, and draw status
-                logRound(username1, username2, round, cardUser1, cardUser2);
+                if (winner == null && loser == null) {
+                    Integer effectiveDamageUser1 = cardUser1.calculateEffectiveDamage(cardUser2);
+                    Integer effectiveDamageUser2 = cardUser2.calculateEffectiveDamage(cardUser1);
+
+                    if (effectiveDamageUser1 > effectiveDamageUser2) {
+                        setWinner(username1);
+                        setLoser(username2);
+                    } else if (effectiveDamageUser1 < effectiveDamageUser2) {
+                        setWinner(username2);
+                        setLoser(username1);
+                    } else {
+                        draw = true;
+                    }
+                }
+
+                // Log the round details, winner, loser, cards, and draw status
+                logRound(battleId, round, username1, username2, cardUser1, cardUser2, draw);
 
             } catch (SQLException e) {
                 // Handle SQL exception
@@ -56,19 +82,28 @@ public class GameDAO {
         return "Battle completed";
     }
 
-    public void createBattle(String user1Username, String user2Username) {
+    public Integer createBattle(String user1Username, String user2Username) {
         UUID battleId = UUID.randomUUID();
 
         String insertBattleQuery = "INSERT INTO \"Battle\"(id, user1_username, user2_username) VALUES (?, ?, ?)";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(insertBattleQuery)) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertBattleQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setObject(1, battleId);
             preparedStatement.setString(2, user1Username);
             preparedStatement.setString(3, user2Username);
 
             preparedStatement.executeUpdate();
+
+            // Retrieve the generated battle ID
+            ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                return generatedKeys.getInt(1);
+            } else {
+                throw new SQLException("Creating battle failed, no ID obtained.");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1; // Return a sentinel value or handle the error as needed
         }
     }
 
@@ -129,13 +164,49 @@ public class GameDAO {
         return null; // Handle appropriately if no card is found
     }
 
-    private void logRound(String username1, String username2, int round, Card cardUser1, Card cardUser2) {
-        // Implement logic to log battle details to the database
-        // You need to insert data into the BattleLog, RoundDetail, and other related tables
-        // Use prepared statements for database operations to prevent SQL injection
+    private void logRound(Integer battleId, Integer round, String username1, String username2, Card cardUser1, Card cardUser2, boolean draw) {
+        try {
+            // Insert into RoundDetail table
+            UUID roundId = UUID.randomUUID();
+            insertRoundDetail(roundId, cardUser1.getId(), username1);
+            insertRoundDetail(roundId, cardUser2.getId(), username2);
+
+            // Insert into RoundLog table
+            insertRoundLog(battleId, round, username1, username2, draw, roundId);
+        } catch (SQLException e) {
+            // Handle SQL exception by logging or rethrowing if necessary
+            e.printStackTrace();
+        }
     }
 
-    public void applySpecialty(Card cardUser1, Card cardUser2) {
+    private void insertRoundDetail(UUID roundId, UUID cardId, String playerUsername) throws SQLException {
+        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, player_username) VALUES (?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundDetailQuery)) {
+            preparedStatement.setObject(1, roundId);
+            preparedStatement.setObject(2, cardId);
+            preparedStatement.setString(3, playerUsername);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void insertRoundLog(Integer battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
+        String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(battle_id, round_number, winner_username, loser_username, draw, round_id) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundLogQuery)) {
+            preparedStatement.setObject(1, battleId);
+            preparedStatement.setInt(2, roundNumber);
+            preparedStatement.setString(3, winnerUsername);
+            preparedStatement.setString(4, loserUsername);
+            preparedStatement.setBoolean(5, draw);
+            preparedStatement.setObject(6, roundId);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    public void applySpecialty(Card cardUser1, Card cardUser2, String username1,  String username2) {
         if (cardUser1.getSpecialties() != null) {
             for (String cardSpecialty : cardUser1.getSpecialties()) {
                 // logic to apply the specialty effect to the card
@@ -147,8 +218,8 @@ public class GameDAO {
                         // Goblins are too afraid of Dragons to attack
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
-                            // set damage to 0
-                            cardUser1.setDamage(0);
+                            setWinner(username2);
+                            setLoser(username1);
                         }
                         break;
 
@@ -156,24 +227,24 @@ public class GameDAO {
                         // Wizzard can control Orks so they are not able to damage them
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), ORK_SPECIALTY)) {
-                            // set damage to 0
-                            cardUser2.setDamage(0);
+                            setWinner(username1);
+                            setLoser(username2);
                         }
                         break;
 
                     case KNIGHT_SPECIALTY:
                         // The armor of Knights is so heavy that WaterSpells make them drown instantly
                         if (cardUser2.getElementType().equals(ElementType.WATER)) {
-                            // set damage to 0
-                            cardUser2.setDamage(100);
+                            setWinner(username2);
+                            setLoser(username1);
                         }
                         break;
 
                     case KRAKEN_SPECIALTY:
                         // The Kraken is immune against spells
                         if (cardUser2 instanceof SpellCard) {
-                            // set damage to 0
-                            cardUser2.setDamage(0);
+                            setWinner(username1);
+                            setLoser(username2);
                         }
                         break;
 
@@ -181,8 +252,8 @@ public class GameDAO {
                         // The FireElves know Dragons since they were little and can evade their attacks
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
-                            // set damage to 0
-                            cardUser2.setDamage(0);
+                            setWinner(username1);
+                            setLoser(username2);
                         }
                         break;
 
