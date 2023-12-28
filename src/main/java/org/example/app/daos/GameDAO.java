@@ -9,11 +9,19 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Setter(AccessLevel.PRIVATE)
+@Getter(AccessLevel.PRIVATE)
 public class GameDAO {
 
-    @Setter(AccessLevel.PRIVATE)
-    @Getter(AccessLevel.PRIVATE)
     Connection connection;
+    private String winner = null;
+    private String loser = null;
+    private UUID cardId1 = null;
+    private UUID cardId2 = null;
+    private UUID winnerCardId = null;
+    private UUID loserCardId = null;
+    private Card winnerCard = null;
+    private Card loserCard = null;
 
     public static final String WATER_GOBLIN_SPECIALTY = "WaterGoblin";
     public static final String FIRE_GOBLIN_SPECIALTY = "FireGoblin";
@@ -26,24 +34,17 @@ public class GameDAO {
     public static final String DRAGON_SPECIALTY = "Dragon";
     private static final int NUMBER_OF_ROUNDS = 100;
 
-    @Setter
-    @Getter
-    private String winner = null;
-
-    @Setter
-    @Getter
-    private String loser = null;
-
     public GameDAO(Connection connection) {
         setConnection(connection);
     }
 
     public String carryOutBattle(String username1, String username2) {
 
-        Integer battleId = createBattle(username1, username2);
+        UUID battleId = createBattle(username1, username2);
 
         for (int round = 1; round <= NUMBER_OF_ROUNDS; round++) {
             try {
+
                 boolean draw = false;
                 // Select one card for each user from their decks
                 Card cardUser1 = selectRandomCardFromDeck(username1);
@@ -61,16 +62,34 @@ public class GameDAO {
                     if (effectiveDamageUser1 > effectiveDamageUser2) {
                         setWinner(username1);
                         setLoser(username2);
+                        setWinnerCard(cardUser1);
+                        setLoserCard(cardUser2);
+                        setWinnerCardId(cardId1);
+                        setLoserCardId(cardId2);
                     } else if (effectiveDamageUser1 < effectiveDamageUser2) {
                         setWinner(username2);
                         setLoser(username1);
+                        setWinnerCard(cardUser2);
+                        setLoserCard(cardUser1);
+                        setWinnerCardId(cardId2);
+                        setLoserCardId(cardId1);
                     } else {
                         draw = true;
                     }
                 }
 
                 // Log the round details, winner, loser, cards, and draw status
-                logRound(battleId, round, username1, username2, cardUser1, cardUser2, draw);
+                logRound(battleId, round, winner, loser, cardUser1, cardUser2, draw);
+
+                // Reset variables
+                setCardId1(null);
+                setCardId2(null);
+                setWinner(null);
+                setLoser(null);
+                setWinnerCard(null);
+                setLoserCard(null);
+                setWinnerCardId(null);
+                setLoserCardId(null);
 
             } catch (SQLException e) {
                 // Handle SQL exception
@@ -82,7 +101,7 @@ public class GameDAO {
         return "Battle completed";
     }
 
-    public Integer createBattle(String user1Username, String user2Username) {
+    public UUID createBattle(String user1Username, String user2Username) {
         UUID battleId = UUID.randomUUID();
 
         String insertBattleQuery = "INSERT INTO \"Battle\"(id, user1_username, user2_username) VALUES (?, ?, ?)";
@@ -97,13 +116,14 @@ public class GameDAO {
             // Retrieve the generated battle ID
             ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
             if (generatedKeys.next()) {
-                return generatedKeys.getInt(1);
+                return battleId;
             } else {
                 throw new SQLException("Creating battle failed, no ID obtained.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            return -1; // Return a sentinel value or handle the error as needed
+            // Return a sentinel value or handle the error as needed
+            return null;
         }
     }
 
@@ -116,9 +136,14 @@ public class GameDAO {
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     UUID cardId = UUID.fromString(resultSet.getString("card_id"));
+                    if (cardId1 == null) {
+                        setCardId1(cardId);
+                    } else {
+                        setCardId2(cardId);
+                    }
                     // Retrieve the card details using cardId
                     Card card = getCardById(cardId);
-                    return card; // Replace with the actual card
+                    return card;
                 }
             }
         }
@@ -164,7 +189,7 @@ public class GameDAO {
         return null; // Handle appropriately if no card is found
     }
 
-    private void logRound(Integer battleId, Integer round, String username1, String username2, Card cardUser1, Card cardUser2, boolean draw) {
+    private void logRound(UUID battleId, Integer round, String username1, String username2, Card cardUser1, Card cardUser2, boolean draw) {
         try {
             // Insert into RoundDetail table
             UUID roundId = UUID.randomUUID();
@@ -191,7 +216,7 @@ public class GameDAO {
         }
     }
 
-    private void insertRoundLog(Integer battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
+    private void insertRoundLog(UUID battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
         String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(battle_id, round_number, winner_username, loser_username, draw, round_id) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundLogQuery)) {
@@ -220,6 +245,10 @@ public class GameDAO {
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
                             setWinner(username2);
                             setLoser(username1);
+                            setWinnerCard(cardUser2);
+                            setLoserCard(cardUser1);
+                            setWinnerCardId(cardId2);
+                            setLoserCardId(cardId1);
                         }
                         break;
 
@@ -229,6 +258,10 @@ public class GameDAO {
                                 containsSpecialty(cardUser2.getSpecialties(), ORK_SPECIALTY)) {
                             setWinner(username1);
                             setLoser(username2);
+                            setWinnerCard(cardUser1);
+                            setLoserCard(cardUser2);
+                            setWinnerCardId(cardId1);
+                            setLoserCardId(cardId2);
                         }
                         break;
 
@@ -237,6 +270,10 @@ public class GameDAO {
                         if (cardUser2.getElementType().equals(ElementType.WATER)) {
                             setWinner(username2);
                             setLoser(username1);
+                            setWinnerCard(cardUser2);
+                            setLoserCard(cardUser1);
+                            setWinnerCardId(cardId2);
+                            setLoserCardId(cardId1);
                         }
                         break;
 
@@ -245,6 +282,10 @@ public class GameDAO {
                         if (cardUser2 instanceof SpellCard) {
                             setWinner(username1);
                             setLoser(username2);
+                            setWinnerCard(cardUser1);
+                            setLoserCard(cardUser2);
+                            setWinnerCardId(cardId1);
+                            setLoserCardId(cardId2);
                         }
                         break;
 
@@ -254,6 +295,10 @@ public class GameDAO {
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
                             setWinner(username1);
                             setLoser(username2);
+                            setWinnerCard(cardUser1);
+                            setLoserCard(cardUser2);
+                            setWinnerCardId(cardId1);
+                            setLoserCardId(cardId2);
                         }
                         break;
 
