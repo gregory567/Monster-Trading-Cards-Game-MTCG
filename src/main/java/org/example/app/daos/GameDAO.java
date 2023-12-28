@@ -1,13 +1,12 @@
 package org.example.app.daos;
-import org.example.*;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.lang.Package;
+import org.example.*;
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter(AccessLevel.PRIVATE)
@@ -50,8 +49,7 @@ public class GameDAO {
                 Card cardUser1 = selectRandomCardFromDeck(username1);
                 Card cardUser2 = selectRandomCardFromDeck(username2);
 
-                // Implement the logic for the battle using the selected cards
-                // (Apply specialties, calculate damage, compare damage, etc.)
+                // battle logic using the selected cards
                 applySpecialty(cardUser1, cardUser2, username1, username2);
                 applySpecialty(cardUser2, cardUser1, username2, username1);
 
@@ -60,19 +58,9 @@ public class GameDAO {
                     Integer effectiveDamageUser2 = cardUser2.calculateEffectiveDamage(cardUser1);
 
                     if (effectiveDamageUser1 > effectiveDamageUser2) {
-                        setWinner(username1);
-                        setLoser(username2);
-                        setWinnerCard(cardUser1);
-                        setLoserCard(cardUser2);
-                        setWinnerCardId(cardId1);
-                        setLoserCardId(cardId2);
+                        setWinnerAndLoser(username1, username2, cardUser1, cardUser2, cardId1, cardId2);
                     } else if (effectiveDamageUser1 < effectiveDamageUser2) {
-                        setWinner(username2);
-                        setLoser(username1);
-                        setWinnerCard(cardUser2);
-                        setLoserCard(cardUser1);
-                        setWinnerCardId(cardId2);
-                        setLoserCardId(cardId1);
+                        setWinnerAndLoser(username2, username1, cardUser2, cardUser1, cardId2, cardId1);
                     } else {
                         draw = true;
                     }
@@ -122,7 +110,6 @@ public class GameDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            // Return a sentinel value or handle the error as needed
             return null;
         }
     }
@@ -244,12 +231,7 @@ public class GameDAO {
                         // Goblins are too afraid of Dragons to attack
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
-                            setWinner(username2);
-                            setLoser(username1);
-                            setWinnerCard(cardUser2);
-                            setLoserCard(cardUser1);
-                            setWinnerCardId(cardId2);
-                            setLoserCardId(cardId1);
+                            setWinnerAndLoser(username2, username1, cardUser2, cardUser1, cardId2, cardId1);
                         }
                         break;
 
@@ -257,36 +239,21 @@ public class GameDAO {
                         // Wizzard can control Orks so they are not able to damage them
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), ORK_SPECIALTY)) {
-                            setWinner(username1);
-                            setLoser(username2);
-                            setWinnerCard(cardUser1);
-                            setLoserCard(cardUser2);
-                            setWinnerCardId(cardId1);
-                            setLoserCardId(cardId2);
+                            setWinnerAndLoser(username1, username2, cardUser1, cardUser2, cardId1, cardId2);
                         }
                         break;
 
                     case KNIGHT_SPECIALTY:
                         // The armor of Knights is so heavy that WaterSpells make them drown instantly
                         if (cardUser2.getElementType().equals(ElementType.WATER)) {
-                            setWinner(username2);
-                            setLoser(username1);
-                            setWinnerCard(cardUser2);
-                            setLoserCard(cardUser1);
-                            setWinnerCardId(cardId2);
-                            setLoserCardId(cardId1);
+                            setWinnerAndLoser(username2, username1, cardUser2, cardUser1, cardId2, cardId1);
                         }
                         break;
 
                     case KRAKEN_SPECIALTY:
                         // The Kraken is immune against spells
                         if (cardUser2 instanceof SpellCard) {
-                            setWinner(username1);
-                            setLoser(username2);
-                            setWinnerCard(cardUser1);
-                            setLoserCard(cardUser2);
-                            setWinnerCardId(cardId1);
-                            setLoserCardId(cardId2);
+                            setWinnerAndLoser(username1, username2, cardUser1, cardUser2, cardId1, cardId2);
                         }
                         break;
 
@@ -294,12 +261,7 @@ public class GameDAO {
                         // The FireElves know Dragons since they were little and can evade their attacks
                         if (cardUser2.getSpecialties() != null &&
                                 containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
-                            setWinner(username1);
-                            setLoser(username2);
-                            setWinnerCard(cardUser1);
-                            setLoserCard(cardUser2);
-                            setWinnerCardId(cardId1);
-                            setLoserCardId(cardId2);
+                            setWinnerAndLoser(username1, username2, cardUser1, cardUser2, cardId1, cardId2);
                         }
                         break;
 
@@ -319,6 +281,15 @@ public class GameDAO {
             }
         }
         return false;
+    }
+
+    private void setWinnerAndLoser(String winnerUsername, String loserUsername, Card winnerCard, Card loserCard, UUID winnerCardId, UUID loserCardId) {
+        setWinner(winnerUsername);
+        setLoser(loserUsername);
+        setWinnerCard(winnerCard);
+        setLoserCard(loserCard);
+        setWinnerCardId(winnerCardId);
+        setLoserCardId(loserCardId);
     }
 
 }
