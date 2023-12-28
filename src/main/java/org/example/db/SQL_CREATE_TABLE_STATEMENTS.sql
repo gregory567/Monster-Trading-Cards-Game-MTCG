@@ -72,7 +72,6 @@ CREATE TABLE IF NOT EXISTS "Battle" (
     "id" UUID PRIMARY KEY,
     "user1_username" VARCHAR(255) REFERENCES "User"("username"),
     "user2_username" VARCHAR(255) REFERENCES "User"("username"),
-    "outcome" VARCHAR(255),
     UNIQUE("id")
 );
 

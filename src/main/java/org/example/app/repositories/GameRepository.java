@@ -1,7 +1,6 @@
 package org.example.app.repositories;
 
 import org.example.app.daos.GameDAO;
-import org.example.app.dtos.CardDTO;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;

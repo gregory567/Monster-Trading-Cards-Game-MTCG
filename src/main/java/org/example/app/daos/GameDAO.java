@@ -3,8 +3,6 @@ import org.example.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.example.app.dtos.CardDTO;
-import org.example.app.repositories.GameRepository;
 
 import java.lang.Package;
 import java.sql.*;
@@ -32,6 +30,9 @@ public class GameDAO {
     }
 
     public String carryOutBattle(String username1, String username2) {
+
+        createBattle(username1, username2);
+
         for (int round = 1; round <= 100; round++) {
             try {
                 // Select one card for each user from their decks
@@ -40,9 +41,10 @@ public class GameDAO {
 
                 // Implement the logic for the battle using the selected cards
                 // (Apply specialties, calculate damage, compare damage, etc.)
+                applySpecialty();
 
                 // Log the battle details, winner, loser, and draw status
-                logBattleDetails(username1, username2, round, cardUser1, cardUser2);
+                logRound(username1, username2, round, cardUser1, cardUser2);
 
             } catch (SQLException e) {
                 // Handle SQL exception
@@ -52,6 +54,22 @@ public class GameDAO {
 
         // Return the result of the battle
         return "Battle completed";
+    }
+
+    public void createBattle(String user1Username, String user2Username) {
+        UUID battleId = UUID.randomUUID();
+
+        String insertBattleQuery = "INSERT INTO \"Battle\"(id, user1_username, user2_username) VALUES (?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertBattleQuery)) {
+            preparedStatement.setObject(1, battleId);
+            preparedStatement.setString(2, user1Username);
+            preparedStatement.setString(3, user2Username);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private Card selectRandomCardFromDeck(String username) throws SQLException {
@@ -111,7 +129,7 @@ public class GameDAO {
         return null; // Handle appropriately if no card is found
     }
 
-    private void logBattleDetails(String username1, String username2, int round, Card cardUser1, Card cardUser2) {
+    private void logRound(String username1, String username2, int round, Card cardUser1, Card cardUser2) {
         // Implement logic to log battle details to the database
         // You need to insert data into the BattleLog, RoundDetail, and other related tables
         // Use prepared statements for database operations to prevent SQL injection
