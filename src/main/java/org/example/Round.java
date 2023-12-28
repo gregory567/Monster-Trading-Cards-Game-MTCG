@@ -11,7 +11,7 @@ import org.example.app.models.User;
 public class Round {
     private List<Card> cardsPlayed;
     private Integer roundNumber;
-    private User winner;
+    private String winner;
     private boolean draw;
 
     public Round(List<Card> cardsPlayed, Integer roundNumber) {
@@ -48,7 +48,7 @@ public class Round {
         if (draw) {
             return "Draw";
         } else {
-            return "Winner: " + winner.getUsername();  // assuming getName() is a method in the User class
+            return "Winner: " + winner;  // assuming getName() is a method in the User class
         }
     }
     

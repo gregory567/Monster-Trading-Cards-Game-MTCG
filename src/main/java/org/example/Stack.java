@@ -30,17 +30,4 @@ public class Stack {
         Collections.shuffle(stackCards);
     }
 
-    /*
-    //Organizes the cards in the stack by their element type in the order: Fire, Water, Normal.
-    public void organizeByElement() {
-        // use Comparator.comparing to create a comparator based on the ordinal values of the ElementType enum
-        stackCards.sort(Comparator.comparing(card -> {
-            // convert the string representation of the element type to the corresponding enum value
-            ElementType elementType = ElementType.valueOf(card.getElementType());
-            // return the ordinal value of the enum, which corresponds to the order in which the enum constants are declared
-            return elementType.ordinal();
-        }));
-    }
-     */
-
 }

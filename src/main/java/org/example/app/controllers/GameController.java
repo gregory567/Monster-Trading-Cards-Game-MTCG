@@ -1,7 +1,5 @@
 package org.example.app.controllers;
 
-import org.example.Battle;
-import org.example.app.models.User;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,8 +18,6 @@ import java.util.stream.Collectors;
 @Setter
 @Getter
 public class GameController extends Controller {
-    private List<User> users;
-    private List<Battle> battles;
 
     private GameRepository gameRepository;
     private ObjectMapper objectMapper;

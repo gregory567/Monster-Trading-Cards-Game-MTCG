@@ -79,7 +79,7 @@ public class GameDAO {
                 }
 
                 // Log the round details, winner, loser, cards, and draw status
-                logRound(battleId, round, winner, loser, cardUser1, cardUser2, draw);
+                logRound(battleId, round, winner, loser, winnerCard, loserCard, winnerCardId, loserCardId, draw);
 
                 // Reset variables
                 setCardId1(null);
@@ -189,28 +189,29 @@ public class GameDAO {
         return null; // Handle appropriately if no card is found
     }
 
-    private void logRound(UUID battleId, Integer round, String username1, String username2, Card cardUser1, Card cardUser2, boolean draw) {
+    private void logRound(UUID battleId, Integer round, String winner, String loser, Card winnerCard, Card loserCard, UUID winnerCardId, UUID loserCardId, boolean draw) {
         try {
             // Insert into RoundDetail table
             UUID roundId = UUID.randomUUID();
-            insertRoundDetail(roundId, cardUser1.getId(), username1);
-            insertRoundDetail(roundId, cardUser2.getId(), username2);
+            insertRoundDetail(roundId, winnerCardId, winnerCard.getName(), winner);
+            insertRoundDetail(roundId, loserCardId, loserCard.getName(), loser);
 
             // Insert into RoundLog table
-            insertRoundLog(battleId, round, username1, username2, draw, roundId);
+            insertRoundLog(battleId, round, winner, loser, draw, roundId);
         } catch (SQLException e) {
             // Handle SQL exception by logging or rethrowing if necessary
             e.printStackTrace();
         }
     }
 
-    private void insertRoundDetail(UUID roundId, UUID cardId, String playerUsername) throws SQLException {
-        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, player_username) VALUES (?, ?, ?)";
+    private void insertRoundDetail(UUID roundId, UUID cardId, CardName cardName, String playerUsername) throws SQLException {
+        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, card_name, player_username) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundDetailQuery)) {
             preparedStatement.setObject(1, roundId);
             preparedStatement.setObject(2, cardId);
-            preparedStatement.setString(3, playerUsername);
+            preparedStatement.setObject(3, cardName);
+            preparedStatement.setString(4, playerUsername);
 
             preparedStatement.executeUpdate();
         }

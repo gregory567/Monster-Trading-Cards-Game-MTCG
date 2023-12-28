@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS "Battle" (
 CREATE TABLE IF NOT EXISTS "RoundDetail" (
     "round_id" UUID PRIMARY KEY,
     "card_id" UUID REFERENCES "Card"("id"),
+    "card_name" VARCHAR(255) REFERENCES "Card"("name"),
     "player_username" VARCHAR(255) REFERENCES "User"("username"),
     UNIQUE("round_id", "card_id")
 );

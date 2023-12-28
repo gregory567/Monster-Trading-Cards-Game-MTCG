@@ -255,7 +255,6 @@ public class UserDAO {
     private void initializeUserData(User user) {
         user.setStack(initStack(user.getUsername()));
         user.setDeck(initDeck(user.getUsername()));
-        user.setBattleResults(initBattleResults(user.getUsername()));
         user.setInitiatedTrades(initTrades(user.getUsername(), "offeringUser_username"));
         user.setAcceptedTrades(initTrades(user.getUsername(), "status = 'ACCEPTED' AND offeringUser_username != ?"));
     }
@@ -297,7 +296,6 @@ public class UserDAO {
                         resultSet.getString("profile_other_details")
                 ),
                 resultSet.getInt("elo_score"),
-                new BattleResult[0], // empty array
                 new ArrayList<>(),   // empty list for initiatedTrades
                 new ArrayList<>()    // empty list for acceptedTrades
         );
@@ -395,30 +393,6 @@ public class UserDAO {
         }
 
         return null;
-    }
-
-
-    // Helper method to initialize BattleResults for a user
-    private BattleResult[] initBattleResults(String username) {
-        List<BattleResult> battleResults = new ArrayList<>();
-
-        String selectBattleResultsStmt = "SELECT * FROM BattleResult WHERE opponent_username = ?;";
-        try (PreparedStatement battleResultsStatement = getConnection().prepareStatement(selectBattleResultsStmt)) {
-            battleResultsStatement.setString(1, username);
-            ResultSet battleResultsResultSet = battleResultsStatement.executeQuery();
-
-            while (battleResultsResultSet.next()) {
-                BattleResult battleResult = new BattleResult(
-                        getOpponentByUsername(username),
-                        battleResultsResultSet.getString("outcome")
-                );
-                battleResults.add(battleResult);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return battleResults.toArray(new BattleResult[0]);
     }
 
     // Helper method to get opponent user by username

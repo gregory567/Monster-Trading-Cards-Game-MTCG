@@ -119,26 +119,10 @@ enum CardType {
     SPELL
 }
 
-class Battle {
-    - user1: User
-    - user2: User
-    - battleLog: BattleLog
-    + void startBattle()
-    + void endBattle()
-    + void displayBattleResults()
-}
-
 class GameController {
     - users: User[]
     - battles: Battle[]
     + void initiateBattle(User user1, User user2)
-}
-
-class BattleLog {
-    - rounds: Round[]
-    - outcome: String
-    + void logRound(Round round)
-    + void setOutcome(String outcome)
 }
 
 class Round {
@@ -148,9 +132,8 @@ class Round {
     + void determineRoundOutcome()
 }
 
-class BattleResult {
-    - opponent: User
-    - outcome: String
+class Battle {
+
 }
 
 Card <|-- MonsterCard
@@ -161,7 +144,6 @@ User "1" -- "1" Deck : has
 User "1" -- "1..*" Package : canAcquire
 User "1" -- "1" Stack : has
 User "1" -- "1" Profile : has
-User "1" -- "0..*" BattleResult : has
 
 Stack "1" o-- "1..*" Card : contains
 Package "1" o-- "1..*" Card : contains
@@ -169,7 +151,6 @@ Deck "1" o-- "1..*" Card : contains
 
 Battle "1" o-- "*" Deck : isFoughtWith
 Battle "1" o-- "2" User : isFoughtBy
-Battle "1" -- "1" BattleLog : has
 
 GameController "1" o-- "1..*" User : manages
 GameController "1" o-- "1..*" Battle : manages

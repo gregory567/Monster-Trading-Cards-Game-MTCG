@@ -10,7 +10,6 @@ import org.example.Stack;
 import org.example.Card;
 import org.example.MonsterCard;
 import org.example.SpellCard;
-import org.example.BattleResult;
 import org.example.Requirement;
 import org.example.TradeDeal;
 import org.example.Store;
@@ -44,17 +43,15 @@ public class User {
     private Profile profile;
     @JsonAlias({"eloscore"})
     private Integer eloScore;
-    private BattleResult[] battleResults;
     private List<TradeDeal> initiatedTrades;
     private List<TradeDeal> acceptedTrades;
 
     public User() {
-        this.battleResults = new BattleResult[0];
         this.initiatedTrades = new ArrayList<>();
         this.acceptedTrades = new ArrayList<>();
     }
 
-    public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile, Integer eloScore, BattleResult[] battleResults, List<TradeDeal> initiatedTrades, List<TradeDeal> acceptedTrades) {
+    public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile, Integer eloScore, List<TradeDeal> initiatedTrades, List<TradeDeal> acceptedTrades) {
         this.username = username;
         this.password = password;
         this.coins = coins;
@@ -67,7 +64,6 @@ public class User {
         this.eloScore = eloScore;
 
         // Check if battleResults, initiatedTrades, and acceptedTrades are null or empty
-        this.battleResults = (battleResults != null && battleResults.length > 0) ? battleResults : new BattleResult[0];
         this.initiatedTrades = (initiatedTrades != null && !initiatedTrades.isEmpty()) ? initiatedTrades : new ArrayList<>();
         this.acceptedTrades = (acceptedTrades != null && !acceptedTrades.isEmpty()) ? acceptedTrades : new ArrayList<>();
     }
@@ -191,10 +187,6 @@ public class User {
         } else {
             System.out.println("User profile not available for editing.");
         }
-    }
-
-    public List<BattleResult> getBattleResults() {
-        return Arrays.asList(battleResults);
     }
 
 }
