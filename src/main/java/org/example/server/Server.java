@@ -9,12 +9,6 @@ import lombok.Setter;
 
 import java.io.*;
 import java.net.*;
-/*
-import java.io.PrintWriter;
-import java.io.BufferedReader;
-import java.net.ServerSocket;
-import java.net.Socket;
- */
 
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
@@ -37,7 +31,6 @@ public class Server {
 
     public void start() throws IOException {
         setServerSocket(new ServerSocket(getPort()));
-
         run();
     }
 

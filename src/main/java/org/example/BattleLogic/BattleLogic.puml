@@ -7,83 +7,125 @@ title Monster Trading Cards Game - Battle Logic
 
 actor "Player A" as PlayerA
 actor "Player B" as PlayerB
-participant "Game DAO" as Gamedao
 participant "Battle Server" as Server
 database "Card Database" as Database
 
 PlayerA -> Server: Request to Start Battle with Token\n(Enters Lobby & Waits until other User enters Lobby)
+activate Server
+
 PlayerB -> Server: Request to Start Battle with Token\n(Enters Lobby & Battle starts immediately)
 
 
 loop Multiple Rounds (max. 100)
 
 PlayerA -> Server: Request to get Random Card from own Deck (Player A)
-Server -->PlayerA: Send Random Card from Player A's Deck
-PlayerB -> Server: Request to get Random Card from own Deck (Player B)
-Server -->PlayerB: Send Random Card from Player B's Deck
+    activate PlayerA
+    Server -->PlayerA: Send Random Card from Player A's Deck
+    deactivate PlayerA
+
+    PlayerB -> Server: Request to get Random Card from own Deck (Player B)
+    activate PlayerB
+    Server -->PlayerB: Send Random Card from Player B's Deck
+    deactivate PlayerB
 
 
 alt ElementType has no effect (Monster vs Monster)
 PlayerA -> Server: Play Monster Card\n(WaterGoblin)
-Server --> PlayerA: Apply Specialty
-Server --> PlayerA: Calculate Damage\n(BaseDamage)
-PlayerB -> Server: Play Monster Card\n(FireTroll)
-Server --> PlayerB: Apply Specialty
-Server --> PlayerB: Calculate Damage\n(BaseDamage)
-PlayerA <-> PlayerB: Compare Damage\n(WaterGoblin vs FireTroll)
+        activate PlayerA
+        Server --> PlayerA: Apply Specialty
+        Server --> PlayerA: Calculate Damage\n(BaseDamage)
+
+        PlayerB -> Server: Play Monster Card\n(FireTroll)
+        activate PlayerB
+        Server --> PlayerB: Apply Specialty
+        Server --> PlayerB: Calculate Damage\n(BaseDamage)
+
+        PlayerA <-> PlayerB: Compare Damage\n(WaterGoblin vs FireTroll)
+
+        deactivate PlayerA
+        deactivate PlayerB
 
 else ElementType has effect (Spell vs Monster / Monster vs Spell / Spell vs Spell)
 alt No Effect (Normal Monster vs Normal Spell)
 PlayerA -> Server: Play Monster Card\n(RegularGoblin)
-Server --> PlayerA: Apply Specialty
-Server --> PlayerA: Calculate Damage\n(BaseDamage)
-PlayerB -> Server: Play Spell Card\n(RegularSpell)
-Server --> PlayerB: Apply Specialty
-Server --> PlayerB: Calculate Damage\n(BaseDamage)
-PlayerA <-> PlayerB: Compare Damage\n(RegularGoblin vs RegularSpell)
+            activate PlayerA
+            Server --> PlayerA: Apply Specialty
+            Server --> PlayerA: Calculate Damage\n(BaseDamage)
+
+            PlayerB -> Server: Play Spell Card\n(RegularSpell)
+            activate PlayerB
+            Server --> PlayerB: Apply Specialty
+            Server --> PlayerB: Calculate Damage\n(BaseDamage)
+
+            PlayerA <-> PlayerB: Compare Damage\n(RegularGoblin vs RegularSpell)
+
+            deactivate PlayerA
+            deactivate PlayerB
 
 else Effective Spell (Water Spell vs Fire Monster)
 PlayerA -> Server: Play Monster Card\n(WaterSpell)
-Server --> PlayerA: Apply Specialty
-Server --> PlayerA: Calculate Damage\n(DoubleDamage)
-PlayerB -> Server: Play Spell Card\n(FireElf)
-Server --> PlayerB: Apply Specialty
-Server --> PlayerB: Calculate Damage\n(HalvedDamage)
-PlayerA <-> PlayerB: Compare Damage\n(WaterSpell vs FireElf)
+            activate PlayerA
+            Server --> PlayerA: Apply Specialty
+            Server --> PlayerA: Calculate Damage\n(DoubleDamage)
+
+            PlayerB -> Server: Play Spell Card\n(FireElf)
+            activate PlayerB
+            Server --> PlayerB: Apply Specialty
+            Server --> PlayerB: Calculate Damage\n(HalvedDamage)
+
+            PlayerA <-> PlayerB: Compare Damage\n(WaterSpell vs FireElf)
+
+            deactivate PlayerA
+            deactivate PlayerB
 
 else Not Effective Spell (Fire Spell vs Water Monster)
 PlayerA -> Server: Play Monster Card\n(FireSpell)
-Server --> PlayerA: Calculate Damage\n(HalvedDamage)
-Server --> PlayerA: Apply Specialty
-PlayerB -> Server: Play Spell Card\n(WaterTroll)
-Server --> PlayerB: Apply Specialty
-Server --> PlayerB: Calculate Damage\n(DoubleDamage)
-PlayerA <-> PlayerB: Compare Damage\n(FireSpell vs WaterTroll)
+            activate PlayerA
+            Server --> PlayerA: Calculate Damage\n(HalvedDamage)
+            Server --> PlayerA: Apply Specialty
+
+            PlayerB -> Server: Play Spell Card\n(WaterTroll)
+            activate PlayerB
+            Server --> PlayerB: Apply Specialty
+            Server --> PlayerB: Calculate Damage\n(DoubleDamage)
+
+            PlayerA <-> PlayerB: Compare Damage\n(FireSpell vs WaterTroll)
+
+            deactivate PlayerA
+            deactivate PlayerB
 
 end
 end
 
 alt Player A wins
 PlayerA -> Server: Request Card from Player B's Deck\n(After Battle)
-PlayerB -> Server: Lose Card from Deck\n(After Battle)
-Server --> PlayerA: Send Card from Player B's Deck\n(After Battle)
-Server --> PlayerA: Update ELO Score\n(+3 points for win)
-Server --> PlayerB: Update ELO Score\n(-5 points for loss)
+        activate PlayerA
+        PlayerB -> Server: Lose Card from Deck\n(After Battle)
+        activate PlayerB
+        Server --> PlayerA: Send Card from Player B's Deck\n(After Battle)
+        Server --> PlayerA: Update ELO Score\n(+3 points for win)
+        Server --> PlayerB: Update ELO Score\n(-5 points for loss)
+        deactivate PlayerA
+        deactivate PlayerB
 
-Server -> Database: Send Round Result to the DB
-PlayerA -> Database: Send Round Details to the DB
-PlayerB -> Database: Send Round Details to the DB
+        Server -> Database: Send Round Result to the DB
+        PlayerA -> Database: Send Round Details to the DB
+        PlayerB -> Database: Send Round Details to the DB
 
 else Player B wins
 PlayerB -> Server: Request Card from Player A's Deck\n(After Battle)
-PlayerA -> Server: Lose Card from Deck\n(After Battle)
-Server --> PlayerB: Send Card from Player A's Deck\n(After Battle)
-Server --> PlayerB: Update ELO Score\n(+3 points for win)
-Server --> PlayerA: Update ELO Score\n(-5 points for loss)
+        activate PlayerB
+        PlayerA -> Server: Lose Card from Deck\n(After Battle)
+        activate PlayerA
+        Server --> PlayerB: Send Card from Player A's Deck\n(After Battle)
+        Server --> PlayerB: Update ELO Score\n(+3 points for win)
+        Server --> PlayerA: Update ELO Score\n(-5 points for loss)
+        deactivate PlayerB
+        deactivate PlayerA
 
-Server -> Database: Send Round Result to the DB
-PlayerA -> Database: Send Round Details to the DB
-PlayerB -> Database: Send Round Details to the DB
+        Server -> Database: Send Round Result to the DB
+        PlayerA -> Database: Send Round Details to the DB
+        PlayerB -> Database: Send Round Details to the DB
 
 else draw
 box over PlayerA,PlayerB:No Action
@@ -95,5 +137,6 @@ PlayerA -> Database: Update Stats\n(count of games played)
 PlayerB -> Database: Update Stats\n(count of games played)
 Database --> PlayerA: Send Battle Log to describe the Battle in Detail
 Database --> PlayerB: Send Battle Log to describe the Battle in Detail
+deactivate Server
 
 @enduml
