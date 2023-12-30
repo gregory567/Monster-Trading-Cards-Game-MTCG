@@ -41,6 +41,8 @@ public class GameDAO {
 
         UUID battleId = createBattle(username1, username2);
 
+        StringBuilder battleLog = new StringBuilder();
+
         for (int round = 1; round <= NUMBER_OF_ROUNDS; round++) {
             try {
 
@@ -69,6 +71,9 @@ public class GameDAO {
                 // Log the round details, winner, loser, cards, and draw status
                 logRound(battleId, round, winner, loser, winnerCard, loserCard, winnerCardId, loserCardId, draw);
 
+                // Retrieve and append round details to the battle log
+                battleLog.append(getRoundLogDetails(battleId, round));
+
                 // Reset variables
                 setCardId1(null);
                 setCardId2(null);
@@ -85,8 +90,8 @@ public class GameDAO {
             }
         }
 
-        // Return the result of the battle
-        return "Battle completed";
+        // Return the detailed battle log
+        return "Battle completed\n" + battleLog.toString();
     }
 
     public UUID createBattle(String user1Username, String user2Username) {
@@ -217,6 +222,43 @@ public class GameDAO {
 
             preparedStatement.executeUpdate();
         }
+    }
+
+    // Helper function to retrieve and format round details from the database
+    private String getRoundLogDetails(UUID battleId, int roundNumber) {
+        StringBuilder roundLogDetails = new StringBuilder();
+
+        try {
+            String selectRoundLogDetailsQuery =
+                    "SELECT rd.player_username, rd.card_name, rd.card_id, rl.draw " +
+                            "FROM \"RoundLog\" rl " +
+                            "JOIN \"RoundDetail\" rd ON rl.round_id = rd.round_id " +
+                            "WHERE rl.battle_id = ? AND rl.round_number = ?";
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(selectRoundLogDetailsQuery)) {
+                preparedStatement.setObject(1, battleId);
+                preparedStatement.setInt(2, roundNumber);
+
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    roundLogDetails.append(String.format("Round %d Details:\n", roundNumber));
+
+                    while (resultSet.next()) {
+                        String playerUsername = resultSet.getString("player_username");
+                        String cardName = resultSet.getString("card_name");
+                        UUID cardId = UUID.fromString(resultSet.getString("card_id"));
+                        boolean draw = resultSet.getBoolean("draw");
+
+                        roundLogDetails.append(String.format("  Player: %s, Card: %s, Card ID: %s%s\n",
+                                playerUsername, cardName, cardId, (draw ? " (Draw)" : "")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            roundLogDetails.append("Error retrieving round details.\n");
+        }
+
+        return roundLogDetails.toString();
     }
 
     public void applySpecialty(Card cardUser1, Card cardUser2, String username1,  String username2) {
