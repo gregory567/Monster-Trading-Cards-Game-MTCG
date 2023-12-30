@@ -356,6 +356,44 @@ public class GameDAO {
         setLoserCard(loserCard);
         setWinnerCardId(winnerCardId);
         setLoserCardId(loserCardId);
+
+        // Update decks based on the winner and loser
+        updateDecks();
+    }
+
+    private void updateDecks() {
+        try {
+            // Remove defeated cards from the loser's deck
+            removeFromDeck();
+
+            // Add defeated cards to the winner's deck
+            addToDeck();
+        } catch (SQLException e) {
+            // Handle SQL exception by logging or rethrowing if necessary
+            e.printStackTrace();
+        }
+    }
+
+    private void removeFromDeck() throws SQLException {
+        String removeCardQuery = "DELETE FROM Deck WHERE username = ? AND card_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(removeCardQuery)) {
+            preparedStatement.setString(1, loser);
+            preparedStatement.setObject(2, loserCardId);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void addToDeck() throws SQLException {
+        String addCardQuery = "INSERT INTO Deck(username, card_id) VALUES (?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(addCardQuery)) {
+            preparedStatement.setString(1, winner);
+            preparedStatement.setObject(2, loserCardId);
+
+            preparedStatement.executeUpdate();
+        }
     }
 
 }
