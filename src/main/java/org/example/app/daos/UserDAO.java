@@ -40,7 +40,7 @@ public class UserDAO {
         // create token for later login
         String token = username + "-mtcgToken";
         Double coins = 20.0;
-        Integer elo_score = 0;
+        Integer elo_score = 100;
         Integer wins = 0;
         Integer losses = 0;
         // SQL statement to insert a new user into the usercredentials table

@@ -68,6 +68,11 @@ public class GameDAO {
                     }
                 }
 
+                // Check if either player has 0 eloscore, end the battle
+                if (getPlayerEloScore(username1) <= 0 || getPlayerEloScore(username2) <= 0) {
+                    break;
+                }
+
                 // Log the round details, winner, loser, cards, and draw status
                 logRound(battleId, round, winner, loser, winnerCard, loserCard, winnerCardId, loserCardId, draw);
 
@@ -323,6 +328,25 @@ public class GameDAO {
             }
         }
         return false;
+    }
+
+    // Helper method to get the eloscore of a player
+    private int getPlayerEloScore(String username) {
+        try {
+            String selectEloScoreQuery = "SELECT elo_score FROM \"User\" WHERE username = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(selectEloScoreQuery)) {
+                preparedStatement.setString(1, username);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt("elo_score");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Return a default value or handle appropriately if the eloscore is not found
+        return -1;
     }
 
     private void setWinnerAndLoser(String winnerUsername, String loserUsername, Card winnerCard, Card loserCard, UUID winnerCardId, UUID loserCardId) {
