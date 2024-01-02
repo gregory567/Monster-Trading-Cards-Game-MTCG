@@ -128,16 +128,18 @@ public class GameDAO {
         List<Card> selectedCards = new ArrayList<>();
 
         // Select all cards for the user from their deck
-        String selectDeckQuery = "SELECT card_id FROM Deck WHERE username = ?";
+        String selectDeckQuery = "SELECT card1_id, card2_id, card3_id, card4_id FROM Deck WHERE username = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectDeckQuery)) {
             preparedStatement.setString(1, username);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    UUID cardId = UUID.fromString(resultSet.getString("card_id"));
-                    Card card = getCardById(cardId);
-                    if (card != null) {
-                        selectedCards.add(card);
+                    for (int i = 1; i <= 4; i++) {
+                        UUID cardId = UUID.fromString(resultSet.getString("card" + i + "_id"));
+                        Card card = getCardById(cardId);
+                        if (card != null) {
+                            selectedCards.add(card);
+                        }
                     }
                 }
             }
