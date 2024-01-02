@@ -434,12 +434,12 @@ public class GameDAO {
                 for (Card card : deck) {
                     // Update owner_username in Card table
                     updateStatement.setString(1, username);
-                    updateStatement.setObject(2, getCardIdFromDatabase(card));
+                    updateStatement.setObject(2, card.getId());
                     updateStatement.executeUpdate();
 
                     // Insert into Stack table
                     insertStatement.setString(1, username);
-                    insertStatement.setObject(2, getCardIdFromDatabase(card));
+                    insertStatement.setObject(2, card.getId());
                     insertStatement.executeUpdate();
                 }
             }
