@@ -169,7 +169,7 @@ public class GameDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardIdQuery)) {
             preparedStatement.setObject(1, card.getName());
-            preparedStatement.setString(2, card.getOwner());
+            preparedStatement.setString(2, card.getOwnerUsername());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -401,7 +401,7 @@ public class GameDAO {
 
     private void updateDecksAndStacks() {
         try {
-            // Remove all cards from the decks of both players
+            // Remove all cards from the decks of both players at the end of the battle
             removeAllCardsFromDeck(username1);
             removeAllCardsFromDeck(username2);
 
