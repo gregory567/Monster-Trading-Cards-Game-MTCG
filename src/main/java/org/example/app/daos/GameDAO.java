@@ -46,38 +46,29 @@ public class GameDAO {
 
         StringBuilder battleLog = new StringBuilder();
 
-        // Select cards at the start of each battle
-        try {
-            user1Deck = buildUpDeckList(username1);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        try {
-            user2Deck = buildUpDeckList(username2);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        // Select deck cards at the start of each battle
+        setUser1Deck(buildUpDeckList(username1));
+        setUser2Deck(buildUpDeckList(username2));
 
         for (int round = 1; round <= NUMBER_OF_ROUNDS; round++) {
 
             boolean draw = false;
             // Select one card for each user from their decks
-            Card cardUser1 = selectRandomCardFromDeck(user1Deck);
-            Card cardUser2 = selectRandomCardFromDeck(user2Deck);
+            Card user1Card = selectRandomCardFromDeck(user1Deck);
+            Card user2Card = selectRandomCardFromDeck(user2Deck);
 
             // battle logic using the selected cards
-            applySpecialty(cardUser1, cardUser2, username1, username2);
-            applySpecialty(cardUser2, cardUser1, username2, username1);
+            applySpecialty(user1Card, user2Card, username1, username2);
+            applySpecialty(user2Card, user1Card, username2, username1);
 
             if (winner == null && loser == null) {
-                Integer effectiveDamageUser1 = cardUser1.calculateEffectiveDamage(cardUser2);
-                Integer effectiveDamageUser2 = cardUser2.calculateEffectiveDamage(cardUser1);
+                Integer effectiveDamageUser1 = user1Card.calculateEffectiveDamage(user2Card);
+                Integer effectiveDamageUser2 = user2Card.calculateEffectiveDamage(user1Card);
 
                 if (effectiveDamageUser1 > effectiveDamageUser2) {
-                    setWinnerAndLoser(username1, username2, cardUser1, cardUser2);
+                    setWinnerAndLoser(username1, username2, user1Card, user2Card);
                 } else if (effectiveDamageUser1 < effectiveDamageUser2) {
-                    setWinnerAndLoser(username2, username1, cardUser2, cardUser1);
+                    setWinnerAndLoser(username2, username1, user2Card, user1Card);
                 } else {
                     draw = true;
                 }
@@ -133,7 +124,7 @@ public class GameDAO {
         }
     }
 
-    private List<Card> buildUpDeckList(String username) throws SQLException {
+    private List<Card> buildUpDeckList(String username) {
         List<Card> selectedCards = new ArrayList<>();
 
         // Select all cards for the user from their deck
@@ -150,6 +141,8 @@ public class GameDAO {
                     }
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return selectedCards;
@@ -306,9 +299,9 @@ public class GameDAO {
         return roundLogDetails.toString();
     }
 
-    public void applySpecialty(Card cardUser1, Card cardUser2, String username1,  String username2) {
-        if (cardUser1.getSpecialties() != null) {
-            for (String cardSpecialty : cardUser1.getSpecialties()) {
+    public void applySpecialty(Card user1Card, Card user2Card, String username1,  String username2) {
+        if (user1Card.getSpecialties() != null) {
+            for (String cardSpecialty : user1Card.getSpecialties()) {
                 // logic to apply the specialty effect to the card
                 // This method modifies the card based on the specialty
 
@@ -316,39 +309,39 @@ public class GameDAO {
                 switch (cardSpecialty) {
                     case WATER_GOBLIN_SPECIALTY, FIRE_GOBLIN_SPECIALTY, REGULAR_GOBLIN_SPECIALTY:
                         // Goblins are too afraid of Dragons to attack
-                        if (cardUser2.getSpecialties() != null &&
-                                containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
-                            setWinnerAndLoser(username2, username1, cardUser2, cardUser1);
+                        if (user2Card.getSpecialties() != null &&
+                                containsSpecialty(user2Card.getSpecialties(), DRAGON_SPECIALTY)) {
+                            setWinnerAndLoser(username2, username1, user2Card, user1Card);
                         }
                         break;
 
                     case WIZZARD_SPECIALTY:
                         // Wizzard can control Orks so they are not able to damage them
-                        if (cardUser2.getSpecialties() != null &&
-                                containsSpecialty(cardUser2.getSpecialties(), ORK_SPECIALTY)) {
-                            setWinnerAndLoser(username1, username2, cardUser1, cardUser2);
+                        if (user2Card.getSpecialties() != null &&
+                                containsSpecialty(user2Card.getSpecialties(), ORK_SPECIALTY)) {
+                            setWinnerAndLoser(username1, username2, user1Card, user2Card);
                         }
                         break;
 
                     case KNIGHT_SPECIALTY:
                         // The armor of Knights is so heavy that WaterSpells make them drown instantly
-                        if (cardUser2.getCardType().equals(CardType.SPELL) && cardUser2.getElementType().equals(ElementType.WATER)) {
-                            setWinnerAndLoser(username2, username1, cardUser2, cardUser1);
+                        if (user2Card.getCardType().equals(CardType.SPELL) && user2Card.getElementType().equals(ElementType.WATER)) {
+                            setWinnerAndLoser(username2, username1, user2Card, user1Card);
                         }
                         break;
 
                     case KRAKEN_SPECIALTY:
                         // The Kraken is immune against spells
-                        if (cardUser2 instanceof SpellCard) {
-                            setWinnerAndLoser(username1, username2, cardUser1, cardUser2);
+                        if (user2Card instanceof SpellCard) {
+                            setWinnerAndLoser(username1, username2, user1Card, user2Card);
                         }
                         break;
 
                     case FIRE_ELF_SPECIALTY:
                         // The FireElves know Dragons since they were little and can evade their attacks
-                        if (cardUser2.getSpecialties() != null &&
-                                containsSpecialty(cardUser2.getSpecialties(), DRAGON_SPECIALTY)) {
-                            setWinnerAndLoser(username1, username2, cardUser1, cardUser2);
+                        if (user2Card.getSpecialties() != null &&
+                                containsSpecialty(user2Card.getSpecialties(), DRAGON_SPECIALTY)) {
+                            setWinnerAndLoser(username1, username2, user1Card, user2Card);
                         }
                         break;
 
