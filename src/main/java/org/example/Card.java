@@ -12,13 +12,13 @@ public abstract class Card {
 
     protected UUID Id;
     protected CardName name;
-    protected Integer damage;
+    protected Double damage;
     protected ElementType elementType;
     protected String[] specialties;
     protected CardType cardType;
     protected String owner;
 
-    public Card(UUID Id, CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
+    public Card(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String owner) {
         this.Id = Id;
         this.name = name;
         this.damage = damage;
@@ -31,15 +31,15 @@ public abstract class Card {
 
     public abstract void displayCardInfo();
 
-    public void upgradeCard(int upgradeAmount) {
+    public void upgradeCard(Double upgradeAmount) {
         // increase the damage of the card when upgraded
-        int upgradedDamage = getDamage() + upgradeAmount;
+        Double upgradedDamage = getDamage() + upgradeAmount;
         setDamage(upgradedDamage);
 
         System.out.println(getCardType() + " upgraded! New damage: " + upgradedDamage);
     }
 
-    public abstract Integer calculateEffectiveDamage(Card opponentCard);
+    public abstract Double calculateEffectiveDamage(Card opponentCard);
 
     protected String specialtiesToString() {
         if (getSpecialties() != null) {

@@ -14,7 +14,7 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class SpellCard extends Card {
 
-    public SpellCard(UUID Id, CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
+    public SpellCard(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String owner) {
         super(Id, name, damage, elementType, specialties, owner);
         this.cardType = CardType.SPELL;
     }
@@ -39,10 +39,10 @@ public class SpellCard extends Card {
     }
 
     @Override
-    public Integer calculateEffectiveDamage(Card opponentCard) {
+    public Double calculateEffectiveDamage(Card opponentCard) {
         ElementType opponentElementType = opponentCard.getElementType();
         CardType opponentCardType = opponentCard.getCardType();
-        int baseDamage = getDamage();
+        Double baseDamage = getDamage();
 
         // we don't need to check if it's a monster or a spell we are fighting against
 

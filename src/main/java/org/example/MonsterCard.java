@@ -14,7 +14,7 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class MonsterCard extends Card {
 
-    public MonsterCard(UUID Id, CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
+    public MonsterCard(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String owner) {
         super(Id, name, damage, elementType, specialties, owner);
         this.cardType = CardType.MONSTER;
     }
@@ -39,10 +39,10 @@ public class MonsterCard extends Card {
     }
 
     @Override
-    public Integer calculateEffectiveDamage(Card opponentCard) {
+    public Double calculateEffectiveDamage(Card opponentCard) {
         ElementType opponentElementType = opponentCard.getElementType();
         CardType opponentCardType = opponentCard.getCardType();
-        int baseDamage = getDamage();
+        Double baseDamage = getDamage();
 
         // Check if it's a pure monster fight (no effect based on element type)
         if (opponentCardType == CardType.MONSTER) {

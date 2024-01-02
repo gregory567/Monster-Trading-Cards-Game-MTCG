@@ -372,7 +372,7 @@ public class UserDAO {
                 if (cardResultSet.next()) {
                     String cardType = cardResultSet.getString("cardType");
                     CardName name = CardName.valueOf(cardResultSet.getString("name"));
-                    int damage = cardResultSet.getInt("damage");
+                    Double damage = cardResultSet.getDouble("damage");
                     ElementType elementType = ElementType.valueOf(cardResultSet.getString("elementType"));
                     String[] specialties = (String[]) cardResultSet.getArray("specialties").getArray();
 

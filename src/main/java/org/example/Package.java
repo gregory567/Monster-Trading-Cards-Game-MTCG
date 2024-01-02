@@ -59,8 +59,8 @@ public class Package {
     }
 
     // generate a random damage value for a card
-    private int generateRandomDamage() {
-        return new Random().nextInt(100) + 1; // random value between 1 and 100
+    private Double generateRandomDamage() {
+        return new Random().nextDouble(100) + 1; // random value between 1 and 100
     }
 
     // generate a random ElementType for a card

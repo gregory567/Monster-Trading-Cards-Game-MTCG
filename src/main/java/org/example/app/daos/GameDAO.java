@@ -62,8 +62,8 @@ public class GameDAO {
             applySpecialty(user2Card, user1Card, username2, username1);
 
             if (winner == null && loser == null) {
-                Integer effectiveDamageUser1 = user1Card.calculateEffectiveDamage(user2Card);
-                Integer effectiveDamageUser2 = user2Card.calculateEffectiveDamage(user1Card);
+                Double effectiveDamageUser1 = user1Card.calculateEffectiveDamage(user2Card);
+                Double effectiveDamageUser2 = user2Card.calculateEffectiveDamage(user1Card);
 
                 if (effectiveDamageUser1 > effectiveDamageUser2) {
                     setWinnerAndLoser(username1, username2, user1Card, user2Card);
@@ -192,7 +192,7 @@ public class GameDAO {
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     CardName cardName = CardName.valueOf(resultSet.getString("name"));
-                    int damage = resultSet.getInt("damage");
+                    Double damage = resultSet.getDouble("damage");
                     String elementTypeString = resultSet.getString("elementType");
                     String[] specialties = (String[]) resultSet.getArray("specialties").getArray();
 
