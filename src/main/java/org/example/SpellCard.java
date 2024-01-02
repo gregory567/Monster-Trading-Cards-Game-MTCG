@@ -14,8 +14,8 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class SpellCard extends Card {
 
-    public SpellCard(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String owner) {
-        super(Id, name, damage, elementType, specialties, owner);
+    public SpellCard(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String ownerUsername) {
+        super(Id, name, damage, elementType, specialties, ownerUsername);
         this.cardType = CardType.SPELL;
     }
 

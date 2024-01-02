@@ -16,15 +16,15 @@ public abstract class Card {
     protected ElementType elementType;
     protected String[] specialties;
     protected CardType cardType;
-    protected String owner;
+    protected String ownerUsername;
 
-    public Card(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String owner) {
+    public Card(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String ownerUsername) {
         this.Id = Id;
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;
         this.specialties = specialties;
-        this.owner = owner;
+        this.ownerUsername = ownerUsername;
     }
 
     public abstract void getAttributes();

@@ -42,12 +42,6 @@ public class Package {
         }
     }
 
-    // apply a discount to the cards in the package
-    public void applyDiscount() {
-        // Implement logic to apply a discount to the packageCards
-        // You may want to reduce the damage, change specialties, or apply other effects
-    }
-
     private UUID generateRandomId() {
         return UUID.randomUUID();
     }
