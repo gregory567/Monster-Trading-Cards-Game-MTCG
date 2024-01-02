@@ -15,6 +15,9 @@ activate Server
 
 PlayerB -> Server: Request to Start Battle with Token\n(Enters Lobby & Battle starts immediately)
 
+Database --> PlayerA: Build up Deck Array
+
+Database --> PlayerB: Build up Deck Array
 
 loop Multiple Rounds (max. 100)
 
@@ -105,6 +108,8 @@ PlayerA -> Server: Request Card from Player B's Deck\n(After Battle)
         Server --> PlayerA: Send Card from Player B's Deck\n(After Battle)
         Server --> PlayerA: Update ELO Score\n(+3 points for win)
         Server --> PlayerB: Update ELO Score\n(-5 points for loss)
+        Server --> PlayerA: Add +1 to wins
+        Server --> PlayerB: Add +1 to losses
         deactivate PlayerA
         deactivate PlayerB
 
@@ -120,6 +125,8 @@ PlayerB -> Server: Request Card from Player A's Deck\n(After Battle)
         Server --> PlayerB: Send Card from Player A's Deck\n(After Battle)
         Server --> PlayerB: Update ELO Score\n(+3 points for win)
         Server --> PlayerA: Update ELO Score\n(-5 points for loss)
+        Server --> PlayerB: Add +1 to wins
+        Server --> PlayerA: Add +1 to losses
         deactivate PlayerB
         deactivate PlayerA
 
