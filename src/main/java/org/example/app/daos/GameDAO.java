@@ -162,27 +162,6 @@ public class GameDAO {
         return selectedCard;
     }
 
-    private UUID getCardIdFromDatabase(Card card) {
-        // retrieve the card ID from the database based on the card instance
-
-        String selectCardIdQuery = "SELECT id FROM Card WHERE name = ? AND owner_username = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardIdQuery)) {
-            preparedStatement.setObject(1, card.getName());
-            preparedStatement.setString(2, card.getOwnerUsername());
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    return UUID.fromString(resultSet.getString("id"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null; // Handle appropriately if no card ID is found
-    }
-
     public Card getCardById(UUID cardId) {
         String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
 
@@ -373,6 +352,12 @@ public class GameDAO {
 
         // Update decks based on the winner and loser
         updateDecks();
+
+        // Update user stats
+        updateStats(winnerUsername, loserUsername);
+
+        // Update Elo scores
+        updateEloScores(winnerUsername, loserUsername);
     }
 
     private void updateDecks() {
@@ -397,6 +382,66 @@ public class GameDAO {
 
     private void addToDeck(List<Card> deck, Card card) {
         deck.add(card);
+    }
+
+    private void updateStats(String winnerUsername, String loserUsername) {
+        try {
+            // Increment wins for the winner
+            incrementWins(winnerUsername);
+
+            // Increment losses for the loser
+            incrementLosses(loserUsername);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateEloScores(String winnerUsername, String loserUsername) {
+        try {
+            // Increment Elo score for the winner and decrement for the loser
+            incrementEloScore(winnerUsername, 3);
+            decrementEloScore(loserUsername, 5);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void incrementWins(String username) throws SQLException {
+        String updateWinsQuery = "UPDATE \"User\" SET wins = wins + 1 WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateWinsQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void incrementLosses(String username) throws SQLException {
+        String updateLossesQuery = "UPDATE \"User\" SET losses = losses + 1 WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateLossesQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void incrementEloScore(String username, int increment) throws SQLException {
+        String updateEloQuery = "UPDATE \"User\" SET elo_score = elo_score + ? WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateEloQuery)) {
+            preparedStatement.setInt(1, increment);
+            preparedStatement.setString(2, username);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void decrementEloScore(String username, int decrement) throws SQLException {
+        String updateEloQuery = "UPDATE \"User\" SET elo_score = elo_score - ? WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateEloQuery)) {
+            preparedStatement.setInt(1, decrement);
+            preparedStatement.setString(2, username);
+            preparedStatement.executeUpdate();
+        }
     }
 
     private void updateDecksAndStacks() {
