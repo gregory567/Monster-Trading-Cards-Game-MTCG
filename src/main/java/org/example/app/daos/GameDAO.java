@@ -13,6 +13,10 @@ import java.util.*;
 public class GameDAO {
 
     Connection connection;
+    private String username1 = null;
+    private String username2 = null;
+    private List<Card> user1Deck = null;
+    private List<Card> user2Deck = null;
     private String winner = null;
     private String loser = null;
     private UUID cardId1 = null;
@@ -39,60 +43,71 @@ public class GameDAO {
 
     public String carryOutBattle(String username1, String username2) {
 
+        setUsername1(username1);
+        setUsername2(username2);
+
         UUID battleId = createBattle(username1, username2);
 
         StringBuilder battleLog = new StringBuilder();
 
+        // Select cards at the start of each battle
+        try {
+            user1Deck = buildUpDeckList(username1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            user2Deck = buildUpDeckList(username2);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         for (int round = 1; round <= NUMBER_OF_ROUNDS; round++) {
-            try {
 
-                boolean draw = false;
-                // Select one card for each user from their decks
-                Card cardUser1 = selectRandomCardFromDeck(username1);
-                Card cardUser2 = selectRandomCardFromDeck(username2);
+            boolean draw = false;
+            // Select one card for each user from their decks
+            Card cardUser1 = selectRandomCardFromDeck(user1Deck);
+            Card cardUser2 = selectRandomCardFromDeck(user2Deck);
 
-                // battle logic using the selected cards
-                applySpecialty(cardUser1, cardUser2, username1, username2);
-                applySpecialty(cardUser2, cardUser1, username2, username1);
+            // battle logic using the selected cards
+            applySpecialty(cardUser1, cardUser2, username1, username2);
+            applySpecialty(cardUser2, cardUser1, username2, username1);
 
-                if (winner == null && loser == null) {
-                    Integer effectiveDamageUser1 = cardUser1.calculateEffectiveDamage(cardUser2);
-                    Integer effectiveDamageUser2 = cardUser2.calculateEffectiveDamage(cardUser1);
+            if (winner == null && loser == null) {
+                Integer effectiveDamageUser1 = cardUser1.calculateEffectiveDamage(cardUser2);
+                Integer effectiveDamageUser2 = cardUser2.calculateEffectiveDamage(cardUser1);
 
-                    if (effectiveDamageUser1 > effectiveDamageUser2) {
-                        setWinnerAndLoser(username1, username2, cardUser1, cardUser2, cardId1, cardId2);
-                    } else if (effectiveDamageUser1 < effectiveDamageUser2) {
-                        setWinnerAndLoser(username2, username1, cardUser2, cardUser1, cardId2, cardId1);
-                    } else {
-                        draw = true;
-                    }
+                if (effectiveDamageUser1 > effectiveDamageUser2) {
+                    setWinnerAndLoser(username1, username2, cardUser1, cardUser2, cardId1, cardId2);
+                } else if (effectiveDamageUser1 < effectiveDamageUser2) {
+                    setWinnerAndLoser(username2, username1, cardUser2, cardUser1, cardId2, cardId1);
+                } else {
+                    draw = true;
                 }
-
-                // Check if either player has 0 eloscore, end the battle
-                if (getPlayerEloScore(username1) <= 0 || getPlayerEloScore(username2) <= 0) {
-                    break;
-                }
-
-                // Log the round details, winner, loser, cards, and draw status
-                logRound(battleId, round, winner, loser, winnerCard, loserCard, winnerCardId, loserCardId, draw);
-
-                // Retrieve and append round details to the battle log
-                battleLog.append(getRoundLogDetails(battleId, round));
-
-                // Reset variables
-                setCardId1(null);
-                setCardId2(null);
-                setWinner(null);
-                setLoser(null);
-                setWinnerCard(null);
-                setLoserCard(null);
-                setWinnerCardId(null);
-                setLoserCardId(null);
-
-            } catch (SQLException e) {
-                // Handle SQL exception
-                e.printStackTrace();
             }
+
+            // Log the round details, winner, loser, cards, and draw status
+            logRound(battleId, round, winner, loser, winnerCard, loserCard, winnerCardId, loserCardId, draw);
+
+            // Retrieve and append round details to the battle log
+            battleLog.append(getRoundLogDetails(battleId, round));
+
+            // end the battle, if one user has lost all his cards
+            if (user1Deck.isEmpty() || user2Deck.isEmpty()) {
+                break;
+            }
+
+            // Reset variables
+            setCardId1(null);
+            setCardId2(null);
+            setWinner(null);
+            setLoser(null);
+            setWinnerCard(null);
+            setLoserCard(null);
+            setWinnerCardId(null);
+            setLoserCardId(null);
+
         }
 
         // Return the detailed battle log
@@ -124,28 +139,66 @@ public class GameDAO {
         }
     }
 
-    private Card selectRandomCardFromDeck(String username) throws SQLException {
-        String selectCardQuery = "SELECT card_id FROM Deck WHERE username = ? ORDER BY RANDOM() LIMIT 1";
+    private List<Card> buildUpDeckList(String username) throws SQLException {
+        List<Card> selectedCards = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardQuery)) {
+        // Select all cards for the user from their deck
+        String selectDeckQuery = "SELECT card_id FROM Deck WHERE username = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(selectDeckQuery)) {
             preparedStatement.setString(1, username);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
+                while (resultSet.next()) {
                     UUID cardId = UUID.fromString(resultSet.getString("card_id"));
-                    if (cardId1 == null) {
-                        setCardId1(cardId);
-                    } else {
-                        setCardId2(cardId);
-                    }
-                    // Retrieve the card details using cardId
                     Card card = getCardById(cardId);
-                    return card;
+                    if (card != null) {
+                        selectedCards.add(card);
+                    }
                 }
             }
         }
 
-        return null; // Handle appropriately if no card is selected
+        return selectedCards;
+    }
+
+    private Card selectRandomCardFromDeck(List<Card> deck) {
+        if (deck.isEmpty()) {
+            return null; // Handle appropriately if the deck is empty
+        }
+
+        Random random = new Random();
+        int randomIndex = random.nextInt(deck.size());
+        Card selectedCard = deck.get(randomIndex);
+
+        UUID cardId = getCardIdFromDatabase(selectedCard);
+        if (cardId1 == null) {
+            setCardId1(cardId);
+        } else {
+            setCardId2(cardId);
+        }
+
+        return selectedCard;
+    }
+
+    private UUID getCardIdFromDatabase(Card card) {
+        // retrieve the card ID from the database based on the card instance
+
+        String selectCardIdQuery = "SELECT id FROM Card WHERE name = ? AND owner_username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardIdQuery)) {
+            preparedStatement.setObject(1, card.getName());
+            preparedStatement.setString(2, card.getOwner());
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return UUID.fromString(resultSet.getString("id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null; // Handle appropriately if no card ID is found
     }
 
     public Card getCardById(UUID cardId) {
@@ -292,7 +345,7 @@ public class GameDAO {
 
                     case KNIGHT_SPECIALTY:
                         // The armor of Knights is so heavy that WaterSpells make them drown instantly
-                        if (cardUser2.getElementType().equals(ElementType.WATER)) {
+                        if (cardUser2.getCardType().equals(CardType.SPELL) && cardUser2.getElementType().equals(ElementType.WATER)) {
                             setWinnerAndLoser(username2, username1, cardUser2, cardUser1, cardId2, cardId1);
                         }
                         break;
@@ -330,25 +383,6 @@ public class GameDAO {
         return false;
     }
 
-    // Helper method to get the eloscore of a player
-    private int getPlayerEloScore(String username) {
-        try {
-            String selectEloScoreQuery = "SELECT elo_score FROM \"User\" WHERE username = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(selectEloScoreQuery)) {
-                preparedStatement.setString(1, username);
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if (resultSet.next()) {
-                        return resultSet.getInt("elo_score");
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        // Return a default value or handle appropriately if the eloscore is not found
-        return -1;
-    }
-
     private void setWinnerAndLoser(String winnerUsername, String loserUsername, Card winnerCard, Card loserCard, UUID winnerCardId, UUID loserCardId) {
         setWinner(winnerUsername);
         setLoser(loserUsername);
@@ -363,37 +397,26 @@ public class GameDAO {
 
     private void updateDecks() {
         try {
-            // Remove defeated cards from the loser's deck
-            removeFromDeck();
-
-            // Add defeated cards to the winner's deck
-            addToDeck();
-        } catch (SQLException e) {
-            // Handle SQL exception by logging or rethrowing if necessary
+            // Remove defeated cards from the loser's deck and add to the winner's deck
+            if (winner.equals(username1)) {
+                // Move the card from the loser's deck to the winner's deck
+                removeFromDeck(user2Deck, loserCard);
+                addToDeck(user1Deck, loserCard);
+            } else if (winner.equals(username2)) {
+                removeFromDeck(user1Deck, loserCard);
+                addToDeck(user2Deck, loserCard);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void removeFromDeck() throws SQLException {
-        String removeCardQuery = "DELETE FROM Deck WHERE username = ? AND card_id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(removeCardQuery)) {
-            preparedStatement.setString(1, loser);
-            preparedStatement.setObject(2, loserCardId);
-
-            preparedStatement.executeUpdate();
-        }
+    private void removeFromDeck(List<Card> deck, Card card) {
+        deck.remove(card);
     }
 
-    private void addToDeck() throws SQLException {
-        String addCardQuery = "INSERT INTO Deck(username, card_id) VALUES (?, ?)";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(addCardQuery)) {
-            preparedStatement.setString(1, winner);
-            preparedStatement.setObject(2, loserCardId);
-
-            preparedStatement.executeUpdate();
-        }
+    private void addToDeck(List<Card> deck, Card card) {
+        deck.add(card);
     }
 
 }
