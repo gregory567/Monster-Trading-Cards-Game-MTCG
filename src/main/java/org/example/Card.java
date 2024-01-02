@@ -4,10 +4,13 @@ import org.example.app.models.User;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public abstract class Card {
 
+    protected UUID Id;
     protected CardName name;
     protected Integer damage;
     protected ElementType elementType;
@@ -15,7 +18,8 @@ public abstract class Card {
     protected CardType cardType;
     protected String owner;
 
-    public Card(CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
+    public Card(UUID Id, CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
+        this.Id = Id;
         this.name = name;
         this.damage = damage;
         this.elementType = elementType;

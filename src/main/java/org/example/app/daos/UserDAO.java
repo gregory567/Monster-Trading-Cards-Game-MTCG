@@ -16,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class UserDAO {
     @Setter(AccessLevel.PRIVATE)
@@ -324,7 +325,7 @@ public class UserDAO {
             ResultSet stackResultSet = stackStatement.executeQuery();
 
             while (stackResultSet.next()) {
-                int cardId = stackResultSet.getInt("card_id");
+                UUID cardId = (UUID) stackResultSet.getObject("card_id");
                 Card card = getCardById(cardId);
                 if (card != null) {
                     stack.attainCard(card);
@@ -347,7 +348,7 @@ public class UserDAO {
             ResultSet deckResultSet = deckStatement.executeQuery();
 
             while (deckResultSet.next()) {
-                int cardId = deckResultSet.getInt("card_id");
+                UUID cardId = (UUID) deckResultSet.getObject("card_id");
                 Card card = getCardById(cardId);
                 if (card != null) {
                     deck.addCardToDeck(card);
@@ -361,11 +362,11 @@ public class UserDAO {
     }
 
     // Helper method to get Card by ID
-    private Card getCardById(int cardId) {
+    private Card getCardById(UUID cardId) {
         String selectCardStmt = "SELECT * FROM Card WHERE id = ?;";
 
         try (PreparedStatement cardStatement = getConnection().prepareStatement(selectCardStmt)) {
-            cardStatement.setInt(1, cardId);
+            cardStatement.setObject(1, cardId);
 
             try (ResultSet cardResultSet = cardStatement.executeQuery()) {
                 if (cardResultSet.next()) {
@@ -379,9 +380,9 @@ public class UserDAO {
 
                     switch (cardType) {
                         case "Monster":
-                            return new MonsterCard(name, damage, elementType, specialties, owner);
+                            return new MonsterCard(cardId, name, damage, elementType, specialties, owner);
                         case "Spell":
-                            return new SpellCard(name, damage, elementType, specialties, owner);
+                            return new SpellCard(cardId, name, damage, elementType, specialties, owner);
                         default:
                             // Handle unknown card type
                             break;
@@ -457,7 +458,7 @@ public class UserDAO {
     // Helper method to create a TradeDeal instance from a ResultSet
     private TradeDeal createTradeDealFromResultSet(ResultSet resultSet) throws SQLException {
         String offeringUserUsername = resultSet.getString("offeringUser_username");
-        Card offeredCard = getCardById(resultSet.getInt("offeredCard_id"));
+        Card offeredCard = getCardById((UUID) resultSet.getObject("offeredCard_id"));
 
         CardType requirementCardType = CardType.valueOf(resultSet.getString("requirement_cardType"));
         Integer requirementMinDamage = resultSet.getInt("requirement_minDamage");

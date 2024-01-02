@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.example.app.models.User;
 
+import java.util.UUID;
+
 import static org.example.ElementType.FIRE;
 import static org.example.ElementType.WATER;
 import static org.example.ElementType.NORMAL;
@@ -12,14 +14,15 @@ import static org.example.ElementType.NORMAL;
 @Setter
 public class SpellCard extends Card {
 
-    public SpellCard(CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
-        super(name, damage, elementType, specialties, owner);
+    public SpellCard(UUID Id, CardName name, Integer damage, ElementType elementType, String[] specialties, String owner) {
+        super(Id, name, damage, elementType, specialties, owner);
         this.cardType = CardType.SPELL;
     }
 
     @Override
     public void getAttributes() {
         System.out.println("SpellCard Attributes:");
+        System.out.println("Id: " + getId());
         System.out.println("Name: " + getName());
         System.out.println("Damage: " + getDamage());
         System.out.println("ElementType: " + getElementType());
@@ -28,6 +31,7 @@ public class SpellCard extends Card {
     @Override
     public void displayCardInfo() {
         System.out.println("SpellCard Information:");
+        System.out.println("Id: " + getId());
         System.out.println("Name: " + getName());
         System.out.println("Damage: " + getDamage());
         System.out.println("ElementType: " + getElementType());

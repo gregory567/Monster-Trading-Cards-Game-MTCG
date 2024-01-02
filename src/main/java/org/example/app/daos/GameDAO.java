@@ -17,10 +17,10 @@ public class GameDAO {
     private String username2 = null;
     private List<Card> user1Deck = null;
     private List<Card> user2Deck = null;
-    private String winner = null;
-    private String loser = null;
     private UUID cardId1 = null;
     private UUID cardId2 = null;
+    private String winner = null;
+    private String loser = null;
     private UUID winnerCardId = null;
     private UUID loserCardId = null;
     private Card winnerCard = null;
@@ -109,6 +109,8 @@ public class GameDAO {
             setLoserCardId(null);
 
         }
+        // Update decks and stacks when the battle ends
+        updateDecksAndStacks();
 
         // Return the detailed battle log
         return "Battle completed\n" + battleLog.toString();
@@ -223,9 +225,9 @@ public class GameDAO {
                     // Create a new Card instance based on the type of card (Monster or Spell)
                     CardType cardType = CardType.valueOf(resultSet.getString("cardType"));
                     if (cardType == CardType.MONSTER) {
-                        return new MonsterCard(cardName, damage, elementType, specialties, ownerUsername);
+                        return new MonsterCard(cardId, cardName, damage, elementType, specialties, ownerUsername);
                     } else if (cardType == CardType.SPELL) {
-                        return new SpellCard(cardName, damage, elementType, specialties, ownerUsername);
+                        return new SpellCard(cardId, cardName, damage, elementType, specialties, ownerUsername);
                     } else {
                         // Handle other card types as needed
                         return null;
@@ -418,5 +420,55 @@ public class GameDAO {
     private void addToDeck(List<Card> deck, Card card) {
         deck.add(card);
     }
+
+    private void updateDecksAndStacks() {
+        try {
+            // Remove all cards from the decks of both players
+            removeAllCardsFromDeck(username1);
+            removeAllCardsFromDeck(username2);
+
+            // Move all cards from the deck list to the stack of each player
+            moveAllCardsToStack(username1, user1Deck);
+            moveAllCardsToStack(username2, user2Deck);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void removeAllCardsFromDeck(String username) {
+        String deleteDeckQuery = "DELETE FROM \"Deck\" WHERE username = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(deleteDeckQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void moveAllCardsToStack(String username, List<Card> deck) {
+        String updateCardOwnerQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+
+        try (PreparedStatement updateStatement = connection.prepareStatement(updateCardOwnerQuery)) {
+            String insertStackQuery = "INSERT INTO \"Stack\"(username, card_id) VALUES (?, ?)";
+
+            try (PreparedStatement insertStatement = connection.prepareStatement(insertStackQuery)) {
+                for (Card card : deck) {
+                    // Update owner_username in Card table
+                    updateStatement.setString(1, username);
+                    updateStatement.setObject(2, getCardIdFromDatabase(card));
+                    updateStatement.executeUpdate();
+
+                    // Insert into Stack table
+                    insertStatement.setString(1, username);
+                    insertStatement.setObject(2, getCardIdFromDatabase(card));
+                    insertStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.Random;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.ElementType;
@@ -25,10 +26,10 @@ public class Package {
             // random boolean to decide whether to create a MonsterCard or SpellCard
             if (new Random().nextBoolean()) {
                 // create a new instance of MonsterCard with random attributes
-                packageCards[i] = new MonsterCard(generateRandomName(), generateRandomDamage(), generateRandomElementType(), new String[]{String.valueOf(generateRandomName())}, null);
+                packageCards[i] = new MonsterCard(generateRandomId(), generateRandomName(), generateRandomDamage(), generateRandomElementType(), new String[]{String.valueOf(generateRandomName())}, null);
             } else {
                 // create a new instance of SpellCard with random attributes
-                packageCards[i] = new SpellCard(generateRandomName(), generateRandomDamage(), generateRandomElementType(), new String[]{String.valueOf(generateRandomName())}, null);
+                packageCards[i] = new SpellCard(generateRandomId(), generateRandomName(), generateRandomDamage(), generateRandomElementType(), new String[]{String.valueOf(generateRandomName())}, null);
             }
         }
     }
@@ -45,6 +46,10 @@ public class Package {
     public void applyDiscount() {
         // Implement logic to apply a discount to the packageCards
         // You may want to reduce the damage, change specialties, or apply other effects
+    }
+
+    private UUID generateRandomId() {
+        return UUID.randomUUID();
     }
 
     // generate a random name for a card from the CardName enum
