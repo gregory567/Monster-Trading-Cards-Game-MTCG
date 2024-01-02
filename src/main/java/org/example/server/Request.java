@@ -68,7 +68,8 @@ public class Request {
                     if (line.startsWith(CONTENT_TYPE)) {
                         setContentType(getContentTypeFromInputLine(line));
                     }
-                    if (getAuthorizationRequiredMethods().contains(getMethod())) {
+                    // Check if the current path requires authorization
+                    if (requiresAuthorization(getMethod(), getPathname())) {
                         setAuthorization(getAuthorizationFromInputLine(line));
                     }
                 }
@@ -144,8 +145,31 @@ public class Request {
         }
     }
 
-    // Define the methods that require authorization
-    private List<Method> getAuthorizationRequiredMethods() {
-        return Arrays.asList(Method.POST, Method.PUT, Method.DELETE);
+    // method to check if a path requires authorization
+    private boolean requiresAuthorization(Method method, String pathname) {
+
+        if (method == Method.GET) {
+            if (pathname.startsWith("/users/") || pathname.equals("/users") || pathname.equals("/cards") ||
+                    pathname.equals("/deck") || pathname.equals("/stats") || pathname.equals("/scoreboard") ||
+                    pathname.equals("/tradings")){
+                return true;
+            }
+        } else if (method == Method.POST) {
+            if (pathname.equals("/users") || pathname.equals("/sessions") || pathname.equals("/packages") ||
+                    pathname.equals("/transactions/packages") || pathname.equals("/tradings") ||
+                    pathname.startsWith("/tradings/") || pathname.equals("/battles")) {
+                return true;
+            }
+        } else if (method == Method.PUT) {
+            if (pathname.startsWith("/users") || pathname.equals("/deck")) {
+                return true;
+            }
+        } else if (method == Method.DELETE){
+            if (pathname.startsWith("/users/") || pathname.startsWith("/tradings/")) {
+                return true;
+            }
+        }
+        return false;
     }
+
 }

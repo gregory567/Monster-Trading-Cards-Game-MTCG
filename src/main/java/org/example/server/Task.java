@@ -19,7 +19,7 @@ import java.net.Socket;
 public class Task implements Runnable {
     private Socket clientSocket;
     private App app;
-    private String authenticatedUserToken;
+    private volatile String authenticatedUserToken;
 
     public Task(Socket clientSocket, App app) {
         this.clientSocket = clientSocket;
@@ -61,7 +61,7 @@ public class Task implements Runnable {
         } catch (IOException e) {
             handleException(e);
         } finally {
-            //closeResources();
+            closeResources();
         }
     }
 
@@ -109,22 +109,18 @@ public class Task implements Runnable {
             JsonNode jsonData = response.parseJsonResponse();
             return jsonData.get("data").get("token").asText();
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to extract token from response", e);
+            handleException(e);
+            return null;
         }
     }
 
     private String getAuthenticatedUsernameFromToken(String userToken) {
         // extract the username from the user token
-        return userToken.replace("-mtcgToken", "");
+        return userToken != null ? userToken.replace("-mtcgToken", "") : null;
     }
 
-    private void handleException(IOException e) {
-        // Handle the exception (e.g., log it)
-        e.printStackTrace();
-    }
-
-    private void handleException(InterruptedException e) {
-        // Handle the exception (e.g., log it)
+    private void handleException(Exception e) {
+        // Log the exception or handle it based on your application's logging strategy
         e.printStackTrace();
     }
 }
