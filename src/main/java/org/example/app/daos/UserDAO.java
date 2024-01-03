@@ -28,7 +28,13 @@ public class UserDAO {
         setConnection(connection);
     }
 
-    // Method to create a new user in the database
+    /**
+     * Creates a new user in the database.
+     *
+     * @param username The username of the new user.
+     * @param password The password of the new user.
+     * @return HTTP status code indicating the result of user creation (201 for success, 409 for conflict, 500 for error).
+     */
     public Integer createUser(String username, String password) {
         // Check if the user already exists
         if (userExists(username)) {
@@ -67,7 +73,12 @@ public class UserDAO {
         }
     }
 
-    // Helper method to check if a user already exists in the database
+    /**
+     * Checks if a user with the given username already exists in the database.
+     *
+     * @param username The username to check for existence.
+     * @return True if the user exists; false otherwise.
+     */
     private boolean userExists(String username) {
         // SQL statement to count the number of users with the specified username
         String selectStmt = "SELECT COUNT(*) FROM \"User\" WHERE username = ?;";
@@ -94,6 +105,11 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Retrieves a list of user data from the database.
+     *
+     * @return List of UserDataDTO containing profile information for all users.
+     */
     public ArrayList<UserDataDTO> getUsers() {
         ArrayList<UserDataDTO> users = new ArrayList<>();
 
@@ -120,6 +136,12 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Retrieves user data for a specific user from the database.
+     *
+     * @param username The username of the user to retrieve data for.
+     * @return UserDataDTO containing profile information for the specified user.
+     */
     public UserDataDTO getUser(String username) {
         String selectStmt = "SELECT profile_name, profile_bio, profile_image FROM \"User\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
@@ -136,6 +158,15 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Updates user profile information in the database.
+     *
+     * @param username The username of the user to update.
+     * @param name     The new name for the user.
+     * @param bio      The new biography for the user.
+     * @param image    The new profile image URL for the user.
+     * @return HTTP status code indicating the result of the update (200 for success, 404 for not found, 500 for error).
+     */
     public Integer updateUser(String username, String name, String bio, String image) {
 
         // Check if the user exists
@@ -170,6 +201,13 @@ public class UserDAO {
         return 500;
     }
 
+    /**
+     * Authenticates a user by checking the provided username and password.
+     *
+     * @param username The username of the user to authenticate.
+     * @param password The password provided for authentication.
+     * @return User token if authentication is successful; "401" for authentication failure; "500" for error.
+     */
     public String loginUser(String username, String password) {
         try {
             // Check if the user exists and the password matches
@@ -188,7 +226,13 @@ public class UserDAO {
         }
     }
 
-    // Helper method to retrieve the user token from the database
+    /**
+     * Helper method to retrieve the user token from the database.
+     *
+     * @param username The username for which to retrieve the token.
+     * @return The user token retrieved from the database.
+     * @throws SQLException If a SQL exception occurs during token retrieval.
+     */
     private String retrieveUserToken(String username) throws SQLException {
         String selectStmt = "SELECT token FROM \"User\" WHERE username = ?;";
 
@@ -208,6 +252,13 @@ public class UserDAO {
         return "404";
     }
 
+    /**
+     * Checks if the provided password matches the stored password for the given username.
+     *
+     * @param username The username for which to check the password.
+     * @param password The password to compare against the stored password.
+     * @return True if the provided password matches the stored password, false otherwise.
+     */
     public boolean passwordMatches(String username, String password) {
         // SQL statement to retrieve the password for the given username
         String selectStmt = "SELECT password FROM \"User\" WHERE username = ?;";
@@ -234,6 +285,11 @@ public class UserDAO {
         return false;
     }
 
+    /**
+     * Deletes a user from the database.
+     *
+     * @param username The username of the user to delete.
+     */
     public void deleteUser(String username) {
         String deleteStmt = "DELETE FROM \"User\" WHERE username = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
@@ -249,7 +305,13 @@ public class UserDAO {
         setUsersCache(null);
     }
 
-    // Helper method to create a User instance from a ResultSet
+    /**
+     * Helper method to create a User instance from a ResultSet.
+     *
+     * @param resultSet The ResultSet containing user data.
+     * @return User instance created from the ResultSet.
+     * @throws SQLException If a SQL exception occurs during the creation.
+     */
     private User createUserFromResultSet(ResultSet resultSet) throws SQLException {
         User user = new User(
                 resultSet.getString("username"),
@@ -271,7 +333,13 @@ public class UserDAO {
         return user;
     }
 
-    // Helper method to create a User instance from a ResultSet
+    /**
+     * Helper method to create a UserDataDTO instance from a ResultSet.
+     *
+     * @param resultSet The ResultSet containing user data.
+     * @return UserDataDTO instance created from the ResultSet.
+     * @throws SQLException If a SQL exception occurs during the creation.
+     */
     private UserDataDTO createUserdataFromResultSet(ResultSet resultSet) throws SQLException {
         UserDataDTO userdata = new UserDataDTO(
                 resultSet.getString("name"),
@@ -282,7 +350,12 @@ public class UserDAO {
         return userdata;
     }
 
-    // Helper method to initialize Stack for a user
+    /**
+     * Helper method to initialize Stack for a user.
+     *
+     * @param username The username of the user to initialize the stack for.
+     * @return Stack instance containing cards from the user's stack.
+     */
     private Stack initStack(String username) {
         Stack stack = new Stack();
 
@@ -305,7 +378,12 @@ public class UserDAO {
         return stack;
     }
 
-    // Helper method to initialize Deck for a user
+    /**
+     * Helper method to initialize Deck for a user.
+     *
+     * @param username The username of the user to initialize the deck for.
+     * @return Deck instance containing cards from the user's deck.
+     */
     private Deck initDeck(String username) {
         Deck deck = new Deck();
 
@@ -339,7 +417,12 @@ public class UserDAO {
         return deck;
     }
 
-    // Helper method to get Card by ID
+    /**
+     * Helper method to get a Card by ID from the database.
+     *
+     * @param cardId The ID of the card to retrieve.
+     * @return Card instance retrieved from the database.
+     */
     public Card getCardById(UUID cardId) {
         String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
 
@@ -375,6 +458,12 @@ public class UserDAO {
         return null; // if no card is found
     }
 
+    /**
+     * Retrieves user statistics (profile name, ELO score, wins, losses) from the database.
+     *
+     * @param username The username of the user to retrieve statistics for.
+     * @return UserStatDTO containing statistics for the specified user.
+     */
     public UserStatDTO getStats(String username) {
         String selectStatsStmt = "SELECT profile_name, elo_score, wins, losses FROM \"User\" WHERE username = ?;";
 
@@ -398,6 +487,11 @@ public class UserDAO {
         return null;
     }
 
+    /**
+     * Retrieves a scoreboard of user statistics ordered by ELO score from the database.
+     *
+     * @return List of UserStatDTO representing the scoreboard.
+     */
     public List<UserStatDTO> getScoreBoard() {
         List<UserStatDTO> scoreBoard = new ArrayList<>();
 
@@ -419,7 +513,13 @@ public class UserDAO {
         return null;
     }
 
-    // Helper method to create a UserStatDTO instance from a ResultSet
+    /**
+     * Helper method to create a UserStatDTO instance from a ResultSet.
+     *
+     * @param resultSet The ResultSet containing user statistics.
+     * @return UserStatDTO instance created from the ResultSet.
+     * @throws SQLException If a SQL exception occurs during the creation.
+     */
     private UserStatDTO createUserStatFromResultSet(ResultSet resultSet) throws SQLException {
         String name = resultSet.getString("profile_name");
         String eloScore = resultSet.getString("elo_score");
