@@ -1,7 +1,5 @@
 package org.example.app.daos;
 
-
-import org.example.Package;
 import org.example.app.dtos.UserStatDTO;
 import org.example.app.models.User;
 import org.example.app.dtos.UserDataDTO;
@@ -59,9 +57,6 @@ public class UserDAO {
             // Execute the SQL update statement to insert the new user
             preparedStatement.executeUpdate();
 
-            // Clear the user cache to ensure the latest data is retrieved on subsequent queries
-            clearCache();
-
             // Return 201 to indicate successful user creation
             return 201;
         } catch (SQLException e) {
@@ -113,7 +108,6 @@ public class UserDAO {
 
             while (resultSet.next()) {
                 UserDataDTO userdata = createUserdataFromResultSet(resultSet);
-                //initializeUserData(userdata);
                 users.add(userdata);
             }
 
@@ -134,7 +128,6 @@ public class UserDAO {
 
             if (resultSet.next()) {
                 UserDataDTO foundUser = createUserdataFromResultSet(resultSet);
-                //initializeUserData(foundUser);
                 return foundUser;
             }
         } catch (SQLException e) {
@@ -252,33 +245,6 @@ public class UserDAO {
         }
     }
 
-    // Helper method to initialize Stack, Deck, BattleResults, InitiatedTrades, and AcceptedTrades of the user
-    private void initializeUserData(User user) {
-        user.setStack(initStack(user.getUsername()));
-        user.setDeck(initDeck(user.getUsername()));
-        user.setInitiatedTrades(initTrades(user.getUsername(), "offeringUser_username"));
-        user.setAcceptedTrades(initTrades(user.getUsername(), "status = 'ACCEPTED' AND offeringUser_username != ?"));
-    }
-
-    private List<TradeDeal> initTrades(String username, String condition) {
-        List<TradeDeal> trades = new ArrayList<>();
-
-        String selectTradesStmt = "SELECT * FROM TradeDeal WHERE " + condition;
-        try (PreparedStatement tradesStatement = getConnection().prepareStatement(selectTradesStmt)) {
-            tradesStatement.setString(1, username);
-            ResultSet tradesResultSet = tradesStatement.executeQuery();
-
-            while (tradesResultSet.next()) {
-                TradeDeal tradeDeal = createTradeDealFromResultSet(tradesResultSet);
-                trades.add(tradeDeal);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return trades;
-    }
-
     private void clearCache() {
         setUsersCache(null);
     }
@@ -289,8 +255,8 @@ public class UserDAO {
                 resultSet.getString("username"),
                 resultSet.getString("password"),
                 resultSet.getString("token"),
-                null, // stack will be initialized later
-                null, // deck will be initialized later
+                initStack(resultSet.getString("username")),
+                initDeck(resultSet.getString("username")),
                 new Profile(
                         resultSet.getString("profile_name"),
                         resultSet.getString("profile_email"),
@@ -343,16 +309,27 @@ public class UserDAO {
     private Deck initDeck(String username) {
         Deck deck = new Deck();
 
-        String selectDeckStmt = "SELECT card_id FROM Deck WHERE username = ?;";
+        String selectDeckStmt = "SELECT card1_id, card2_id, card3_id, card4_id FROM Deck WHERE username = ?;";
         try (PreparedStatement deckStatement = getConnection().prepareStatement(selectDeckStmt)) {
             deckStatement.setString(1, username);
             ResultSet deckResultSet = deckStatement.executeQuery();
 
             while (deckResultSet.next()) {
-                UUID cardId = (UUID) deckResultSet.getObject("card_id");
-                Card card = getCardById(cardId);
-                if (card != null) {
-                    deck.addCardToDeck(card);
+                UUID card1Id = (UUID) deckResultSet.getObject("card1_id");
+                UUID card2Id = (UUID) deckResultSet.getObject("card2_id");
+                UUID card3Id = (UUID) deckResultSet.getObject("card3_id");
+                UUID card4Id = (UUID) deckResultSet.getObject("card4_id");
+
+                Card card1 = getCardById(card1Id);
+                Card card2 = getCardById(card2Id);
+                Card card3 = getCardById(card3Id);
+                Card card4 = getCardById(card4Id);
+
+                if (card1 != null && card2 != null && card3 != null && card4 != null) {
+                    deck.addCardToDeck(card1);
+                    deck.addCardToDeck(card2);
+                    deck.addCardToDeck(card3);
+                    deck.addCardToDeck(card4);
                 }
             }
         } catch (SQLException e) {
@@ -363,30 +340,31 @@ public class UserDAO {
     }
 
     // Helper method to get Card by ID
-    private Card getCardById(UUID cardId) {
-        String selectCardStmt = "SELECT * FROM Card WHERE id = ?;";
+    public Card getCardById(UUID cardId) {
+        String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
 
-        try (PreparedStatement cardStatement = getConnection().prepareStatement(selectCardStmt)) {
-            cardStatement.setObject(1, cardId);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardQuery)) {
+            preparedStatement.setObject(1, cardId);
 
-            try (ResultSet cardResultSet = cardStatement.executeQuery()) {
-                if (cardResultSet.next()) {
-                    String cardType = cardResultSet.getString("cardType");
-                    CardName name = CardName.valueOf(cardResultSet.getString("name"));
-                    Double damage = cardResultSet.getDouble("damage");
-                    ElementType elementType = ElementType.valueOf(cardResultSet.getString("elementType"));
-                    String[] specialties = (String[]) cardResultSet.getArray("specialties").getArray();
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    CardName cardName = CardName.valueOf(resultSet.getString("name"));
+                    Double damage = resultSet.getDouble("damage");
+                    String elementTypeString = resultSet.getString("elementType");
+                    // Map elementTypeString to ElementType enum
+                    ElementType elementType = ElementType.valueOf(elementTypeString);
+                    String[] specialties = (String[]) resultSet.getArray("specialties").getArray();
+                    CardType cardType = CardType.valueOf(resultSet.getString("cardType"));
+                    String ownerUsername = resultSet.getString("owner_username");
 
-                    String owner = cardResultSet.getString("owner_username");
-
-                    switch (cardType) {
-                        case "Monster":
-                            return new MonsterCard(cardId, name, damage, elementType, specialties, owner);
-                        case "Spell":
-                            return new SpellCard(cardId, name, damage, elementType, specialties, owner);
-                        default:
-                            // Handle unknown card type
-                            break;
+                    // Create a new Card instance based on the type of card (Monster or Spell)
+                    if (cardType == CardType.MONSTER) {
+                        return new MonsterCard(cardId, cardName, damage, elementType, specialties, ownerUsername);
+                    } else if (cardType == CardType.SPELL) {
+                        return new SpellCard(cardId, cardName, damage, elementType, specialties, ownerUsername);
+                    } else {
+                        // other card types
+                        return null;
                     }
                 }
             }
@@ -394,97 +372,7 @@ public class UserDAO {
             e.printStackTrace();
         }
 
-        return null;
-    }
-
-    // Helper method to get opponent user by username
-    private User getOpponentByUsername(String username) {
-        String selectOpponentStmt = "SELECT * FROM BattleResult WHERE opponent_username = ?;";
-        try (PreparedStatement opponentStatement = getConnection().prepareStatement(selectOpponentStmt)) {
-            opponentStatement.setString(1, username);
-            ResultSet opponentResultSet = opponentStatement.executeQuery();
-
-            if (opponentResultSet.next()) {
-                return createUserFromResultSet(opponentResultSet);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    // Helper method to initialize InitiatedTrades for a user
-    private List<TradeDeal> initInitiatedTrades(String username) {
-        List<TradeDeal> initiatedTrades = new ArrayList<>();
-
-        String selectInitiatedTradesStmt = "SELECT * FROM TradeDeal WHERE offeringUser_username = ?;";
-        try (PreparedStatement initiatedTradesStatement = getConnection().prepareStatement(selectInitiatedTradesStmt)) {
-            initiatedTradesStatement.setString(1, username);
-            ResultSet initiatedTradesResultSet = initiatedTradesStatement.executeQuery();
-
-            while (initiatedTradesResultSet.next()) {
-                // Create TradeDeal instance and add to the list
-                TradeDeal tradeDeal = createTradeDealFromResultSet(initiatedTradesResultSet);
-                initiatedTrades.add(tradeDeal);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return initiatedTrades;
-    }
-
-    // Helper method to initialize AcceptedTrades for a user
-    private List<TradeDeal> initAcceptedTrades(String username) {
-        List<TradeDeal> acceptedTrades = new ArrayList<>();
-
-        String selectAcceptedTradesStmt = "SELECT * FROM TradeDeal WHERE status = 'ACCEPTED' AND offeringUser_username != ?;";
-        try (PreparedStatement acceptedTradesStatement = getConnection().prepareStatement(selectAcceptedTradesStmt)) {
-            acceptedTradesStatement.setString(1, username);
-            ResultSet acceptedTradesResultSet = acceptedTradesStatement.executeQuery();
-
-            while (acceptedTradesResultSet.next()) {
-                // Create TradeDeal instance and add to the list
-                TradeDeal tradeDeal = createTradeDealFromResultSet(acceptedTradesResultSet);
-                acceptedTrades.add(tradeDeal);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return acceptedTrades;
-    }
-
-    // Helper method to create a TradeDeal instance from a ResultSet
-    private TradeDeal createTradeDealFromResultSet(ResultSet resultSet) throws SQLException {
-        String offeringUserUsername = resultSet.getString("offeringUser_username");
-        Card offeredCard = getCardById((UUID) resultSet.getObject("offeredCard_id"));
-
-        CardType requirementCardType = CardType.valueOf(resultSet.getString("requirement_cardType"));
-        Integer requirementMinDamage = resultSet.getInt("requirement_minDamage");
-        Requirement requirement = new Requirement(requirementCardType, requirementMinDamage);
-
-        User offeringUser = getUserByUsername(offeringUserUsername);
-
-        return new TradeDeal(offeringUser, offeredCard, requirement);
-    }
-
-    // Helper method to get User by username
-    private User getUserByUsername(String username) {
-        String selectUserStmt = "SELECT * FROM users WHERE username = ?;";
-        try (PreparedStatement userStatement = getConnection().prepareStatement(selectUserStmt)) {
-            userStatement.setString(1, username);
-            ResultSet userResultSet = userStatement.executeQuery();
-
-            if (userResultSet.next()) {
-                return createUserFromResultSet(userResultSet);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return null; // if no card is found
     }
 
     public UserStatDTO getStats(String username) {

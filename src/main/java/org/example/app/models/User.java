@@ -42,7 +42,7 @@ public class User {
     private Profile profile;
     @JsonAlias({"Coins"})
     private Double coins;
-    @JsonAlias({"Eloscore"})
+    @JsonAlias({"Elo"})
     private Integer eloScore;
     @JsonAlias({"Wins"})
     private Integer wins;
