@@ -2,13 +2,7 @@ package org.example;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.app.models.User;
-
 import java.util.UUID;
-
-import static org.example.ElementType.FIRE;
-import static org.example.ElementType.WATER;
-import static org.example.ElementType.NORMAL;
 
 @Getter
 @Setter
@@ -17,15 +11,6 @@ public class SpellCard extends Card {
     public SpellCard(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String ownerUsername) {
         super(Id, name, damage, elementType, specialties, ownerUsername);
         this.cardType = CardType.SPELL;
-    }
-
-    @Override
-    public void getAttributes() {
-        System.out.println("SpellCard Attributes:");
-        System.out.println("Id: " + getId());
-        System.out.println("Name: " + getName());
-        System.out.println("Damage: " + getDamage());
-        System.out.println("ElementType: " + getElementType());
     }
 
     @Override
@@ -41,7 +26,6 @@ public class SpellCard extends Card {
     @Override
     public Double calculateEffectiveDamage(Card opponentCard) {
         ElementType opponentElementType = opponentCard.getElementType();
-        CardType opponentCardType = opponentCard.getCardType();
         Double baseDamage = getDamage();
 
         // we don't need to check if it's a monster or a spell we are fighting against

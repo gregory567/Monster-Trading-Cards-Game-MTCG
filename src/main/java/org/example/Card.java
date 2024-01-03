@@ -1,9 +1,7 @@
 package org.example;
 
-import org.example.app.models.User;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.UUID;
 
 @Getter
@@ -27,8 +25,6 @@ public abstract class Card {
         this.ownerUsername = ownerUsername;
     }
 
-    public abstract void getAttributes();
-
     public abstract void displayCardInfo();
 
     public void upgradeCard(Double upgradeAmount) {
@@ -36,7 +32,7 @@ public abstract class Card {
         Double upgradedDamage = getDamage() + upgradeAmount;
         setDamage(upgradedDamage);
 
-        System.out.println(getCardType() + " upgraded! New damage: " + upgradedDamage);
+        System.out.println(getName() + " upgraded! New damage: " + upgradedDamage);
     }
 
     public abstract Double calculateEffectiveDamage(Card opponentCard);

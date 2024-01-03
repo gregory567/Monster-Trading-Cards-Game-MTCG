@@ -2,13 +2,7 @@ package org.example;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.example.app.models.User;
-
 import java.util.UUID;
-
-import static org.example.ElementType.*;
-import static org.example.ElementType.FIRE;
-import static org.example.ElementType.NORMAL;
 
 @Getter
 @Setter
@@ -17,15 +11,6 @@ public class MonsterCard extends Card {
     public MonsterCard(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String ownerUsername) {
         super(Id, name, damage, elementType, specialties, ownerUsername);
         this.cardType = CardType.MONSTER;
-    }
-
-    @Override
-    public void getAttributes() {
-        System.out.println("MonsterCard Attributes:");
-        System.out.println("Id: " + getId());
-        System.out.println("Name: " + getName());
-        System.out.println("Damage: " + getDamage());
-        System.out.println("ElementType: " + getElementType());
     }
 
     @Override
