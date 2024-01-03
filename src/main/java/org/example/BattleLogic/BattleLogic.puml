@@ -5,6 +5,25 @@
 
 title Monster Trading Cards Game - Battle Logic
 
+!define SERVER_BLUE #3498DB
+!define PLAYER_YELLOW #F4D03F
+!define DATABASE_PURPLE #9B59B6
+
+skinparam participant {
+    BackgroundColor SERVER_BLUE
+    BorderColor Black
+}
+
+skinparam actor {
+    BackgroundColor PLAYER_YELLOW
+    BorderColor Black
+}
+
+skinparam database {
+    BackgroundColor DATABASE_PURPLE
+    BorderColor Black
+}
+
 actor "Player A" as PlayerA
 actor "Player B" as PlayerB
 participant "Battle Server" as Server
