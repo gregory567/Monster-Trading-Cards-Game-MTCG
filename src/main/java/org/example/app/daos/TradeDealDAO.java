@@ -1,15 +1,12 @@
 package org.example.app.daos;
 
-import org.example.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.app.dtos.TradeDealDTO;
-import org.example.app.daos.CardDAO;
 
 import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TradeDealDAO {
 
@@ -28,6 +25,11 @@ public class TradeDealDAO {
         setCardDAO(cardDAO);
     }
 
+    /**
+     * Retrieves a list of all trade deals from the database.
+     *
+     * @return A list of TradeDealDTO representing trade deals.
+     */
     public List<TradeDealDTO> getTradeDeals() {
         String sql = "SELECT * FROM \"TradeDeal\"";
         List<TradeDealDTO> tradeDeals = new ArrayList<>();
@@ -47,6 +49,13 @@ public class TradeDealDAO {
         return tradeDeals;
     }
 
+    /**
+     * Maps a ResultSet to a TradeDealDTO.
+     *
+     * @param resultSet The ResultSet from a database query.
+     * @return A TradeDealDTO representing the trade deal.
+     * @throws SQLException If a SQL exception occurs.
+     */
     private TradeDealDTO mapResultSetToTradeDealDTO(ResultSet resultSet) throws SQLException {
         TradeDealDTO tradeDealDTO = new TradeDealDTO();
         tradeDealDTO.setId(resultSet.getString("id"));
@@ -56,6 +65,13 @@ public class TradeDealDAO {
         return tradeDealDTO;
     }
 
+    /**
+     * Creates a new trade deal in the database.
+     *
+     * @param username     The username of the user creating the trade deal.
+     * @param tradeDealDTO The TradeDealDTO representing the trade deal.
+     * @return HTTP status code indicating the result of the operation.
+     */
     public Integer createTradeDeal(String username, TradeDealDTO tradeDealDTO) {
         // Check if a trade deal with the same ID already exists
         if (isTradeDealIdExists(tradeDealDTO.getId())) {
@@ -87,6 +103,12 @@ public class TradeDealDAO {
         }
     }
 
+    /**
+     * Checks if a trade deal with a given ID already exists in the database.
+     *
+     * @param tradeDealId The ID of the trade deal.
+     * @return True if the trade deal exists, false otherwise.
+     */
     private boolean isTradeDealIdExists(String tradeDealId) {
         String sql = "SELECT COUNT(*) FROM \"TradeDeal\" WHERE id = ?";
 
@@ -104,6 +126,13 @@ public class TradeDealDAO {
         return false;
     }
 
+    /**
+     * Checks if a card is owned by a specific user.
+     *
+     * @param username The username of the user.
+     * @param cardId   The ID of the card.
+     * @return True if the user owns the card, false otherwise.
+     */
     private boolean isCardOwnedByUser(String username, String cardId) {
         String sql = "SELECT COUNT(*) FROM \"Card\" WHERE id = ? AND owner_username = ?";
 
@@ -122,6 +151,13 @@ public class TradeDealDAO {
         return false;
     }
 
+    /**
+     * Checks if a card is locked in the user's deck.
+     *
+     * @param username The username of the user.
+     * @param cardId   The ID of the card.
+     * @return True if the card is locked in the deck, false otherwise.
+     */
     private boolean isCardLockedInDeck(String username, String cardId) {
         String sql = "SELECT COUNT(*) FROM \"Deck\" WHERE username = ? AND (card1_id = ? OR card2_id = ? OR card3_id = ? OR card4_id = ?)";
 
@@ -143,6 +179,13 @@ public class TradeDealDAO {
         return false;
     }
 
+    /**
+     * Deletes a trade deal from the database.
+     *
+     * @param username    The username of the user deleting the trade deal.
+     * @param tradeDealId The ID of the trade deal.
+     * @return HTTP status code indicating the result of the operation.
+     */
     public Integer deleteTradeDeal(String username, String tradeDealId) {
         // Check if the trade deal exists
         if (!isTradeDealIdExists(tradeDealId)) {
@@ -173,6 +216,12 @@ public class TradeDealDAO {
         }
     }
 
+    /**
+     * Retrieves the card ID associated with a trade deal.
+     *
+     * @param tradeDealId The ID of the trade deal.
+     * @return The ID of the card associated with the trade deal.
+     */
     private String getCardIdFromTradeDeal(String tradeDealId) {
         String sql = "SELECT offeredCard_id FROM \"TradeDeal\" WHERE id = ?";
 
@@ -190,6 +239,14 @@ public class TradeDealDAO {
         return null;
     }
 
+    /**
+     * Carries out a trade, updating the trade deal status and transferring cards between users.
+     *
+     * @param username      The username of the user initiating the trade.
+     * @param tradeDealId   The ID of the trade deal.
+     * @param offeredCardId The ID of the card offered in the trade.
+     * @return HTTP status code indicating the result of the operation.
+     */
     public Integer carryOutTrade(String username, String tradeDealId, String offeredCardId) {
         // Check if the trade deal exists
         if (!isTradeDealIdExists(tradeDealId)) {
@@ -238,6 +295,13 @@ public class TradeDealDAO {
         }
     }
 
+    /**
+     * Checks if the offered card meets the requirements specified in the trade deal.
+     *
+     * @param tradeDealId   The ID of the trade deal.
+     * @param offeredCardId The ID of the card offered in the trade.
+     * @return True if the offered card meets the requirements, false otherwise.
+     */
     private boolean doesOfferedCardMeetRequirements(String tradeDealId, String offeredCardId) {
         String sql = "SELECT requirement_cardType, requirement_minDamage FROM \"TradeDeal\" " +
                 "WHERE id = ? AND status = 'PENDING'";
@@ -264,7 +328,12 @@ public class TradeDealDAO {
         return false;
     }
 
-    // Helper method to get card type from card ID
+    /**
+     * Helper method to get the card type from the card ID.
+     *
+     * @param cardId The ID of the card.
+     * @return The card type.
+     */
     private String getCardTypeFromCardId(String cardId) {
         String sql = "SELECT cardType FROM \"Card\" WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -277,7 +346,12 @@ public class TradeDealDAO {
         }
     }
 
-    // Helper method to get damage from card ID
+    /**
+     * Helper method to get the damage value from the card ID.
+     *
+     * @param cardId The ID of the card.
+     * @return The damage value.
+     */
     private double getDamageFromCardId(String cardId) {
         String sql = "SELECT damage FROM \"Card\" WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -290,6 +364,13 @@ public class TradeDealDAO {
         }
     }
 
+    /**
+     * Helper method to get the username of the user offering a trade deal.
+     *
+     * @param tradeDealId The ID of the trade deal.
+     * @return The username of the user offering the trade deal.
+     * @throws SQLException If a SQL exception occurs.
+     */
     private String getOfferingUserUsername(String tradeDealId) throws SQLException {
         String sql = "SELECT offeringUser_username FROM \"TradeDeal\" WHERE id = ?";
 
@@ -308,6 +389,13 @@ public class TradeDealDAO {
         return null;
     }
 
+    /**
+     * Retrieves the ID of the card offered in a specific trade deal from the database.
+     *
+     * @param tradeDealId The ID of the trade deal.
+     * @return A String representing the ID of the offered card or null if not found.
+     * @throws SQLException If a database access error occurs.
+     */
     private String getOfferedCardId(String tradeDealId) throws SQLException {
         String sql = "SELECT offeredCard_id FROM \"TradeDeal\" WHERE id = ?";
 
