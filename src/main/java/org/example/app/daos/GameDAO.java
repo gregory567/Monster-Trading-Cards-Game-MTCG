@@ -150,18 +150,6 @@ public class GameDAO {
         return selectedCards;
     }
 
-    private Card selectRandomCardFromDeck(List<Card> deck) {
-        if (deck.isEmpty()) {
-            return null; // Handle appropriately if the deck is empty
-        }
-
-        Random random = new Random();
-        int randomIndex = random.nextInt(deck.size());
-        Card selectedCard = deck.get(randomIndex);
-
-        return selectedCard;
-    }
-
     public Card getCardById(UUID cardId) {
         String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
 
@@ -173,22 +161,19 @@ public class GameDAO {
                     CardName cardName = CardName.valueOf(resultSet.getString("name"));
                     Double damage = resultSet.getDouble("damage");
                     String elementTypeString = resultSet.getString("elementType");
-                    String[] specialties = (String[]) resultSet.getArray("specialties").getArray();
-
                     // Map elementTypeString to ElementType enum
                     ElementType elementType = ElementType.valueOf(elementTypeString);
-
-                    // Fetch the owner of the card
+                    String[] specialties = (String[]) resultSet.getArray("specialties").getArray();
+                    CardType cardType = CardType.valueOf(resultSet.getString("cardType"));
                     String ownerUsername = resultSet.getString("owner_username");
 
                     // Create a new Card instance based on the type of card (Monster or Spell)
-                    CardType cardType = CardType.valueOf(resultSet.getString("cardType"));
                     if (cardType == CardType.MONSTER) {
                         return new MonsterCard(cardId, cardName, damage, elementType, specialties, ownerUsername);
                     } else if (cardType == CardType.SPELL) {
                         return new SpellCard(cardId, cardName, damage, elementType, specialties, ownerUsername);
                     } else {
-                        // Handle other card types as needed
+                        // other card types
                         return null;
                     }
                 }
@@ -197,87 +182,19 @@ public class GameDAO {
             e.printStackTrace();
         }
 
-        return null; // Handle appropriately if no card is found
+        return null; // if no card is found
     }
 
-    private void logRound(UUID battleId, Integer round, String winner, String loser, Card winnerCard, Card loserCard, boolean draw) {
-        try {
-            // Insert into RoundDetail table
-            UUID roundId = UUID.randomUUID();
-            insertRoundDetail(roundId, winnerCard.getId(), winnerCard.getName(), winner);
-            insertRoundDetail(roundId, loserCard.getId(), loserCard.getName(), loser);
-
-            // Insert into RoundLog table
-            insertRoundLog(battleId, round, winner, loser, draw, roundId);
-        } catch (SQLException e) {
-            // Handle SQL exception by logging or rethrowing if necessary
-            e.printStackTrace();
-        }
-    }
-
-    private void insertRoundDetail(UUID roundId, UUID cardId, CardName cardName, String playerUsername) throws SQLException {
-        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, card_name, player_username) VALUES (?, ?, ?, ?)";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundDetailQuery)) {
-            preparedStatement.setObject(1, roundId);
-            preparedStatement.setObject(2, cardId);
-            preparedStatement.setObject(3, cardName);
-            preparedStatement.setString(4, playerUsername);
-
-            preparedStatement.executeUpdate();
-        }
-    }
-
-    private void insertRoundLog(UUID battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
-        String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(battle_id, round_number, winner_username, loser_username, draw, round_id) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundLogQuery)) {
-            preparedStatement.setObject(1, battleId);
-            preparedStatement.setInt(2, roundNumber);
-            preparedStatement.setString(3, winnerUsername);
-            preparedStatement.setString(4, loserUsername);
-            preparedStatement.setBoolean(5, draw);
-            preparedStatement.setObject(6, roundId);
-
-            preparedStatement.executeUpdate();
-        }
-    }
-
-    // Helper function to retrieve and format round details from the database
-    private String getRoundLogDetails(UUID battleId, int roundNumber) {
-        StringBuilder roundLogDetails = new StringBuilder();
-
-        try {
-            String selectRoundLogDetailsQuery =
-                    "SELECT rd.player_username, rd.card_name, rd.card_id, rl.draw " +
-                            "FROM \"RoundLog\" rl " +
-                            "JOIN \"RoundDetail\" rd ON rl.round_id = rd.round_id " +
-                            "WHERE rl.battle_id = ? AND rl.round_number = ?";
-
-            try (PreparedStatement preparedStatement = connection.prepareStatement(selectRoundLogDetailsQuery)) {
-                preparedStatement.setObject(1, battleId);
-                preparedStatement.setInt(2, roundNumber);
-
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    roundLogDetails.append(String.format("Round %d Details:\n", roundNumber));
-
-                    while (resultSet.next()) {
-                        String playerUsername = resultSet.getString("player_username");
-                        String cardName = resultSet.getString("card_name");
-                        UUID cardId = UUID.fromString(resultSet.getString("card_id"));
-                        boolean draw = resultSet.getBoolean("draw");
-
-                        roundLogDetails.append(String.format("  Player: %s, Card: %s, Card ID: %s%s\n",
-                                playerUsername, cardName, cardId, (draw ? " (Draw)" : "")));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            roundLogDetails.append("Error retrieving round details.\n");
+    private Card selectRandomCardFromDeck(List<Card> deck) {
+        if (deck.isEmpty()) {
+            return null; // if the deck is empty
         }
 
-        return roundLogDetails.toString();
+        Random random = new Random();
+        int randomIndex = random.nextInt(deck.size());
+        Card selectedCard = deck.get(randomIndex);
+
+        return selectedCard;
     }
 
     public void applySpecialty(Card user1Card, Card user2Card, String username1,  String username2) {
@@ -442,6 +359,86 @@ public class GameDAO {
             preparedStatement.setString(2, username);
             preparedStatement.executeUpdate();
         }
+    }
+
+    private void logRound(UUID battleId, Integer round, String winner, String loser, Card winnerCard, Card loserCard, boolean draw) {
+        try {
+            // Insert into RoundDetail table
+            UUID roundId = UUID.randomUUID();
+            insertRoundDetail(roundId, winnerCard.getId(), winnerCard.getName(), winner);
+            insertRoundDetail(roundId, loserCard.getId(), loserCard.getName(), loser);
+
+            // Insert into RoundLog table
+            insertRoundLog(battleId, round, winner, loser, draw, roundId);
+        } catch (SQLException e) {
+            // Handle SQL exception by logging or rethrowing if necessary
+            e.printStackTrace();
+        }
+    }
+
+    private void insertRoundDetail(UUID roundId, UUID cardId, CardName cardName, String playerUsername) throws SQLException {
+        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, card_name, player_username) VALUES (?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundDetailQuery)) {
+            preparedStatement.setObject(1, roundId);
+            preparedStatement.setObject(2, cardId);
+            preparedStatement.setObject(3, cardName);
+            preparedStatement.setString(4, playerUsername);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    private void insertRoundLog(UUID battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
+        String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(battle_id, round_number, winner_username, loser_username, draw, round_id) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundLogQuery)) {
+            preparedStatement.setObject(1, battleId);
+            preparedStatement.setInt(2, roundNumber);
+            preparedStatement.setString(3, winnerUsername);
+            preparedStatement.setString(4, loserUsername);
+            preparedStatement.setBoolean(5, draw);
+            preparedStatement.setObject(6, roundId);
+
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    // Helper function to retrieve and format round details from the database
+    private String getRoundLogDetails(UUID battleId, int roundNumber) {
+        StringBuilder roundLogDetails = new StringBuilder();
+
+        try {
+            String selectRoundLogDetailsQuery =
+                    "SELECT rd.player_username, rd.card_name, rd.card_id, rl.draw " +
+                            "FROM \"RoundLog\" rl " +
+                            "JOIN \"RoundDetail\" rd ON rl.round_id = rd.round_id " +
+                            "WHERE rl.battle_id = ? AND rl.round_number = ?";
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(selectRoundLogDetailsQuery)) {
+                preparedStatement.setObject(1, battleId);
+                preparedStatement.setInt(2, roundNumber);
+
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    roundLogDetails.append(String.format("Round %d Details:\n", roundNumber));
+
+                    while (resultSet.next()) {
+                        String playerUsername = resultSet.getString("player_username");
+                        String cardName = resultSet.getString("card_name");
+                        UUID cardId = UUID.fromString(resultSet.getString("card_id"));
+                        boolean draw = resultSet.getBoolean("draw");
+
+                        roundLogDetails.append(String.format("  Player: %s, Card: %s, Card ID: %s%s\n",
+                                playerUsername, cardName, cardId, (draw ? " (Draw)" : "")));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            roundLogDetails.append("Error retrieving round details.\n");
+        }
+
+        return roundLogDetails.toString();
     }
 
     private void updateDecksAndStacks() {
