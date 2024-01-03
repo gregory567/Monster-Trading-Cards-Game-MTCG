@@ -14,7 +14,6 @@ import org.example.Requirement;
 import org.example.TradeDeal;
 import org.example.Store;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -29,26 +28,22 @@ public class User {
     // wenn man für einzelne variablen getter und setter haben möchte 
     /*@Getter
     @Setter*/
-    @JsonAlias({"username"})
+    @JsonAlias({"Username"})
     private String username;
-    @JsonAlias({"password"})
+    @JsonAlias({"Password"})
     private String password;
-    @JsonAlias({"coins"})
+    @JsonAlias({"Coins"})
     private double coins;
-    @JsonAlias({"stack"})
+    @JsonAlias({"Stack"})
     private Stack stack;
-    @JsonAlias({"deck"})
+    @JsonAlias({"Deck"})
     private Deck deck;
-    @JsonAlias({"profile"})
+    @JsonAlias({"Profile"})
     private Profile profile;
-    @JsonAlias({"eloscore"})
+    @JsonAlias({"Eloscore"})
     private Integer eloScore;
-    private List<TradeDeal> initiatedTrades;
-    private List<TradeDeal> acceptedTrades;
 
     public User() {
-        this.initiatedTrades = new ArrayList<>();
-        this.acceptedTrades = new ArrayList<>();
     }
 
     public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile, Integer eloScore, List<TradeDeal> initiatedTrades, List<TradeDeal> acceptedTrades) {
@@ -62,21 +57,15 @@ public class User {
 
         this.profile = profile;
         this.eloScore = eloScore;
-
-        // Check if battleResults, initiatedTrades, and acceptedTrades are null or empty
-        this.initiatedTrades = (initiatedTrades != null && !initiatedTrades.isEmpty()) ? initiatedTrades : new ArrayList<>();
-        this.acceptedTrades = (acceptedTrades != null && !acceptedTrades.isEmpty()) ? acceptedTrades : new ArrayList<>();
     }
 
     public void requestTrade(Card card, Requirement requirement) {
         TradeDeal tradeDeal = new TradeDeal(this, card, requirement);
         Store.addTradeDeal(tradeDeal);
-        initiatedTrades.add(tradeDeal);
     }
 
     public void acceptTrade(TradeDeal tradeDeal) {
         tradeDeal.acceptDeal(this);
-        acceptedTrades.add(tradeDeal);
     }
 
     public void tradeCard(Card card, Requirement requirement) {

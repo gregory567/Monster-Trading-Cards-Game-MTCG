@@ -9,7 +9,6 @@ class User {
     - deck: Deck
     - profile: Profile
     - eloScore: Integer
-    - battleResults: BattleResult[]
     + void tradeCard(Card card, Requirement requirement)
     + void buyPackage(Package newPackage)
     + void selectBestCards()
@@ -34,7 +33,6 @@ class TradeDeal {
     - offeredCard: Card
     - requirement: Requirement
     + void acceptDeal(User acceptingUser)
-    + void rejectDeal()
 }
 
 class Profile {

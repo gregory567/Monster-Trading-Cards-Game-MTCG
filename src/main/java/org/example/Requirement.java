@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.example.CardType;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Requirement {
+    @JsonAlias({"CardType"})
     private CardType cardType;
+    @JsonAlias({"MinimumDamage"})
     private Integer minDamage;
 
     public Requirement(CardType cardType, Integer minDamage) {

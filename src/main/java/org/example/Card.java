@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.UUID;
@@ -8,12 +9,19 @@ import java.util.UUID;
 @Setter
 public abstract class Card {
 
+    @JsonAlias({"Id"})
     protected UUID Id;
+    @JsonAlias({"Name"})
     protected CardName name;
+    @JsonAlias({"Damage"})
     protected Double damage;
+    @JsonAlias({"ElementType"})
     protected ElementType elementType;
+    @JsonAlias({"Specialties"})
     protected String[] specialties;
+    @JsonAlias({"CardType"})
     protected CardType cardType;
+    @JsonAlias({"OwnerUserName"})
     protected String ownerUsername;
 
     public Card(UUID Id, CardName name, Double damage, ElementType elementType, String[] specialties, String ownerUsername) {
