@@ -15,9 +15,12 @@ activate Server
 
 PlayerB -> Server: Request to Start Battle with Token\n(Enters Lobby & Battle starts immediately)
 
-Database --> PlayerA: Build up Deck Array
-
-Database --> PlayerB: Build up Deck Array
+Server -> Database: Request to Build up Deck Array for Player A
+activate Database
+Server -> Database: Request to Build up Deck Array for Player B
+Database --> Server: Build up Deck Array Player A
+Database --> Server: Build up Deck Array Player B
+deactivate Database
 
 loop Multiple Rounds (max. 100)
 
@@ -106,16 +109,18 @@ PlayerA -> Server: Request Card from Player B's Deck\n(After Battle)
         PlayerB -> Server: Lose Card from Deck\n(After Battle)
         activate PlayerB
         Server --> PlayerA: Send Card from Player B's Deck\n(After Battle)
-        Server --> PlayerA: Update ELO Score\n(+3 points for win)
-        Server --> PlayerB: Update ELO Score\n(-5 points for loss)
-        Server --> PlayerA: Add +1 to wins
-        Server --> PlayerB: Add +1 to losses
+        PlayerA --> Database: Update ELO Score\n(+3 points for win)
+        activate Database
+        PlayerB --> Database: Update ELO Score\n(-5 points for loss)
+        PlayerA --> Database: Add +1 to wins
+        PlayerB --> Database: Add +1 to losses
         deactivate PlayerA
         deactivate PlayerB
 
         Server -> Database: Send Round Result to the DB
-        PlayerA -> Database: Send Round Details to the DB
-        PlayerB -> Database: Send Round Details to the DB
+        Server -> Database: Send Round Details to the DB (Player A)
+        Server -> Database: Send Round Details to the DB (Player B)
+        deactivate Database
 
 else Player B wins
 PlayerB -> Server: Request Card from Player A's Deck\n(After Battle)
@@ -123,16 +128,18 @@ PlayerB -> Server: Request Card from Player A's Deck\n(After Battle)
         PlayerA -> Server: Lose Card from Deck\n(After Battle)
         activate PlayerA
         Server --> PlayerB: Send Card from Player A's Deck\n(After Battle)
-        Server --> PlayerB: Update ELO Score\n(+3 points for win)
-        Server --> PlayerA: Update ELO Score\n(-5 points for loss)
-        Server --> PlayerB: Add +1 to wins
-        Server --> PlayerA: Add +1 to losses
+        PlayerB --> Database: Update ELO Score\n(+3 points for win)
+        activate Database
+        PlayerA --> Database: Update ELO Score\n(-5 points for loss)
+        PlayerB --> Database: Add +1 to wins
+        PlayerA --> Database: Add +1 to losses
         deactivate PlayerB
         deactivate PlayerA
 
         Server -> Database: Send Round Result to the DB
-        PlayerA -> Database: Send Round Details to the DB
-        PlayerB -> Database: Send Round Details to the DB
+        Server -> Database: Send Round Details to the DB (Player A)
+        Server -> Database: Send Round Details to the DB (Player B)
+        deactivate Database
 
 else draw
 box over PlayerA,PlayerB:No Action
@@ -140,10 +147,14 @@ box over PlayerA,PlayerB:No Action
 end
 end
 
-PlayerA -> Database: Update Stats\n(count of games played)
-PlayerB -> Database: Update Stats\n(count of games played)
+Server -> Database: Remove All Cards from Deck (Player A)
+activate Database
+Server -> Database: Remove All Cards from Deck (Player B)
+Server -> Database: Move All Cards from Deck Array to Stack (Player A)
+Server -> Database: Move All Cards from Deck Array to Stack (Player B)
 Database --> PlayerA: Send Battle Log to describe the Battle in Detail
 Database --> PlayerB: Send Battle Log to describe the Battle in Detail
+deactivate Database
 deactivate Server
 
 @enduml
