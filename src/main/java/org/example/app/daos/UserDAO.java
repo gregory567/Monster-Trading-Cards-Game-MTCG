@@ -288,7 +288,7 @@ public class UserDAO {
         User user = new User(
                 resultSet.getString("username"),
                 resultSet.getString("password"),
-                resultSet.getDouble("coins"),
+                resultSet.getString("token"),
                 null, // stack will be initialized later
                 null, // deck will be initialized later
                 new Profile(
@@ -296,9 +296,10 @@ public class UserDAO {
                         resultSet.getString("profile_email"),
                         resultSet.getString("profile_other_details")
                 ),
+                resultSet.getDouble("coins"),
                 resultSet.getInt("elo_score"),
-                new ArrayList<>(),   // empty list for initiatedTrades
-                new ArrayList<>()    // empty list for acceptedTrades
+                resultSet.getInt("wins"),
+                resultSet.getInt("losses")
         );
 
         return user;

@@ -32,31 +32,40 @@ public class User {
     private String username;
     @JsonAlias({"Password"})
     private String password;
-    @JsonAlias({"Coins"})
-    private double coins;
+    @JsonAlias({"Token"})
+    private String token;
     @JsonAlias({"Stack"})
     private Stack stack;
     @JsonAlias({"Deck"})
     private Deck deck;
     @JsonAlias({"Profile"})
     private Profile profile;
+    @JsonAlias({"Coins"})
+    private Double coins;
     @JsonAlias({"Eloscore"})
     private Integer eloScore;
+    @JsonAlias({"Wins"})
+    private Integer wins;
+    @JsonAlias({"Losses"})
+    private Integer losses;
 
     public User() {
     }
 
-    public User(String username, String password, double coins, Stack stack, Deck deck, Profile profile, Integer eloScore, List<TradeDeal> initiatedTrades, List<TradeDeal> acceptedTrades) {
+    public User(String username, String password, String token, Stack stack, Deck deck, Profile profile, Double coins, Integer eloScore, Integer wins, Integer losses) {
         this.username = username;
         this.password = password;
-        this.coins = coins;
+        this.token = token;
 
         // Initialize stack and deck with empty instances, if the provided instances are empty
         this.stack = (stack != null) ? stack : new Stack();
         this.deck = (deck != null) ? deck : new Deck();
 
         this.profile = profile;
+        this.coins = coins;
         this.eloScore = eloScore;
+        this.wins = wins;
+        this.losses = losses;
     }
 
     public void requestTrade(Card card, Requirement requirement) {
