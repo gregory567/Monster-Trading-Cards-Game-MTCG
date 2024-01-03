@@ -1,6 +1,5 @@
 package org.example.app.daos;
 
-import org.example.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,13 +16,16 @@ public class CardDAO {
     @Getter(AccessLevel.PRIVATE)
     Connection connection;
 
-    @Setter(AccessLevel.PRIVATE)
-    ArrayList<CardDTO> cardsCache;
-
     public CardDAO(Connection connection) {
         setConnection(connection);
     }
 
+    /**
+     * Retrieves a list of cards in the user's stack.
+     *
+     * @param username The username of the user.
+     * @return An ArrayList of CardDTO representing the cards in the user's stack.
+     */
     public ArrayList<CardDTO> getUserCards(String username) {
         List<CardDTO> cards = new ArrayList<>();
 
@@ -45,7 +47,7 @@ public class CardDAO {
         return (ArrayList<CardDTO>) cards;
     }
 
-    // Helper method to create a DTO from a ResultSet
+    // Helper method to create a CardDTO from a ResultSet
     private CardDTO createCardDTOFromResultSet(ResultSet resultSet) throws SQLException {
         CardDTO cardDTO = new CardDTO();
         cardDTO.setId(resultSet.getString("id"));
@@ -55,6 +57,12 @@ public class CardDAO {
         return cardDTO;
     }
 
+    /**
+     * Retrieves a list of cards in the user's deck.
+     *
+     * @param username The username of the user.
+     * @return A List of CardDTO representing the cards in the user's deck.
+     */
     public List<CardDTO> getDeckCards(String username) {
         String query = "SELECT c.* FROM \"Deck\" d " +
                 "JOIN \"Card\" c ON c.id = ANY(ARRAY[d.card1_id, d.card2_id, d.card3_id, d.card4_id]) " +
@@ -85,6 +93,7 @@ public class CardDAO {
      * @param cardIds  The list of card IDs to be added to the user's deck.
      * @return An integer status code:
      * - 200 for success
+     * - 400 for non-unique card IDs
      * - 403 if at least one of the provided cards does not belong to the user or is not available
      * - 500 for other failures
      */
@@ -174,6 +183,16 @@ public class CardDAO {
         return false;
     }
 
+    /**
+     * Creates a new package of cards.
+     *
+     * @param cards The list of CardDTO representing the cards in the package.
+     * @return An integer status code:
+     * - 201 for success
+     * - 400 for non-unique card IDs
+     * - 409 for cards already in another package
+     * - 500 for other failures
+     */
     public Integer createPackage(List<CardDTO> cards) {
 
         // Validate that the cards in the package are unique
@@ -214,7 +233,11 @@ public class CardDAO {
         }
     }
 
-    // method to create a new card from a CardDTO object
+    /**
+     * Creates a new card from a CardDTO object.
+     *
+     * @param cardDTO The CardDTO representing the card to be created.
+     */
     public void createCard(CardDTO cardDTO) {
 
         // Get values from CardDTO
@@ -295,6 +318,14 @@ public class CardDAO {
         return true;
     }
 
+    /**
+     * Buys a card package for the user.
+     *
+     * @param username The username of the user.
+     * @return A list of CardDTO representing the cards in the purchased package.
+     * @throws CardRepository.InsufficientFundsException If the user has insufficient funds.
+     * @throws CardRepository.CardPackageNotFoundException If no card package is available for buying.
+     */
     public List<CardDTO> buyPackage(String username) throws CardRepository.InsufficientFundsException, CardRepository.CardPackageNotFoundException {
         // Select a random package from the "Package" table
         List<CardDTO> purchasedCards = getRandomPackage();
@@ -379,7 +410,13 @@ public class CardDAO {
         }
     }
 
-    // Example method to update the user's coins
+    /**
+     * Method to update the user's coins in the database.
+     *
+     * @param username      The username of the user.
+     * @param updatedCoins  The updated amount of coins for the user.
+     * @throws SQLException If a database access error occurs.
+     */
     private void updateUserCoins(String username, double updatedCoins) throws SQLException {
 
         String updateQuery = "UPDATE \"User\" SET coins = ? WHERE username = ?";
@@ -420,7 +457,13 @@ public class CardDAO {
         return 0.0;
     }
 
-    // method to add purchased cards to the user's stack
+    /**
+     * Adds purchased cards to the user's stack in the database.
+     *
+     * @param username        The username of the user.
+     * @param purchasedCards  The list of CardDTO representing the purchased cards.
+     * @throws SQLException If a database access error occurs.
+     */
     private void addCardsToUserStack(String username, List<CardDTO> purchasedCards) throws SQLException {
 
         String insertQuery = "INSERT INTO \"Stack\" (username, card_id) VALUES (?, ?)";
@@ -438,7 +481,13 @@ public class CardDAO {
 
     }
 
-    // method to delete unwanted cards from the user's stack
+    /**
+     * Deletes unwanted cards from the user's stack in the database.
+     *
+     * @param username        The username of the user.
+     * @param cardsToRemove   The list of CardDTO representing the cards to be removed.
+     * @throws SQLException If a database access error occurs.
+     */
     private void deleteCardsFromUserStack(String username, List<CardDTO> cardsToRemove) throws SQLException {
 
         String deleteQuery = "DELETE FROM \"Stack\" WHERE username = ? AND card_id = ?";
@@ -455,7 +504,13 @@ public class CardDAO {
         }
     }
 
-    // method to add purchased card to the user's stack
+    /**
+     * Adds a purchased card to the user's stack in the database.
+     *
+     * @param username The username of the user.
+     * @param cardId   The ID of the card to be added.
+     * @throws SQLException If a database access error occurs.
+     */
     public void addCardToUserStack(String username, String cardId) throws SQLException {
 
         String insertQuery = "INSERT INTO \"Stack\" (username, card_id) VALUES (?, ?)";
@@ -471,7 +526,13 @@ public class CardDAO {
 
     }
 
-    // method to delete unwanted card from the user's stack
+    /**
+     * Deletes an unwanted card from the user's stack in the database.
+     *
+     * @param username The username of the user.
+     * @param cardId   The ID of the card to be removed.
+     * @throws SQLException If a database access error occurs.
+     */
     public void deleteCardFromUserStack(String username, String cardId) throws SQLException {
 
         String deleteQuery = "DELETE FROM \"Stack\" WHERE username = ? AND card_id = ?";
@@ -486,6 +547,13 @@ public class CardDAO {
         }
     }
 
+    /**
+     * Updates the owner of a card in the database.
+     *
+     * @param cardId            The ID of the card.
+     * @param newOwnerUsername  The username of the new owner.
+     * @throws SQLException If a database access error occurs.
+     */
     public void updateCardOwner(String cardId, String newOwnerUsername) throws SQLException {
         String updateQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
 
@@ -499,6 +567,12 @@ public class CardDAO {
         }
     }
 
+    /**
+     * Reads a card from the database using its ID.
+     *
+     * @param cardId The ID of the card.
+     * @return The CardDTO representing the card, or null if the card is not found.
+     */
     public CardDTO read(String cardId) {
         // Implement logic to retrieve a card by its ID from the database
         String query = "SELECT * FROM \"Card\" WHERE id = ?";
