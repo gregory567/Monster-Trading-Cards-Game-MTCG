@@ -4,11 +4,14 @@
 class User {
     - username : String
     - password : String
-    - coins: double
+    - token : String
     - stack: Stack
     - deck: Deck
     - profile: Profile
+    - coins: Double
     - eloScore: Integer
+    - wins : Integer
+    - losses : Integer
     + void tradeCard(Card card, Requirement requirement)
     + void buyPackage(Package newPackage)
     + void selectBestCards()
@@ -29,10 +32,11 @@ class Store {
 }
 
 class TradeDeal {
+    - id: UUID
     - offeringUser: User
     - offeredCard: Card
     - requirement: Requirement
-    + void acceptDeal(User acceptingUser)
+    - status: String
 }
 
 class Profile {
@@ -40,56 +44,55 @@ class Profile {
     - bio : String
     - image : String
     + void displayProfile()
-    + void updateStatus()
 }
 
-class Card {
-    # name : String
-    # damage : Integer
-    # elementType: String
+enum CardName {
+    WaterGoblin, FireGoblin, RegularGoblin,
+    WaterTroll, FireTroll, RegularTroll,
+    WaterElf, FireElf, RegularElf,
+    WaterSpell, FireSpell, RegularSpell,
+    Knight, Dragon, Ork, Kraken
+}
+
+abstract class Card {
+    # Id : UUID
+    # name : CardName
+    # damage : Double
+    # elementType: ElementType
     # specialties: String[]
     # cardType: CardType
-    # owner: User
+    # ownerUsername: String
     + void getAttributes()
     + void displayCardInfo()
-    + void upgradeCard()
-    + void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType)
-    + void applySpecialty(String specialty, Card opponentCard)
-    + boolean containsSpecialty(String[] specialties, String specialtyToFind)
+    + void upgradeCard(Double upgradeAmount)
+    + Double calculateEffectiveDamage(Card opponentCard)
     + String specialtiesToString()
 }
 
 class SpellCard {
-    + void getAttributes()
     + void displayCardInfo()
-    + void upgradeCard()
-    + void applySpecialty(String specialty, Card opponentCard)
-    + void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType)
+    + Double calculateEffectiveDamage(Card opponentCard)
 }
 
 class MonsterCard {
-    + void getAttributes()
     + void displayCardInfo()
-    + void upgradeCard()
-    + void applySpecialty(String specialty, Card opponentCard)
-    + void calculateEffectiveDamage(ElementType opponentElementType, CardType opponentCardType)
+    + Double calculateEffectiveDamage(Card opponentCard)
 }
 
 class Stack{
     - stackCards: Card[]
     + void removeCard(Card card)
     + void attainCard(Card card)
-    + void shuffleCards()
-    + void organizeByElement()
-    + void getStackCards()
 }
 
 class Package {
     - packageCards: Card[5]
     + void openPackage()
-    + void getPackageCards()
     + void displayPackageInfo()
-    + void applyDiscount()
+    + UUID generateRandomId()
+    + CardName generateRandomName()
+    + Double generateRandomDamage()
+    + ElementType generateRandomElementType()
 }
 
 class Deck {
@@ -124,50 +127,66 @@ class GameController {
 }
 
 class Round {
-    - cardsPlayed: Card[2]
-    - winner: User
+    - roundId: UUID
+    - battle: Battle
+    - roundNumber: Integer
+    - winner: String
+    - loser: String
     - draw: boolean
-    + void determineRoundOutcome()
+    - roundDetail: RoundDetail
+}
+
+class RoundDetail {
+    - roundId: UUID
+    - card: Card
+    - player: User
 }
 
 class Battle {
-
+    - id: UUID
+    - user1Username: String
+    - user2Username: String
 }
 
 Card <|-- MonsterCard
 Card <|-- SpellCard
 
 User "1" -- "1..*" Card : owns
-User "1" -- "1" Deck : has
-User "1" -- "1..*" Package : canAcquire
-User "1" -- "1" Stack : has
+User "1" -- "1" Stack : owns
+User "1" -- "1" Deck : owns
 User "1" -- "1" Profile : has
+User "1" -- "1..*" Package : canAcquire
+User "1" -- "1..*" TradeDeal : able to carry out
+User "1" -- "1..*" Battle : able to initiate
 
 Stack "1" o-- "1..*" Card : contains
 Package "1" o-- "1..*" Card : contains
 Deck "1" o-- "1..*" Card : contains
 
-Battle "1" o-- "*" Deck : isFoughtWith
+Battle "1" o-- "2" Deck : isFoughtWith
 Battle "1" o-- "2" User : isFoughtBy
 
 GameController "1" o-- "1..*" User : manages
+GameController "1" o-- "1..*" Card : manages
 GameController "1" o-- "1..*" Battle : manages
 
+Card -- CardName : has
+Card -- CardType : has
 Card -- ElementType : has
-Card -- Requirement : has
 Requirement -- CardType : has
 
-Round -- Card : includes
-Round -- User : includes
+Round "1" o-- "2" Card : includes
+Round "1" o-- "2" User : includes
 Round -- Battle : belongs to
+Round -- RoundDetail : has
+
+RoundDetail "1" -- "1" Card : contains
+RoundDetail "1" -- "1" User : player
 
 TradeDeal -- User : offeringUser
 TradeDeal -- Card : offeredCard
 TradeDeal -- Requirement : requirement
 
 Store "1" -- "0..*" TradeDeal : tradeDeals
-
-User "1" -- "0..*" TradeDeal : initiatedTrades
-User "1" -- "0..*" TradeDeal : acceptedTrades
 
 @enduml

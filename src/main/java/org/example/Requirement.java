@@ -11,9 +11,9 @@ public class Requirement {
     @JsonAlias({"CardType"})
     private CardType cardType;
     @JsonAlias({"MinimumDamage"})
-    private Integer minDamage;
+    private Double minDamage;
 
-    public Requirement(CardType cardType, Integer minDamage) {
+    public Requirement(CardType cardType, Double minDamage) {
         this.cardType = cardType;
         this.minDamage = minDamage;
     }

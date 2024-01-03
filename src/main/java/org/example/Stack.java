@@ -26,8 +26,4 @@ public class Stack {
         stackCards.add(card);
     }
 
-    public void shuffleCards() {
-        Collections.shuffle(stackCards);
-    }
-
 }

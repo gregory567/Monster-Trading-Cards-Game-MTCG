@@ -69,12 +69,11 @@ public class User {
     }
 
     public void requestTrade(Card card, Requirement requirement) {
-        TradeDeal tradeDeal = new TradeDeal(this, card, requirement);
-        Store.addTradeDeal(tradeDeal);
+
     }
 
     public void acceptTrade(TradeDeal tradeDeal) {
-        tradeDeal.acceptDeal(this);
+
     }
 
     public void tradeCard(Card card, Requirement requirement) {
