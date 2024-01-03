@@ -397,7 +397,13 @@ public class CardDAO {
         return Collections.emptyList();
     }
 
-    // method to check if the user has sufficient funds
+    /**
+     * Checks if the user has sufficient funds to purchase a card package.
+     *
+     * @param username The username of the user to check for sufficient funds.
+     * @return True if the user has sufficient funds, false otherwise.
+     * @throws CardRepository.InsufficientFundsException If the user does not have enough money for buying a card package.
+     */
     private boolean userHasSufficientFunds(String username) throws CardRepository.InsufficientFundsException {
 
         double packageCost = 5;
