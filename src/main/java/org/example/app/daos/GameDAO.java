@@ -37,6 +37,13 @@ public class GameDAO {
         setConnection(connection);
     }
 
+    /**
+     * Initiates a battle between two users and simulates the battle rounds.
+     *
+     * @param username1 The username of the first user.
+     * @param username2 The username of the second user.
+     * @return A detailed log of the battle rounds.
+     */
     public String carryOutBattle(String username1, String username2) {
 
         setUsername1(username1);
@@ -99,6 +106,13 @@ public class GameDAO {
         return "Battle completed\n" + battleLog.toString();
     }
 
+    /**
+     * Creates a new battle record in the database.
+     *
+     * @param user1Username The username of the first user.
+     * @param user2Username The username of the second user.
+     * @return The unique identifier (UUID) of the created battle.
+     */
     public UUID createBattle(String user1Username, String user2Username) {
         UUID battleId = UUID.randomUUID();
 
@@ -124,6 +138,12 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Builds up a list of cards for a given username from the user's deck.
+     *
+     * @param username The username for which to build the deck list.
+     * @return A list of cards from the user's deck.
+     */
     private List<Card> buildUpDeckList(String username) {
         List<Card> selectedCards = new ArrayList<>();
 
@@ -150,6 +170,12 @@ public class GameDAO {
         return selectedCards;
     }
 
+    /**
+     * Retrieves a card from the database based on its ID.
+     *
+     * @param cardId The unique identifier (UUID) of the card.
+     * @return The Card object representing the retrieved card or null if not found.
+     */
     public Card getCardById(UUID cardId) {
         String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
 
@@ -185,6 +211,12 @@ public class GameDAO {
         return null; // if no card is found
     }
 
+    /**
+     * Selects a random card from the given deck.
+     *
+     * @param deck The deck from which to select a card.
+     * @return A randomly selected card from the deck.
+     */
     private Card selectRandomCardFromDeck(List<Card> deck) {
         if (deck.isEmpty()) {
             return null; // if the deck is empty
@@ -197,6 +229,14 @@ public class GameDAO {
         return selectedCard;
     }
 
+    /**
+     * Applies specialty effects during a battle round based on the selected cards.
+     *
+     * @param user1Card   The card selected by the first user.
+     * @param user2Card   The card selected by the second user.
+     * @param username1   The username of the first user.
+     * @param username2   The username of the second user.
+     */
     public void applySpecialty(Card user1Card, Card user2Card, String username1,  String username2) {
         if (user1Card.getSpecialties() != null) {
             for (String cardSpecialty : user1Card.getSpecialties()) {
@@ -251,7 +291,13 @@ public class GameDAO {
         }
     }
 
-    // Helper method to check if the card has a specific specialty
+    /**
+     * Checks if the specialties of a card contain a specific specialty.
+     *
+     * @param specialties      The array of specialties of a card.
+     * @param specialtyToFind  The specialty to check for.
+     * @return True if the card has the specified specialty; false otherwise.
+     */
     protected boolean containsSpecialty(String[] specialties, String specialtyToFind) {
         for (String specialty : specialties) {
             if (specialty.equals(specialtyToFind)) {
@@ -261,6 +307,14 @@ public class GameDAO {
         return false;
     }
 
+    /**
+     * Sets the winner and loser based on the battle outcome.
+     *
+     * @param winnerUsername The username of the winner.
+     * @param loserUsername  The username of the loser.
+     * @param winnerCard     The card of the winner.
+     * @param loserCard      The card of the loser.
+     */
     private void setWinnerAndLoser(String winnerUsername, String loserUsername, Card winnerCard, Card loserCard) {
         setWinner(winnerUsername);
         setLoser(loserUsername);
@@ -277,6 +331,9 @@ public class GameDAO {
         updateEloScores(winnerUsername, loserUsername);
     }
 
+    /**
+     * Updates the decks based on the winner and loser after a battle round.
+     */
     private void updateDecks() {
         try {
             // Remove defeated cards from the loser's deck and add to the winner's deck
@@ -293,14 +350,32 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Removes a card from the given deck.
+     *
+     * @param deck The deck from which to remove the card.
+     * @param card The card to be removed.
+     */
     private void removeFromDeck(List<Card> deck, Card card) {
         deck.remove(card);
     }
 
+    /**
+     * Adds a card to the given deck.
+     *
+     * @param deck The deck to which the card should be added.
+     * @param card The card to be added.
+     */
     private void addToDeck(List<Card> deck, Card card) {
         deck.add(card);
     }
 
+    /**
+     * Updates user statistics (wins and losses) after a battle round.
+     *
+     * @param winnerUsername The username of the winner.
+     * @param loserUsername  The username of the loser.
+     */
     private void updateStats(String winnerUsername, String loserUsername) {
         try {
             // Increment wins for the winner
@@ -313,6 +388,12 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Updates Elo scores after a battle round.
+     *
+     * @param winnerUsername The username of the winner.
+     * @param loserUsername  The username of the loser.
+     */
     private void updateEloScores(String winnerUsername, String loserUsername) {
         try {
             // Increment Elo score for the winner and decrement for the loser
@@ -323,6 +404,12 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Increments the number of wins for the specified user in the database.
+     *
+     * @param username The username of the user to increment wins for.
+     * @throws SQLException If a SQL exception occurs during the database update.
+     */
     private void incrementWins(String username) throws SQLException {
         String updateWinsQuery = "UPDATE \"User\" SET wins = wins + 1 WHERE username = ?";
 
@@ -332,6 +419,12 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Increments the number of losses for the specified user in the database.
+     *
+     * @param username The username of the user to increment losses for.
+     * @throws SQLException If a SQL exception occurs during the database update.
+     */
     private void incrementLosses(String username) throws SQLException {
         String updateLossesQuery = "UPDATE \"User\" SET losses = losses + 1 WHERE username = ?";
 
@@ -341,6 +434,13 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Increments the Elo score for the specified user in the database.
+     *
+     * @param username The username of the user to increment the Elo score for.
+     * @param increment The amount by which to increment the Elo score.
+     * @throws SQLException If a SQL exception occurs during the database update.
+     */
     private void incrementEloScore(String username, int increment) throws SQLException {
         String updateEloQuery = "UPDATE \"User\" SET elo_score = elo_score + ? WHERE username = ?";
 
@@ -351,6 +451,13 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Decrements the Elo score for the specified user in the database.
+     *
+     * @param username  The username of the user to decrement the Elo score for.
+     * @param decrement The amount by which to decrement the Elo score.
+     * @throws SQLException If a SQL exception occurs during the database update.
+     */
     private void decrementEloScore(String username, int decrement) throws SQLException {
         String updateEloQuery = "UPDATE \"User\" SET elo_score = elo_score - ? WHERE username = ?";
 
@@ -361,6 +468,17 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Logs details of a battle round, including winner, loser, and drawn status.
+     *
+     * @param battleId   The unique identifier (UUID) of the battle.
+     * @param round      The round number.
+     * @param winner     The username of the winner.
+     * @param loser      The username of the loser.
+     * @param winnerCard The card of the winner.
+     * @param loserCard  The card of the loser.
+     * @param draw       True if the round ended in a draw; false otherwise.
+     */
     private void logRound(UUID battleId, Integer round, String winner, String loser, Card winnerCard, Card loserCard, boolean draw) {
         try {
             // Insert into RoundDetail table
@@ -376,6 +494,15 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Inserts details of a round into the "RoundDetail" table in the database.
+     *
+     * @param roundId         The unique identifier (UUID) of the round.
+     * @param cardId          The unique identifier (UUID) of the card used in the round.
+     * @param cardName        The name of the card used in the round.
+     * @param playerUsername  The username of the player associated with the round.
+     * @throws SQLException If a SQL exception occurs during the database update.
+     */
     private void insertRoundDetail(UUID roundId, UUID cardId, CardName cardName, String playerUsername) throws SQLException {
         String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, card_name, player_username) VALUES (?, ?, ?, ?)";
 
@@ -389,6 +516,17 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Inserts a log entry for a round into the "RoundLog" table in the database.
+     *
+     * @param battleId        The unique identifier (UUID) of the battle associated with the round.
+     * @param roundNumber     The round number.
+     * @param winnerUsername  The username of the winner of the round.
+     * @param loserUsername   The username of the loser of the round.
+     * @param draw            True if the round ended in a draw; false otherwise.
+     * @param roundId         The unique identifier (UUID) of the round.
+     * @throws SQLException If a SQL exception occurs during the database update.
+     */
     private void insertRoundLog(UUID battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
         String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(battle_id, round_number, winner_username, loser_username, draw, round_id) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -404,7 +542,13 @@ public class GameDAO {
         }
     }
 
-    // Helper function to retrieve and format round details from the database
+    /**
+     * Retrieves and formats details of a battle round from the database.
+     *
+     * @param battleId    The unique identifier (UUID) of the battle.
+     * @param roundNumber The round number.
+     * @return A formatted string containing details of the battle round.
+     */
     private String getRoundLogDetails(UUID battleId, int roundNumber) {
         StringBuilder roundLogDetails = new StringBuilder();
 
@@ -441,6 +585,9 @@ public class GameDAO {
         return roundLogDetails.toString();
     }
 
+    /**
+     * Updates decks and stacks after the battle ends, moving all cards to the stack.
+     */
     private void updateDecksAndStacks() {
         try {
             // Remove all cards from the decks of both players at the end of the battle
@@ -455,6 +602,11 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Removes all cards from the deck of the specified username.
+     *
+     * @param username The username for which to remove all cards from the deck.
+     */
     private void removeAllCardsFromDeck(String username) {
         String deleteDeckQuery = "DELETE FROM \"Deck\" WHERE username = ?";
 
@@ -466,6 +618,12 @@ public class GameDAO {
         }
     }
 
+    /**
+     * Moves all cards from the deck list to the stack of the specified username.
+     *
+     * @param username The username for which to move cards to the stack.
+     * @param deck     The deck containing the cards to be moved.
+     */
     private void moveAllCardsToStack(String username, List<Card> deck) {
         String updateCardOwnerQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
 
