@@ -404,10 +404,10 @@ public class CardDAO {
                 // Add the purchased cards to the user's stack
                 addCardsToUserStack(username, purchasedCards);
 
-                connection.commit(); // Commit the transaction
-
                 // Delete the purchased package from the "Package" table using the specific package ID
                 deletePackage(purchasedPackageId);
+
+                connection.commit(); // Commit the transaction
 
                 // Return the purchased cards
                 return purchasedCards;
