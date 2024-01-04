@@ -17,6 +17,11 @@ import java.net.Socket;
 @Getter
 @Setter
 public class Task implements Runnable {
+
+    private PrintWriter outputStream;
+    private BufferedReader inputStream;
+    private Request request;
+    private Response response;
     private Socket clientSocket;
     private App app;
     private volatile String authenticatedUserToken;
@@ -32,8 +37,12 @@ public class Task implements Runnable {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)
         ) {
-            Request request = new Request(reader, authenticatedUserToken);
-            Response response;
+            setInputStream(reader);
+            setRequest(new Request(getInputStream(), authenticatedUserToken));
+            setOutputStream(writer);
+
+            //Request request = new Request(reader, authenticatedUserToken);
+            //Response response;
 
             if (request.getPathname() == null) {
                 response = new Response(
@@ -50,12 +59,17 @@ public class Task implements Runnable {
                 }
             }
 
+            /*
             // Handle entering the lobby for battles
             if (request.getPathname().equals("/battles")) {
                 handleBattleLobbyEntry();
             }
 
-            writer.write(response.build());
+             */
+
+            getOutputStream().write(getResponse().build());
+
+            //writer.write(response.build());
             // flush the stream to ensure data is sent immediately
             //writer.flush();
         } catch (IOException e) {
