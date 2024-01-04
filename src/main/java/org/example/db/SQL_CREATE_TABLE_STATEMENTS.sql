@@ -79,10 +79,33 @@ CREATE TABLE IF NOT EXISTS "Battle" (
 CREATE TABLE IF NOT EXISTS "RoundDetail" (
     "round_id" UUID PRIMARY KEY,
     "card_id" UUID REFERENCES "Card"("id"),
-    "card_name" VARCHAR(255) REFERENCES "Card"("name"),
+    "card_name" VARCHAR(255),
     "player_username" VARCHAR(255) REFERENCES "User"("username"),
     UNIQUE("round_id", "card_id")
 );
+
+-- if the above doesnt work:
+-- Create RoundDetail Table (Simple Structure)
+CREATE TABLE IF NOT EXISTS "RoundDetail" (
+    "round_id" UUID PRIMARY KEY,
+    "card_id" UUID,
+    "card_name" VARCHAR(255),
+    "player_username" VARCHAR(255),
+    UNIQUE("round_id", "card_id")
+);
+
+-- Add foreign key constraint for "card_id"
+ALTER TABLE "RoundDetail"
+ADD CONSTRAINT "fk_rounddetail_cardid"
+FOREIGN KEY ("card_id")
+REFERENCES "Card" ("id");
+
+-- Add foreign key constraint for "player_username"
+ALTER TABLE "RoundDetail"
+ADD CONSTRAINT "fk_rounddetail_user"
+FOREIGN KEY ("player_username")
+REFERENCES "User" ("username");
+
 
 -- Create RoundLog Table
 CREATE TABLE IF NOT EXISTS "RoundLog" (

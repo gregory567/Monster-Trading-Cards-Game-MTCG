@@ -2,9 +2,7 @@ package org.example;
 
 import org.example.app.App;
 import org.example.server.Server;
-
 import java.io.IOException;
-
 
 public class Main {
     public static void main(String[] args) {
