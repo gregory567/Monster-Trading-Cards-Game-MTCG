@@ -380,17 +380,23 @@ public class CardDAO {
      */
     public List<CardDTO> buyPackage(String username) throws CardRepository.InsufficientFundsException, CardRepository.CardPackageNotFoundException {
         // Select a random package from the "Package" table
-        List<CardDTO> purchasedCards = getRandomPackage();
+        Map<UUID, List<CardDTO>> packageInfo = getRandomPackage();
 
-        // Check if the purchasedCards list is empty, indicating that no package was found
-        if (purchasedCards.isEmpty()) {
+        // Check if the packageInfo map is empty, indicating that no package was found
+        if (packageInfo.isEmpty()) {
             throw new CardRepository.CardPackageNotFoundException("No card package available for buying");
         }
+
+        // Extract package ID and cards from the map
+        // this line is extracting the UUID (package ID) from the set of keys in the packageInfo map
+        UUID purchasedPackageId = packageInfo.keySet().iterator().next();
+        // this line is getting the list of cards associated with the extracted UUID (package ID) from the packageInfo map
+        List<CardDTO> purchasedCards = packageInfo.get(purchasedPackageId);
 
         // Check if the user has enough funds
         if (userHasSufficientFunds(username)) {
 
-            try{
+            try {
                 connection.setAutoCommit(false); // Start a transaction
                 // Deduct the funds from the user's account
                 updateUserCoins(username, getUserCoins(username) - 5);
@@ -399,6 +405,9 @@ public class CardDAO {
                 addCardsToUserStack(username, purchasedCards);
 
                 connection.commit(); // Commit the transaction
+
+                // Delete the purchased package from the "Package" table using the specific package ID
+                deletePackage(purchasedPackageId);
 
                 // Return the purchased cards
                 return purchasedCards;
@@ -425,28 +434,33 @@ public class CardDAO {
     /**
      * Selects a random package from the "Package" table.
      *
-     * @return A list of CardDTO representing the cards in the selected package.
+     * @return A Map containing the package ID and a list of CardDTO representing the cards in the selected package.
      */
-    private List<CardDTO> getRandomPackage() {
-        String query = "SELECT * FROM \"Package\" ORDER BY RANDOM() LIMIT 1";
+    private Map<UUID, List<CardDTO>> getRandomPackage() {
+        String query = "SELECT id, card1_id, card2_id, card3_id, card4_id, card5_id FROM \"Package\" ORDER BY RANDOM() LIMIT 1";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
+                UUID packageId = resultSet.getObject("id", UUID.class);
+
                 List<CardDTO> cards = new ArrayList<>();
                 for (int i = 2; i <= 6; i++) {
                     String cardId = resultSet.getObject(i, UUID.class).toString();
                     cards.add(read(cardId)); // read() method retrieves a CardDTO by cardId
                 }
-                return cards;
+
+                Map<UUID, List<CardDTO>> packageInfo = new HashMap<>();
+                packageInfo.put(packageId, cards);
+                return packageInfo;
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-        return Collections.emptyList();
+        return Collections.emptyMap();
     }
 
     /**
@@ -537,6 +551,24 @@ public class CardDAO {
             throw e; // Re-throw the exception to ensure proper transaction handling
         }
 
+    }
+
+    /**
+     * Deletes a purchased package from the "Package" table.
+     *
+     * @param packageId The ID of the package to be deleted.
+     * @throws SQLException If a database access error occurs.
+     */
+    private void deletePackage(UUID packageId) throws SQLException {
+        String deleteQuery = "DELETE FROM \"Package\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+            preparedStatement.setObject(1, packageId);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
     }
 
     /**
