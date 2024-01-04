@@ -163,10 +163,10 @@ public class TradeDealDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, username);
-            preparedStatement.setObject(2, UUID.fromString(cardId)); // Assuming it's a valid UUID
-            preparedStatement.setObject(3, UUID.fromString(cardId)); // Assuming it's a valid UUID
-            preparedStatement.setObject(4, UUID.fromString(cardId)); // Assuming it's a valid UUID
-            preparedStatement.setObject(5, UUID.fromString(cardId)); // Assuming it's a valid UUID
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+            preparedStatement.setObject(3, UUID.fromString(cardId));
+            preparedStatement.setObject(4, UUID.fromString(cardId));
+            preparedStatement.setObject(5, UUID.fromString(cardId));
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
@@ -260,6 +260,11 @@ public class TradeDealDAO {
 
         // Check if the offered card meets the trade deal requirements
         if (!doesOfferedCardMeetRequirements(tradeDealId, offeredCardId)) {
+            return 403; // HTTP status code for Forbidden
+        }
+
+        // Check if the offered card is locked in the user's deck
+        if (isCardLockedInDeck(username, offeredCardId)) {
             return 403; // HTTP status code for Forbidden
         }
 
@@ -413,7 +418,6 @@ public class TradeDealDAO {
 
         return null;
     }
-
 
 }
 

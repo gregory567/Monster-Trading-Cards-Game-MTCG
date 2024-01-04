@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.example.app.dtos.UserStatDTO;
 import org.example.app.repositories.TradeDealRepository;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
@@ -14,9 +13,7 @@ import org.example.app.dtos.TradeDealDTO;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Setter
 @Getter
