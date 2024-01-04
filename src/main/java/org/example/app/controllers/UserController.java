@@ -9,7 +9,6 @@ import org.example.app.repositories.UserRepository;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
 import org.example.server.Response;
-import org.example.app.models.User;
 import org.example.app.dtos.UserDataDTO;
 import org.example.app.dtos.UserStatDTO;
 import lombok.Getter;
@@ -171,6 +170,8 @@ public class UserController extends Controller {
                 case "404":
                     // User not found
                     return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
+                case "500":
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
                 default:
                     // Authentication successful
                     setAuthenticatedUserToken(authenticationStatus);  // Save the user's token

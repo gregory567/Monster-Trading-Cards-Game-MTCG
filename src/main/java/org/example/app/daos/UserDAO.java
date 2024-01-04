@@ -210,14 +210,16 @@ public class UserDAO {
      */
     public String loginUser(String username, String password) {
         try {
-            // Check if the user exists and the password matches
-            if (userExists(username) && passwordMatches(username, password)) {
-                // Authentication successful
-                return retrieveUserToken(username);
-            } else {
+            if (!userExists(username)) {
+                // User not found
+                return "404";
+            } else if (!passwordMatches(username, password)) {
                 // Authentication failed
                 System.out.println("Authentication failed.");
                 return "401";
+            } else {
+                // Authentication successful
+                return retrieveUserToken(username);
             }
         } catch (SQLException e) {
             // Handle SQL exception
