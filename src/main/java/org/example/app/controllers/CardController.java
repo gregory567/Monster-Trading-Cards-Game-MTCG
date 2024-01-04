@@ -103,7 +103,7 @@ public class CardController extends Controller {
 
             switch (configurationStatus) {
                 case 200:
-                    return buildJsonResponse(HttpStatus.OK, null, "Deck successfully configured");
+                    return buildJsonResponse(HttpStatus.OK, null, "The deck has been successfully configured");
                 case 403:
                     return buildJsonResponse(HttpStatus.FORBIDDEN, null, "At least one of the provided cards does not belong to the user or is not available");
                 default:

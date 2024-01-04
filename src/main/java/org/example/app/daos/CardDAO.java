@@ -115,7 +115,7 @@ public class CardDAO {
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
             // cardIds is a list of UUIDs in the same order as they should be updated in the deck
             for (int i = 0; i < cardIds.size(); i++) {
-                preparedStatement.setObject(i + 1, java.util.UUID.fromString(cardIds.get(i)));
+                preparedStatement.setObject(i + 1, UUID.fromString(cardIds.get(i)));
             }
             preparedStatement.setString(5, username); // Set the username parameter
 
@@ -136,21 +136,45 @@ public class CardDAO {
      * @return True if the cards are valid, false otherwise.
      */
     private boolean areCardsValid(String username, List<String> cardIds) {
-        // Get the user's stack cards
-        List<CardDTO> userStackCards = getUserCards(username);
-
-        // Check if each provided card is in the user's stack and not in another user's deck
+        // Check if each provided card is in the user's stack and not in another user's stack or deck
         for (String cardId : cardIds) {
-            boolean isCardInUserStack = userStackCards.stream().anyMatch(card -> card.getId().equals(cardId));
 
-            // If the card is not in the user's stack or is part of another user's deck, return false
-            if (!isCardInUserStack || isCardInAnotherDeck(cardId, username)) {
+            // If the card is not in the user's stack, is part of another user's stack, or is part of another user's deck, return false
+            if (!isCardInUserStack(cardId, username) || isCardInAnotherUserStack(cardId, username) || isCardInAnotherDeck(cardId, username)) {
                 return false;
             }
         }
 
         // If all checks pass, return true
         return true;
+    }
+
+    /**
+     * Checks if a card is present in the user's stack.
+     *
+     * @param cardId   The ID of the card to be checked.
+     * @param username The username of the user.
+     * @return True if the card is in the user's stack, false otherwise.
+     */
+    private boolean isCardInUserStack(String cardId, String username) {
+        String query = "SELECT COUNT(*) FROM \"Stack\" WHERE username = ? AND card_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                int count = resultSet.getInt(1);
+                return count > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     /**
@@ -165,9 +189,37 @@ public class CardDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             for (int i = 1; i <= 4; i++) {
-                preparedStatement.setObject(i, java.util.UUID.fromString(cardId));
+                preparedStatement.setObject(i, UUID.fromString(cardId));
             }
             preparedStatement.setString(5, username);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                int count = resultSet.getInt(1);
+                return count > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if a card is present in another user's stack.
+     *
+     * @param cardId   The ID of the card to be checked.
+     * @param username The username of the user whose stack is being checked.
+     * @return True if the card is in another user's stack, false otherwise.
+     */
+    private boolean isCardInAnotherUserStack(String cardId, String username) {
+        String query = "SELECT COUNT(*) FROM \"Stack\" WHERE username != ? AND card_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -299,7 +351,7 @@ public class CardDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             for (CardDTO card : cards) {
-                preparedStatement.setObject(1, java.util.UUID.fromString(card.getId()));
+                preparedStatement.setObject(1, UUID.fromString(card.getId()));
 
                 ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -584,7 +636,7 @@ public class CardDAO {
         String query = "SELECT * FROM \"Card\" WHERE id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setObject(1, java.util.UUID.fromString(cardId));
+            preparedStatement.setObject(1, UUID.fromString(cardId));
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
