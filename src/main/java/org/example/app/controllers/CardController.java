@@ -13,7 +13,6 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Setter
 @Getter
@@ -181,11 +180,11 @@ public class CardController extends Controller {
             if (!purchasedCards.isEmpty()) {
                 // Return a successful response with the purchased cards
                 String purchasedCardsJSON = getObjectMapper().writeValueAsString(purchasedCards);
-                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", purchasedCardsJSON, "Package and cards successfully bought");
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", purchasedCardsJSON, "A package has been successfully bought");
                 return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             } else {
-                // Handle scenarios where no cards are purchased
-                return buildJsonResponse(HttpStatus.NOT_FOUND, null, "No card package available for buying");
+                // Handle scenario where no cards were purchased
+                return buildJsonResponse(HttpStatus.NOT_FOUND, null, "No cards were purchased in the package");
             }
         } catch (CardRepository.InsufficientFundsException e) {
             // Handle insufficient funds scenario

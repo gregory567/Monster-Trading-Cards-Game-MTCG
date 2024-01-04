@@ -216,12 +216,12 @@ public class CardDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             // Generate a new UUID for the package
-            java.util.UUID packageId = java.util.UUID.randomUUID();
+            UUID packageId = UUID.randomUUID();
             preparedStatement.setObject(1, packageId);
 
             // Set the card IDs for each card in the package
             for (int i = 0; i < 5; i++) {
-                preparedStatement.setObject(i + 2, java.util.UUID.fromString(cards.get(i).getId()));
+                preparedStatement.setObject(i + 2, UUID.fromString(cards.get(i).getId()));
             }
 
             int rowsInserted = preparedStatement.executeUpdate();
