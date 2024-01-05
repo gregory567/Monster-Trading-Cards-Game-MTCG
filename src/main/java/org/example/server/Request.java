@@ -66,15 +66,17 @@ public class Request {
                         setContentType(getContentTypeFromInputLine(line));
                     }
                     // Check if the current path requires authorization
-                    if (requiresAuthorization(getMethod(), getPathname())) {
+                    if (line.startsWith(AUTHORIZATION) && requiresAuthorization(getMethod(), getPathname())) {
                         setAuthorization(getAuthorizationFromInputLine(line));
                     }
                 }
 
-                // Include user token in Authorization header for all requests except OPTIONS
+                /*
+                // Include user token in Authorization header
                 if (userToken != null && !userToken.isEmpty()) {
                     setAuthorization(userToken);
                 }
+                 */
 
                 // Read request body for POST or PUT requests
                 if (getMethod() == Method.POST || getMethod() == Method.PUT) {

@@ -102,7 +102,7 @@ public class App implements ServerApp {
     private Response handleGetRequest(Request request) throws InterruptedException {
         if (request.getPathname().equals("/users")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -126,7 +126,7 @@ public class App implements ServerApp {
         } else if (request.getPathname().equals("/cards")) {
 
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -142,7 +142,7 @@ public class App implements ServerApp {
             return getCardController().getCards(usernameFromToken);
         } else if (request.getPathname().equals("/deck")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -158,7 +158,7 @@ public class App implements ServerApp {
             return getCardController().getDeck(usernameFromToken);
         } else if (request.getPathname().equals("/stats")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -174,7 +174,7 @@ public class App implements ServerApp {
             return getUserController().getStats(usernameFromToken);
         } else if (request.getPathname().equals("/scoreboard")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -190,7 +190,7 @@ public class App implements ServerApp {
             return getUserController().getScoreBoard();
         } else if (request.getPathname().equals("/tradings")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -232,7 +232,7 @@ public class App implements ServerApp {
         } else if (request.getPathname().equals("/packages")) {
 
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -249,7 +249,7 @@ public class App implements ServerApp {
             return getCardController().createPackage(body);
         } else if (request.getPathname().equals("/transactions/packages")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -265,7 +265,7 @@ public class App implements ServerApp {
             return getCardController().buyPackage(usernameFromToken);
         } else if (request.getPathname().equals("/tradings")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -282,7 +282,7 @@ public class App implements ServerApp {
             return getTradeDealController().createTrade(usernameFromToken, body);
         } else if (request.getPathname().startsWith("/tradings/")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -300,7 +300,7 @@ public class App implements ServerApp {
             return getTradeDealController().carryOutTrade(usernameFromToken, tradeDealId, body);
         } else if (request.getPathname().equals("/battles")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -343,7 +343,7 @@ public class App implements ServerApp {
             return getUserController().updateUser(usernameFromPath, body);
         } else if (request.getPathname().equals("/deck")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -371,7 +371,7 @@ public class App implements ServerApp {
             return getUserController().deleteUser(usernameFromPath);
         } else if (request.getPathname().startsWith("/tradings/")) {
             // Extract the user token from the request
-            String userToken = request.getUserToken();
+            String userToken = request.getAuthorization();
 
             // Check if the user token is null or empty
             if (userToken == null || userToken.isEmpty()) {
@@ -420,7 +420,7 @@ public class App implements ServerApp {
 
     private boolean authenticateUser(Request request, String username) {
         // Extract the user token from the request
-        String userToken = request.getUserToken();
+        String userToken = request.getAuthorization();
 
         // Check if the user token is null or empty
         if (userToken == null || userToken.isEmpty()) {

@@ -51,7 +51,7 @@ public class Task implements Runnable {
                 response = app.handleRequest(request);
 
                 // Check if authentication was successful and retrieve the token
-                if (response.getStatusCode() == HttpStatus.OK.getCode()) {
+                if (request.getPathname().equals("/sessions") && response.getStatusCode() == HttpStatus.OK.getCode()) {
                     authenticatedUserToken = extractTokenFromResponse(response);
                 }
             }

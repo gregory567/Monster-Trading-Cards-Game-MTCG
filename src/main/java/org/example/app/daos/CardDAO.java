@@ -322,7 +322,7 @@ public class CardDAO {
         }
 
         // SQL statement to insert a new card into the Card table
-        String insertStmt = "INSERT INTO \"Card\" (id, name, damage, elementType, specialties, cardType) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertStmt = "INSERT INTO \"Card\" (id, name, damage, \"elementType\", specialties, \"cardType\") VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setObject(1, id);
@@ -352,6 +352,10 @@ public class CardDAO {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             for (CardDTO card : cards) {
                 preparedStatement.setObject(1, UUID.fromString(card.getId()));
+                preparedStatement.setObject(2, UUID.fromString(card.getId()));
+                preparedStatement.setObject(3, UUID.fromString(card.getId()));
+                preparedStatement.setObject(4, UUID.fromString(card.getId()));
+                preparedStatement.setObject(5, UUID.fromString(card.getId()));
 
                 ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -403,6 +407,9 @@ public class CardDAO {
 
                 // Add the purchased cards to the user's stack
                 addCardsToUserStack(username, purchasedCards);
+
+                // update the "owner_username" column in the "Card" table for each purchased card with the username of the user who bought the package
+                insertUsernameIntoCardTable(username, purchasedCards);
 
                 // Delete the purchased package from the "Package" table using the specific package ID
                 deletePackage(purchasedPackageId);
@@ -551,6 +558,28 @@ public class CardDAO {
             throw e; // Re-throw the exception to ensure proper transaction handling
         }
 
+    }
+
+    /**
+     * Inserts the username of the user who bought the package into the "Card" table for the purchased cards.
+     *
+     * @param username       The username of the user who bought the package.
+     * @param purchasedCards The list of CardDTO representing the purchased cards.
+     * @throws SQLException If a database access error occurs.
+     */
+    private void insertUsernameIntoCardTable(String username, List<CardDTO> purchasedCards) throws SQLException {
+        String insertQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+            for (CardDTO card : purchasedCards) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setObject(2, UUID.fromString(card.getId()));
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
     }
 
     /**
