@@ -20,15 +20,13 @@ public class Task implements Runnable {
 
     private PrintWriter outputStream;
     private BufferedReader inputStream;
-    private Request request;
-    private Response response;
     private Socket clientSocket;
     private App app;
     private volatile String authenticatedUserToken;
 
     public Task(Socket clientSocket, App app) {
-        this.clientSocket = clientSocket;
-        this.app = app;
+        setClientSocket(clientSocket);
+        setApp(app);
     }
 
     @Override
@@ -38,11 +36,10 @@ public class Task implements Runnable {
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream(), true)
         ) {
             setInputStream(reader);
-            setRequest(new Request(getInputStream(), authenticatedUserToken));
             setOutputStream(writer);
 
-            //Request request = new Request(reader, authenticatedUserToken);
-            //Response response;
+            Request request = new Request(reader, authenticatedUserToken);
+            Response response;
 
             if (request.getPathname() == null) {
                 response = new Response(
@@ -59,17 +56,12 @@ public class Task implements Runnable {
                 }
             }
 
-            /*
             // Handle entering the lobby for battles
             if (request.getPathname().equals("/battles")) {
                 handleBattleLobbyEntry();
             }
 
-             */
-
-            getOutputStream().write(getResponse().build());
-
-            //writer.write(response.build());
+            writer.write(response.build());
             // flush the stream to ensure data is sent immediately
             //writer.flush();
         } catch (IOException e) {
@@ -81,8 +73,17 @@ public class Task implements Runnable {
 
     private void closeResources() {
         try {
+            if (outputStream != null) {
+                outputStream.close();
+                System.out.println("OutputStream closed");
+            }
+            if (inputStream != null) {
+                inputStream.close();
+                System.out.println("InputStream closed");
+            }
             if (clientSocket != null && !clientSocket.isClosed()) {
                 clientSocket.close();
+                System.out.println("ClientSocket closed");
             }
         } catch (IOException e) {
             handleException(e);

@@ -5,11 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.http.ContentType;
 import org.example.http.HttpStatus;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-
-
 @Getter
 @Setter
 public class Response {

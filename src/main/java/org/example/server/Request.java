@@ -7,10 +7,7 @@ import lombok.Setter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
-
 
 @Getter
 @Setter(AccessLevel.PROTECTED)
@@ -61,29 +58,26 @@ public class Request {
 
                 // Read headers until an empty line is encountered
                 while (!line.isEmpty()) {
-                    // Skip processing headers for OPTIONS requests
-                    if (getMethod() != Method.OPTIONS) {
-                        if (line.startsWith(CONTENT_LENGTH)) {
-                            setContentLength(getContentLengthFromInputLine(line));
-                        }
-                        if (line.startsWith(CONTENT_TYPE)) {
-                            setContentType(getContentTypeFromInputLine(line));
-                        }
-                        // Check if the current path requires authorization
-                        if (requiresAuthorization(getMethod(), getPathname())) {
-                            setAuthorization(getAuthorizationFromInputLine(line));
-                        }
-                    }
                     line = inputStream.readLine();
+                    if (line.startsWith(CONTENT_LENGTH)) {
+                        setContentLength(getContentLengthFromInputLine(line));
+                    }
+                    if (line.startsWith(CONTENT_TYPE)) {
+                        setContentType(getContentTypeFromInputLine(line));
+                    }
+                    // Check if the current path requires authorization
+                    if (requiresAuthorization(getMethod(), getPathname())) {
+                        setAuthorization(getAuthorizationFromInputLine(line));
+                    }
                 }
 
                 // Include user token in Authorization header for all requests except OPTIONS
-                if (getMethod() != Method.OPTIONS && userToken != null && !userToken.isEmpty()) {
+                if (userToken != null && !userToken.isEmpty()) {
                     setAuthorization(userToken);
                 }
 
                 // Read request body for POST or PUT requests
-                if (getMethod() != Method.OPTIONS && (getMethod() == Method.POST || getMethod() == Method.PUT)) {
+                if (getMethod() == Method.POST || getMethod() == Method.PUT) {
                     int asciiChar;
                     for (int i = 0; i < getContentLength(); i++) {
                         asciiChar = inputStream.read();
@@ -94,14 +88,6 @@ public class Request {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
