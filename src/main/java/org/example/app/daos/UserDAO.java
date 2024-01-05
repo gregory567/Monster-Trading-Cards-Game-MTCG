@@ -63,6 +63,9 @@ public class UserDAO {
             // Execute the SQL update statement to insert the new user
             preparedStatement.executeUpdate();
 
+            // Call the helper method to insert the new user into the "Deck" table
+            insertNewUserIntoDeck(username);
+
             // Return 201 to indicate successful user creation
             return 201;
         } catch (SQLException e) {
@@ -103,6 +106,24 @@ public class UserDAO {
 
         // Return false if an exception occurred or no user with the specified username was found
         return false;
+    }
+
+    /**
+     * Helper method to insert a new username into the "Deck" table with all card entries set to null.
+     *
+     * @param username The username to be inserted into the "Deck" table.
+     * @throws SQLException If a database access error occurs.
+     */
+    private void insertNewUserIntoDeck(String username) throws SQLException {
+        String insertQuery = "INSERT INTO \"Deck\" (username, card1_id, card2_id, card3_id, card4_id) VALUES (?, NULL, NULL, NULL, NULL)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
     }
 
     /**

@@ -54,7 +54,7 @@ public class CardController extends Controller {
                 String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", deckDataJSON, "Deck successfully retrieved");
                 return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             } else {
-                return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, null);
+                return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, "The request was fine, but the deck doesn't have any cards");
             }
 
         } catch (JsonProcessingException e) {
@@ -92,6 +92,10 @@ public class CardController extends Controller {
     public Response updateDeck(String username, String body) {
         try {
             List<String> cardIds = extractCardIdsFromBody(body);
+
+            for (String cardId : cardIds) {
+                System.out.println(cardId);
+            }
 
             // Check if the provided deck includes the required amount of cards
             if (cardIds.size() != 4) {

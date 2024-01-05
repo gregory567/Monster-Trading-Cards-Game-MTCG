@@ -61,7 +61,7 @@ public class CardDAO {
      * Retrieves a list of cards in the user's deck.
      *
      * @param username The username of the user.
-     * @return A List of CardDTO representing the cards in the user's deck.
+     * @return A List of CardDTO representing the cards in the user's deck. If the deck is not yet configured, returns an empty list.
      */
     public List<CardDTO> getDeckCards(String username) {
         String query = "SELECT c.* FROM \"Deck\" d " +
@@ -81,6 +81,13 @@ public class CardDAO {
 
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+
+        // Check if the deck is not yet configured (contains only "null" values)
+        if (cards.isEmpty() || cards.stream().allMatch(cardDTO -> cardDTO == null)) {
+            // Handle the case where the deck is not yet configured
+            // You can return an empty list or throw an exception based on your application's requirements
+            return Collections.emptyList();
         }
 
         return cards;
@@ -140,11 +147,11 @@ public class CardDAO {
         for (String cardId : cardIds) {
 
             // If the card is not in the user's stack, is part of another user's stack, or is part of another user's deck, return false
-            if (!isCardInUserStack(cardId, username) || isCardInAnotherUserStack(cardId, username) || isCardInAnotherDeck(cardId, username)) {
+            if (!isCardInUserStack(cardId, username)) {
+                System.out.println(cardId);
                 return false;
             }
         }
-
         // If all checks pass, return true
         return true;
     }
