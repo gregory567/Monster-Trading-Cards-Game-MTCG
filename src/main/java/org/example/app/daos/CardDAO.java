@@ -391,7 +391,7 @@ public class CardDAO {
      */
     public List<CardDTO> buyPackage(String username) throws CardRepository.InsufficientFundsException, CardRepository.CardPackageNotFoundException {
         // Select a random package from the "Package" table
-        Map<UUID, List<CardDTO>> packageInfo = getRandomPackage();
+        Map<UUID, List<CardDTO>> packageInfo = getFirstPackage();
 
         // Check if the packageInfo map is empty, indicating that no package was found
         if (packageInfo.isEmpty()) {
@@ -446,12 +446,12 @@ public class CardDAO {
     }
 
     /**
-     * Selects a random package from the "Package" table.
+     * Selects the first package from the "Package" table.
      *
      * @return A Map containing the package ID and a list of CardDTO representing the cards in the selected package.
      */
-    private Map<UUID, List<CardDTO>> getRandomPackage() {
-        String query = "SELECT id, card1_id, card2_id, card3_id, card4_id, card5_id FROM \"Package\" ORDER BY RANDOM() LIMIT 1";
+    private Map<UUID, List<CardDTO>> getFirstPackage() {
+        String query = "SELECT id, card1_id, card2_id, card3_id, card4_id, card5_id FROM \"Package\" LIMIT 1";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             ResultSet resultSet = preparedStatement.executeQuery();

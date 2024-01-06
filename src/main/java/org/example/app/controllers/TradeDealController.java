@@ -137,6 +137,8 @@ public class TradeDealController extends Controller {
                     return buildJsonResponse(HttpStatus.FORBIDDEN, null, "The offered card is not owned by the user, or the requirements are not met, or the offered card is locked in the deck");
                 case 404:
                     return buildJsonResponse(HttpStatus.NOT_FOUND, null, "The provided deal ID was not found");
+                case 409:
+                    return buildJsonResponse(HttpStatus.CONFLICT, null, "It is not allowed to trade with yourself");
                 default:
                     return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to carry out trade deal");
             }

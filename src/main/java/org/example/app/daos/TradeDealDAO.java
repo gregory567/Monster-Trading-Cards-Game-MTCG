@@ -84,7 +84,7 @@ public class TradeDealDAO {
         }
 
         String sql = "INSERT INTO \"TradeDeal\" " +
-                "(id, offeringUser_username, offeredCard_id, requirement_cardType, requirement_minDamage) " +
+                "(id, \"offeringUser_username\", \"offeredCard_id\", \"requirement_cardType\", \"requirement_minDamage\") " +
                 "VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -223,7 +223,7 @@ public class TradeDealDAO {
      * @return The ID of the card associated with the trade deal.
      */
     private String getCardIdFromTradeDeal(String tradeDealId) {
-        String sql = "SELECT offeredCard_id FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeredCard_id\" FROM \"TradeDeal\" WHERE id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -255,7 +255,7 @@ public class TradeDealDAO {
 
         // Check if the user owns the trade deal
         if (isTradeDealBelongsToUser(username, tradeDealId)) {
-            return 403; // HTTP status code for Forbidden
+            return 409; // HTTP status code for Forbidden
         }
 
         // Check if the user owns the offered card
@@ -295,6 +295,12 @@ public class TradeDealDAO {
                 cardDAO.updateCardOwner(getOfferedCardId(tradeDealId), username);
                 cardDAO.updateCardOwner(offeredCardId, getOfferingUserUsername(tradeDealId));
 
+                // Delete the trade deal after successful trade
+                if (!deleteDeal(tradeDealId)) {
+                    // Handle the case where the trade deal couldn't be deleted
+                    return 500; // HTTP status code for Internal Server Error
+                }
+
                 return 200; // HTTP status code for OK
             } else {
                 return 500; // HTTP status code for Internal Server Error
@@ -313,7 +319,7 @@ public class TradeDealDAO {
      * @return True if the trade deal belongs to the user, false otherwise.
      */
     private boolean isTradeDealBelongsToUser(String username, String tradeDealId) {
-        String sql = "SELECT offeringUser_username FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeringUser_username\" FROM \"TradeDeal\" WHERE id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -341,8 +347,8 @@ public class TradeDealDAO {
      * @return True if the offered card meets the requirements, false otherwise.
      */
     private boolean doesOfferedCardMeetRequirements(String tradeDealId, String offeredCardId) {
-        String sql = "SELECT requirement_cardType, requirement_minDamage FROM \"TradeDeal\" " +
-                "WHERE id = ? AND status = 'PENDING'";
+        String sql = "SELECT \"requirement_cardType\", \"requirement_minDamage\" FROM \"TradeDeal\" " +
+                "WHERE id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -367,13 +373,35 @@ public class TradeDealDAO {
     }
 
     /**
+     * Deletes a trade deal from the "TradeDeal" table.
+     *
+     * @param tradeDealId The ID of the trade deal to be deleted.
+     * @return True if the trade deal is successfully deleted, false otherwise.
+     */
+    private boolean deleteDeal(String tradeDealId) {
+        String deleteSql = "DELETE FROM \"TradeDeal\" WHERE id = ?";
+
+        try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSql)) {
+            deleteStatement.setObject(1, UUID.fromString(tradeDealId));
+
+            int rowsAffected = deleteStatement.executeUpdate();
+
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    /**
      * Helper method to get the card type from the card ID.
      *
      * @param cardId The ID of the card.
      * @return The card type.
      */
     private String getCardTypeFromCardId(String cardId) {
-        String sql = "SELECT cardType FROM \"Card\" WHERE id = ?";
+        String sql = "SELECT \"cardType\" FROM \"Card\" WHERE id = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(cardId));
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -410,7 +438,7 @@ public class TradeDealDAO {
      * @throws SQLException If a SQL exception occurs.
      */
     private String getOfferingUserUsername(String tradeDealId) throws SQLException {
-        String sql = "SELECT offeringUser_username FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeringUser_username\" FROM \"TradeDeal\" WHERE id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -435,7 +463,7 @@ public class TradeDealDAO {
      * @throws SQLException If a database access error occurs.
      */
     private String getOfferedCardId(String tradeDealId) throws SQLException {
-        String sql = "SELECT offeredCard_id FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeredCard_id\" FROM \"TradeDeal\" WHERE id = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
