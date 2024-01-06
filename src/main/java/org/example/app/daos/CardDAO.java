@@ -631,28 +631,6 @@ public class CardDAO {
     }
 
     /**
-     * Adds a purchased card to the user's stack in the database.
-     *
-     * @param username The username of the user.
-     * @param cardId   The ID of the card to be added.
-     * @throws SQLException If a database access error occurs.
-     */
-    public void addCardToUserStack(String username, String cardId) throws SQLException {
-
-        String insertQuery = "INSERT INTO \"Stack\" (username, card_id) VALUES (?, ?)";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-            preparedStatement.setString(1, username);
-            preparedStatement.setObject(2, UUID.fromString(cardId));
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e; // Re-throw the exception to ensure proper transaction handling
-        }
-
-    }
-
-    /**
      * Deletes an unwanted card from the user's stack in the database.
      *
      * @param username The username of the user.
@@ -665,26 +643,6 @@ public class CardDAO {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
             preparedStatement.setString(1, username);
-            preparedStatement.setObject(2, UUID.fromString(cardId));
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw e; // Re-throw the exception to ensure proper transaction handling
-        }
-    }
-
-    /**
-     * Updates the owner of a card in the database.
-     *
-     * @param cardId            The ID of the card.
-     * @param newOwnerUsername  The username of the new owner.
-     * @throws SQLException If a database access error occurs.
-     */
-    public void updateCardOwner(String cardId, String newOwnerUsername) throws SQLException {
-        String updateQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-            preparedStatement.setString(1, newOwnerUsername);
             preparedStatement.setObject(2, UUID.fromString(cardId));
             preparedStatement.executeUpdate();
         } catch (SQLException e) {

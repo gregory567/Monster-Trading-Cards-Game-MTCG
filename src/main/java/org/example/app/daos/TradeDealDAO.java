@@ -17,12 +17,8 @@ public class TradeDealDAO {
     @Setter(AccessLevel.PRIVATE)
     ArrayList<TradeDealDTO> tradeDealCache;
 
-    @Setter(AccessLevel.PRIVATE)
-    private CardDAO cardDAO;
-
     public TradeDealDAO(Connection connection) {
         setConnection(connection);
-        setCardDAO(cardDAO);
     }
 
     /**
@@ -283,17 +279,23 @@ public class TradeDealDAO {
 
             if (rowsAffected > 0) {
 
-                // Add cards to the user's stacks
-                cardDAO.addCardToUserStack(getOfferingUserUsername(tradeDealId), offeredCardId);
-                cardDAO.addCardToUserStack(username, getOfferedCardId(tradeDealId));
+                System.out.println("accepting user tradedeal:");
+                System.out.println(getOfferingUserUsername(tradeDealId));
+                System.out.println("accepting cardid tradedeal:");
+                System.out.println(getOfferedCardId(tradeDealId));
 
-                // Delete the corresponding cards from the stacks
-                cardDAO.deleteCardFromUserStack(getOfferingUserUsername(tradeDealId), getOfferedCardId(tradeDealId));
-                cardDAO.deleteCardFromUserStack(username, offeredCardId);
+                System.out.println("offering user:");
+                System.out.println(username);
+                System.out.println("offered cardid:");
+                System.out.println(offeredCardId);
+
+                // Add cards to the user's stacks
+                updateCardInUserStack(getOfferingUserUsername(tradeDealId), offeredCardId);
+                updateCardInUserStack(username, getOfferedCardId(tradeDealId));
 
                 // Update the owner_username attribute in the card table
-                cardDAO.updateCardOwner(getOfferedCardId(tradeDealId), username);
-                cardDAO.updateCardOwner(offeredCardId, getOfferingUserUsername(tradeDealId));
+                updateCardOwner(getOfferedCardId(tradeDealId), username);
+                updateCardOwner(offeredCardId, getOfferingUserUsername(tradeDealId));
 
                 // Delete the trade deal after successful trade
                 if (!deleteDeal(tradeDealId)) {
@@ -363,13 +365,55 @@ public class TradeDealDAO {
                 Double offeredDamage = getDamageFromCardId(offeredCardId);
 
                 // Check if the offered card meets the requirements
-                return offeredCardType.equals(requiredCardType) && offeredDamage >= requiredMinDamage;
+                return offeredCardType.equalsIgnoreCase(requiredCardType) && offeredDamage >= requiredMinDamage;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return false;
+    }
+
+    /**
+     * Updates the owner of a card in the database.
+     *
+     * @param cardId           The ID of the card.
+     * @param newOwnerUsername The username of the new owner.
+     * @throws SQLException If a database access error occurs.
+     */
+    public void updateCardOwner(String cardId, String newOwnerUsername) throws SQLException {
+        String updateQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+            preparedStatement.setString(1, newOwnerUsername);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+    }
+
+    /**
+     * Adds a purchased card to the user's stack in the database.
+     *
+     * @param username The username of the user.
+     * @param cardId   The ID of the card to be added.
+     * @throws SQLException If a database access error occurs.
+     */
+    public void updateCardInUserStack(String username, String cardId) throws SQLException {
+
+        String insertQuery = "UPDATE \"Stack\" SET username = ? WHERE card_id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setObject(2, UUID.fromString(cardId));
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e; // Re-throw the exception to ensure proper transaction handling
+        }
+
     }
 
     /**
