@@ -21,7 +21,6 @@ public class UserController extends Controller {
 
     private UserRepository userRepository;
     private ObjectMapper objectMapper;
-    private String authenticatedUserToken;
 
     public UserController(UserRepository userRepository) {
         setUserRepository(userRepository);
@@ -174,7 +173,6 @@ public class UserController extends Controller {
                     return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to authenticate user");
                 default:
                     // Authentication successful
-                    setAuthenticatedUserToken(authenticationStatus);  // Save the user's token
                     // Include the token in the JSON response
                     String jsonResponse = String.format("{ \"data\": { \"token\": \"%s\" }, \"error\": null }", authenticationStatus);
                     return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);

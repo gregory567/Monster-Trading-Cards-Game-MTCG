@@ -22,7 +22,6 @@ public class Task implements Runnable {
     private BufferedReader inputStream;
     private Socket clientSocket;
     private App app;
-    private volatile String authenticatedUserToken;
 
     public Task(Socket clientSocket, App app) {
         setClientSocket(clientSocket);
@@ -38,7 +37,7 @@ public class Task implements Runnable {
             setInputStream(reader);
             setOutputStream(writer);
 
-            Request request = new Request(reader, authenticatedUserToken);
+            Request request = new Request(reader);
             Response response;
 
             if (request.getPathname() == null) {
@@ -49,16 +48,11 @@ public class Task implements Runnable {
                 );
             } else {
                 response = app.handleRequest(request);
-
-                // Check if authentication was successful and retrieve the token
-                if (request.getPathname().equals("/sessions") && response.getStatusCode() == HttpStatus.OK.getCode()) {
-                    authenticatedUserToken = extractTokenFromResponse(response);
-                }
             }
 
             // Handle entering the lobby for battles
             if (request.getPathname().equals("/battles")) {
-                handleBattleLobbyEntry();
+                handleBattleLobbyEntry(request);
             }
 
             writer.write(response.build());
@@ -90,7 +84,7 @@ public class Task implements Runnable {
         }
     }
 
-    private void handleBattleLobbyEntry() {
+    private void handleBattleLobbyEntry(Request request) {
         // Check if the lobby is open; if not, wait until it is
         synchronized (app) {
             while (!app.isBattleLobbyOpen()) {
@@ -105,7 +99,7 @@ public class Task implements Runnable {
                      */
 
                     // Add the username to the list when a user enters the lobby
-                    app.addUsernameToLobby(getAuthenticatedUsernameFromToken(authenticatedUserToken));
+                    app.addUsernameToLobby(getAuthenticatedUsernameFromToken(request.getAuthorization()));
 
                     // Wait for another user to enter the lobby
                     app.wait();
@@ -115,17 +109,6 @@ public class Task implements Runnable {
                     handleException(e);
                 }
             }
-        }
-    }
-
-    private String extractTokenFromResponse(Response response) {
-        try {
-            // the token can be extracted from the JSON response
-            JsonNode jsonData = response.parseJsonResponse();
-            return jsonData.get("data").get("token").asText();
-        } catch (JsonProcessingException e) {
-            handleException(e);
-            return null;
         }
     }
 

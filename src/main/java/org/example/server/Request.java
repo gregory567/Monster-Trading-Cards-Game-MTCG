@@ -16,10 +16,9 @@ public class Request {
     private String pathname;
     private String params;
     private String contentType;
-    private String authorization;
     private Integer contentLength;
+    private String authorization;
     private String body = "";
-    private String userToken;
 
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
@@ -32,8 +31,7 @@ public class Request {
     private final String AUTHORIZATION = "Authorization: Bearer ";
 
     // Constructor taking a BufferedReader for reading the request
-    public Request(BufferedReader inputStream, String userToken) {
-        this.userToken = userToken;
+    public Request(BufferedReader inputStream) {
         // Call the method to build the request
         buildRequest(inputStream);
     }
@@ -59,24 +57,17 @@ public class Request {
                 // Read headers until an empty line is encountered
                 while (!line.isEmpty()) {
                     line = inputStream.readLine();
-                    if (line.startsWith(CONTENT_LENGTH)) {
-                        setContentLength(getContentLengthFromInputLine(line));
-                    }
                     if (line.startsWith(CONTENT_TYPE)) {
                         setContentType(getContentTypeFromInputLine(line));
+                    }
+                    if (line.startsWith(CONTENT_LENGTH)) {
+                        setContentLength(getContentLengthFromInputLine(line));
                     }
                     // Check if the current path requires authorization
                     if (line.startsWith(AUTHORIZATION) && requiresAuthorization(getMethod(), getPathname())) {
                         setAuthorization(getAuthorizationFromInputLine(line));
                     }
                 }
-
-                /*
-                // Include user token in Authorization header
-                if (userToken != null && !userToken.isEmpty()) {
-                    setAuthorization(userToken);
-                }
-                 */
 
                 // Read request body for POST or PUT requests
                 if (getMethod() == Method.POST || getMethod() == Method.PUT) {
@@ -116,14 +107,14 @@ public class Request {
         return "";
     }
 
-    // Get the content length from the input line
-    private Integer getContentLengthFromInputLine(String line) {
-        return Integer.parseInt(line.substring(CONTENT_LENGTH.length()));
-    }
-
     // Get the content type from the input line
     private String getContentTypeFromInputLine(String line) {
         return line.substring(CONTENT_TYPE.length());
+    }
+
+    // Get the content length from the input line
+    private Integer getContentLengthFromInputLine(String line) {
+        return Integer.parseInt(line.substring(CONTENT_LENGTH.length()));
     }
 
     // Get Authorization header value from the input line

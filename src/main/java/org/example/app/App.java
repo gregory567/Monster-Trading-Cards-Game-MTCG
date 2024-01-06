@@ -37,7 +37,6 @@ public class App implements ServerApp {
     private CardController cardController;
     private TradeDealController tradeDealController;
     private GameController gameController;
-    private String authenticatedUserToken;
     private boolean isBattleLobbyOpen = false;
     private List<String> usernamesInLobby = new ArrayList<>();
 
@@ -214,21 +213,7 @@ public class App implements ServerApp {
             return getUserController().createUser(body);
         } else if (request.getPathname().equals("/sessions")) {
             String body = request.getBody();
-            Response loginResponse = getUserController().loginUser(body);
-
-            // Save the token if login is successful
-            if (loginResponse.getStatusCode() == HttpStatus.OK.getCode()) {
-                JsonNode jsonData = null;
-                try {
-                    jsonData = loginResponse.parseJsonResponse();
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
-                setAuthenticatedUserToken(jsonData.get("data").get("token").asText());
-                return loginResponse;
-            } else {
-                return loginResponse;
-            }
+            return getUserController().loginUser(body);
         } else if (request.getPathname().equals("/packages")) {
 
             // Extract the user token from the request
