@@ -365,9 +365,9 @@ public class UserDAO {
      */
     private UserDataDTO createUserdataFromResultSet(ResultSet resultSet) throws SQLException {
         UserDataDTO userdata = new UserDataDTO(
-                resultSet.getString("name"),
-                resultSet.getString("bio"),
-                resultSet.getString("image")
+                resultSet.getString("profile_name"),
+                resultSet.getString("profile_bio"),
+                resultSet.getString("profile_image")
         );
 
         return userdata;

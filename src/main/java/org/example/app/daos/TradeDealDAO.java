@@ -253,6 +253,11 @@ public class TradeDealDAO {
             return 404; // HTTP status code for Not Found
         }
 
+        // Check if the user owns the trade deal
+        if (isTradeDealBelongsToUser(username, tradeDealId)) {
+            return 403; // HTTP status code for Forbidden
+        }
+
         // Check if the user owns the offered card
         if (!isCardOwnedByUser(username, offeredCardId)) {
             return 403; // HTTP status code for Forbidden
@@ -298,6 +303,34 @@ public class TradeDealDAO {
             e.printStackTrace();
             return 500; // HTTP status code for Internal Server Error
         }
+    }
+
+    /**
+     * Checks if the given trade deal belongs to the user carrying out the current deal.
+     *
+     * @param username     The username of the user carrying out the current trade deal.
+     * @param tradeDealId  The ID of the trade deal to check.
+     * @return True if the trade deal belongs to the user, false otherwise.
+     */
+    private boolean isTradeDealBelongsToUser(String username, String tradeDealId) {
+        String sql = "SELECT offeringUser_username FROM \"TradeDeal\" WHERE id = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setObject(1, UUID.fromString(tradeDealId));
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                String offeringUser = resultSet.getString("offeringUser_username");
+
+                // Check if the offering user is the same as the user carrying out the trade deal
+                return offeringUser.equals(username);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     /**

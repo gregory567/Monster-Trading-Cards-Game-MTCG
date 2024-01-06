@@ -45,14 +45,25 @@ public class CardController extends Controller {
     }
 
     // GET /deck
-    public Response getDeck(String username) {
+    public Response getDeck(String username, String format) {
         try {
             List<CardDTO> deckData = getCardRepository().getDeck(username);
 
             if (!deckData.isEmpty()) {
-                String deckDataJSON = getObjectMapper().writeValueAsString(deckData);
-                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", deckDataJSON, "Deck successfully retrieved");
-                return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+                if (format.equals("plain")) {
+                    // Handle plain text response
+                    String plainTextResponse = "Card1: " + deckData.get(0).getId() +
+                            "\nCard2: " + deckData.get(1).getId() +
+                            "\nCard3: " + deckData.get(2).getId() +
+                            "\nCard4: " + deckData.get(3).getId();
+
+                    return new Response(HttpStatus.OK, ContentType.TEXT, plainTextResponse);
+                } else {
+                    // Handle JSON response
+                    String deckDataJSON = getObjectMapper().writeValueAsString(deckData);
+                    String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", deckDataJSON, "Deck successfully retrieved");
+                    return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
+                }
             } else {
                 return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, "The request was fine, but the deck doesn't have any cards");
             }

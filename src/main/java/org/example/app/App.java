@@ -154,7 +154,11 @@ public class App implements ServerApp {
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            return getCardController().getDeck(usernameFromToken);
+            // Extract the format parameter from the query parameters
+            String format = getFormatParameter(request.getParams());
+
+            // Pass the format parameter to the getDeck method
+            return getCardController().getDeck(usernameFromToken, format);
         } else if (request.getPathname().equals("/stats")) {
             // Extract the user token from the request
             String userToken = request.getAuthorization();
@@ -385,6 +389,29 @@ public class App implements ServerApp {
         // Extract trade deal ID from path, e.g., "/tradings/3fa85f64-5717-4562-b3fc-2c963f66afa6" -> "3fa85f64-5717-4562-b3fc-2c963f66afa6"
         String[] parts = path.split("/");
         return parts.length > 2 ? parts[2] : null;
+    }
+
+    // Method to extract the format parameter from the query parameters
+    private String getFormatParameter(String params) {
+        // Check if the params string is not null and not empty
+        if (params != null && !params.isEmpty()) {
+            // Split the params string into individual parameter pairs using "&" as the delimiter
+            String[] paramPairs = params.split("&");
+
+            // Iterate through each parameter pair
+            for (String pair : paramPairs) {
+                // Split the parameter pair into key and value using "=" as the delimiter
+                String[] keyValue = pair.split("=");
+
+                // Check if the key-value pair has exactly two elements and the key is "format"
+                if (keyValue.length == 2 && keyValue[0].equals("format")) {
+                    // Return the value associated with the "format" key
+                    return keyValue[1];
+                }
+            }
+        }
+        // If no "format" parameter is found, return json
+        return "json";
     }
 
     private Response notFoundResponse() {
