@@ -314,11 +314,38 @@ public class UserDAO {
      * @param username The username of the user to delete.
      */
     public void deleteUser(String username) {
+        // Delete the user's decks first
+        deleteUserDeck(username);
+
+        // Delete the user
         String deleteStmt = "DELETE FROM \"User\" WHERE \"username\" = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
             preparedStatement.setString(1, username);
+
+            // Execute the SQL delete statement to delete the user
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            // Check if the user was successfully deleted
+            if (rowsAffected > 0) {
+                // Clear the cache
+                clearCache();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Deletes the user's entry from the "Deck" table.
+     *
+     * @param username The username of the user.
+     */
+    private void deleteUserDeck(String username) {
+        String deleteDeckStmt = "DELETE FROM \"Deck\" WHERE \"username\" = ?;";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteDeckStmt)) {
+            preparedStatement.setString(1, username);
+            // Execute the SQL delete statement to delete the user's entry from the "Deck" table
             preparedStatement.executeUpdate();
-            clearCache();
         } catch (SQLException e) {
             e.printStackTrace();
         }
