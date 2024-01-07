@@ -49,7 +49,7 @@ public class UserDAO {
         Integer wins = 0;
         Integer losses = 0;
         // SQL statement to insert a new user into the usercredentials table
-        String insertStmt = "INSERT INTO \"User\" (username, password, token, coins, elo_score, wins, losses) VALUES (?, ?, ?, ?, ?, ?, ?);";
+        String insertStmt = "INSERT INTO \"User\" (\"username\", \"password\", \"token\", \"coins\", \"elo_score\", \"wins\", \"losses\") VALUES (?, ?, ?, ?, ?, ?, ?);";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setString(1, username);
@@ -84,7 +84,7 @@ public class UserDAO {
      */
     private boolean userExists(String username) {
         // SQL statement to count the number of users with the specified username
-        String selectStmt = "SELECT COUNT(*) FROM \"User\" WHERE username = ?;";
+        String selectStmt = "SELECT COUNT(*) FROM \"User\" WHERE \"username\" = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             // Set the username parameter in the prepared statement
             preparedStatement.setString(1, username);
@@ -115,7 +115,7 @@ public class UserDAO {
      * @throws SQLException If a database access error occurs.
      */
     private void insertNewUserIntoDeck(String username) throws SQLException {
-        String insertQuery = "INSERT INTO \"Deck\" (username, card1_id, card2_id, card3_id, card4_id) VALUES (?, NULL, NULL, NULL, NULL)";
+        String insertQuery = "INSERT INTO \"Deck\" (\"username\", \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\") VALUES (?, NULL, NULL, NULL, NULL)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             preparedStatement.setString(1, username);
@@ -139,7 +139,7 @@ public class UserDAO {
             return usersCache;
         }
 
-        String selectStmt = "SELECT profile_name, profile_bio, profile_image FROM \"User\";";
+        String selectStmt = "SELECT \"profile_name\", \"profile_bio\", \"profile_image\" FROM \"User\";";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt);
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
@@ -164,7 +164,7 @@ public class UserDAO {
      * @return UserDataDTO containing profile information for the specified user.
      */
     public UserDataDTO getUser(String username) {
-        String selectStmt = "SELECT profile_name, profile_bio, profile_image FROM \"User\" WHERE username = ?;";
+        String selectStmt = "SELECT \"profile_name\", \"profile_bio\", \"profile_image\" FROM \"User\" WHERE \"username\" = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -197,7 +197,7 @@ public class UserDAO {
         }
 
         // Update the user data
-        String updateStmt = "UPDATE \"User\" SET profile_name = ?, profile_bio = ?, profile_image = ? WHERE username = ?;";
+        String updateStmt = "UPDATE \"User\" SET \"profile_name\" = ?, \"profile_bio\" = ?, \"profile_image\" = ? WHERE \"username\" = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateStmt)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, bio);
@@ -257,7 +257,7 @@ public class UserDAO {
      * @throws SQLException If a SQL exception occurs during token retrieval.
      */
     private String retrieveUserToken(String username) throws SQLException {
-        String selectStmt = "SELECT token FROM \"User\" WHERE username = ?;";
+        String selectStmt = "SELECT \"token\" FROM \"User\" WHERE \"username\" = ?;";
 
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             preparedStatement.setString(1, username);
@@ -284,7 +284,7 @@ public class UserDAO {
      */
     public boolean passwordMatches(String username, String password) {
         // SQL statement to retrieve the password for the given username
-        String selectStmt = "SELECT password FROM \"User\" WHERE username = ?;";
+        String selectStmt = "SELECT \"password\" FROM \"User\" WHERE \"username\" = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(selectStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setString(1, username);
@@ -314,7 +314,7 @@ public class UserDAO {
      * @param username The username of the user to delete.
      */
     public void deleteUser(String username) {
-        String deleteStmt = "DELETE FROM \"User\" WHERE username = ?;";
+        String deleteStmt = "DELETE FROM \"User\" WHERE \"username\" = ?;";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(deleteStmt)) {
             preparedStatement.setString(1, username);
             preparedStatement.executeUpdate();
@@ -382,7 +382,7 @@ public class UserDAO {
     private Stack initStack(String username) {
         Stack stack = new Stack();
 
-        String selectStackStmt = "SELECT card_id FROM Stack WHERE username = ?;";
+        String selectStackStmt = "SELECT \"card_id\" FROM Stack WHERE \"username\" = ?;";
         try (PreparedStatement stackStatement = getConnection().prepareStatement(selectStackStmt)) {
             stackStatement.setString(1, username);
             ResultSet stackResultSet = stackStatement.executeQuery();
@@ -410,7 +410,7 @@ public class UserDAO {
     private Deck initDeck(String username) {
         Deck deck = new Deck();
 
-        String selectDeckStmt = "SELECT card1_id, card2_id, card3_id, card4_id FROM Deck WHERE username = ?;";
+        String selectDeckStmt = "SELECT \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\" FROM Deck WHERE \"username\" = ?;";
         try (PreparedStatement deckStatement = getConnection().prepareStatement(selectDeckStmt)) {
             deckStatement.setString(1, username);
             ResultSet deckResultSet = deckStatement.executeQuery();
@@ -447,7 +447,7 @@ public class UserDAO {
      * @return Card instance retrieved from the database.
      */
     public Card getCardById(UUID cardId) {
-        String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
+        String selectCardQuery = "SELECT * FROM Card WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardQuery)) {
             preparedStatement.setObject(1, cardId);
@@ -488,7 +488,7 @@ public class UserDAO {
      * @return UserStatDTO containing statistics for the specified user.
      */
     public UserStatDTO getStats(String username) {
-        String selectStatsStmt = "SELECT profile_name, elo_score, wins, losses FROM \"User\" WHERE username = ?;";
+        String selectStatsStmt = "SELECT \"profile_name\", \"elo_score\", \"wins\", \"losses\" FROM \"User\" WHERE \"username\" = ?;";
 
         try (PreparedStatement statsStatement = getConnection().prepareStatement(selectStatsStmt)) {
             statsStatement.setString(1, username);
@@ -519,7 +519,7 @@ public class UserDAO {
         List<UserStatDTO> scoreBoard = new ArrayList<>();
 
         // SQL statement to retrieve user stats ordered by ELO
-        String selectScoreBoardStmt = "SELECT profile_name, elo_score, wins, losses FROM \"User\" ORDER BY elo_score DESC;";
+        String selectScoreBoardStmt = "SELECT \"profile_name\", \"elo_score\", \"wins\", \"losses\" FROM \"User\" ORDER BY \"elo_score\" DESC;";
         try (PreparedStatement scoreBoardStatement = getConnection().prepareStatement(selectScoreBoardStmt);
              ResultSet scoreBoardResultSet = scoreBoardStatement.executeQuery()) {
 

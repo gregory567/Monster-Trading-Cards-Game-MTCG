@@ -1,6 +1,3 @@
-
-
-
 -- Create User Table
 CREATE TABLE IF NOT EXISTS "User" (
     "username" VARCHAR(255) PRIMARY KEY,
