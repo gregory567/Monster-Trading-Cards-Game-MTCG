@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -21,12 +23,23 @@ class UserDAOTest {
 
     private UserDAO userDAO;
 
+    private static void printFileContents(String fileName) {
+        try {
+            String content = new String(Files.readAllBytes(Paths.get(fileName)));
+            System.out.println("File Contents:\n" + content);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @BeforeAll
     static void beforeAll() {
         // Setup H2 in-memory database connection
         testConnection = createH2Connection();
+        // Print the contents of the Schema.sql file for debugging
+        printFileContents("Schema.sql");
         // Ensure to execute any database schema initialization scripts here
-        executeScript("/schema.sql", testConnection);
+        executeScript("Schema.sql", testConnection);
     }
 
     @BeforeEach
@@ -50,7 +63,7 @@ class UserDAOTest {
     private void resetDatabase() {
         // Execute SQL scripts or commands to reset the database to a clean state
         // This might include deleting all data, resetting sequences, etc.
-        executeScript("/reset.sql", testConnection);
+        executeScript("Reset.sql", testConnection);
     }
 
     private static Connection createH2Connection() {
@@ -67,6 +80,9 @@ class UserDAOTest {
     private static void executeScript(String scriptPath, Connection connection) {
         try (InputStream inputStream = UserDAOTest.class.getResourceAsStream(scriptPath)) {
             if (inputStream != null) {
+                // Print the absolute path for debugging
+                System.out.println("Loading script from: " + Paths.get(scriptPath).toAbsolutePath());
+
                 String scriptContent = new BufferedReader(new InputStreamReader(inputStream))
                         .lines().collect(Collectors.joining("\n"));
 
