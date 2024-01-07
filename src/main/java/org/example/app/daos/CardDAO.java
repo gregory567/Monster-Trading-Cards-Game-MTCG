@@ -52,7 +52,7 @@ public class CardDAO {
         CardDTO cardDTO = new CardDTO();
         cardDTO.setId(resultSet.getString("id"));
         cardDTO.setName(resultSet.getString("name"));
-        cardDTO.setDamage(resultSet.getInt("damage"));
+        cardDTO.setDamage(resultSet.getDouble("damage"));
 
         return cardDTO;
     }
@@ -271,7 +271,7 @@ public class CardDAO {
         }
 
         // If validation passes and cards are created, proceed with creating the package
-        String insertQuery = "INSERT INTO \"Package\" (id, card1_id, card2_id, card3_id, card4_id, card5_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertQuery = "INSERT INTO \"Package\" (\"id\", \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\", \"card5_id\") VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             // Generate a new UUID for the package
@@ -329,7 +329,7 @@ public class CardDAO {
         }
 
         // SQL statement to insert a new card into the Card table
-        String insertStmt = "INSERT INTO \"Card\" (id, name, damage, \"elementType\", specialties, \"cardType\") VALUES (?, ?, ?, ?, ?, ?)";
+        String insertStmt = "INSERT INTO \"Card\" (\"id\", \"name\", \"damage\", \"elementType\", \"specialties\", \"cardType\") VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = getConnection().prepareStatement(insertStmt)) {
             // Set parameters in the prepared statement
             preparedStatement.setObject(1, id);
@@ -354,7 +354,7 @@ public class CardDAO {
      * @return True if the cards are not part of any other package, false otherwise.
      */
     private boolean areCardsNotInOtherPackages(List<CardDTO> cards) {
-        String query = "SELECT COUNT(*) FROM \"Package\" WHERE card1_id = ? OR card2_id = ? OR card3_id = ? OR card4_id = ? OR card5_id = ?";
+        String query = "SELECT COUNT(*) FROM \"Package\" WHERE \"card1_id\" = ? OR \"card2_id\" = ? OR \"card3_id\" = ? OR \"card4_id\" = ? OR \"card5_id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             for (CardDTO card : cards) {

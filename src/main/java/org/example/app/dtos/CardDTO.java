@@ -16,7 +16,7 @@ public class CardDTO {
     @JsonAlias({"Name"})
     private String name;
     @JsonAlias({"Damage"})
-    private Integer damage;
+    private Double damage;
 
 }
 
