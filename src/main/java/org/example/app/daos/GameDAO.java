@@ -116,7 +116,7 @@ public class GameDAO {
     public UUID createBattle(String user1Username, String user2Username) {
         UUID battleId = UUID.randomUUID();
 
-        String insertBattleQuery = "INSERT INTO \"Battle\"(id, user1_username, user2_username) VALUES (?, ?, ?)";
+        String insertBattleQuery = "INSERT INTO \"Battle\"(\"id\", \"user1_username\", \"user2_username\") VALUES (?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertBattleQuery, PreparedStatement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setObject(1, battleId);
@@ -148,7 +148,7 @@ public class GameDAO {
         List<Card> selectedCards = new ArrayList<>();
 
         // Select all cards for the user from their deck
-        String selectDeckQuery = "SELECT card1_id, card2_id, card3_id, card4_id FROM Deck WHERE username = ?";
+        String selectDeckQuery = "SELECT \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\" FROM Deck WHERE \"username\" = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectDeckQuery)) {
             preparedStatement.setString(1, username);
 
@@ -177,7 +177,7 @@ public class GameDAO {
      * @return The Card object representing the retrieved card or null if not found.
      */
     public Card getCardById(UUID cardId) {
-        String selectCardQuery = "SELECT * FROM Card WHERE id = ?";
+        String selectCardQuery = "SELECT * FROM Card WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardQuery)) {
             preparedStatement.setObject(1, cardId);
@@ -411,7 +411,7 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void incrementWins(String username) throws SQLException {
-        String updateWinsQuery = "UPDATE \"User\" SET wins = wins + 1 WHERE username = ?";
+        String updateWinsQuery = "UPDATE \"User\" SET \"wins\" = \"wins\" + 1 WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateWinsQuery)) {
             preparedStatement.setString(1, username);
@@ -426,7 +426,7 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void incrementLosses(String username) throws SQLException {
-        String updateLossesQuery = "UPDATE \"User\" SET losses = losses + 1 WHERE username = ?";
+        String updateLossesQuery = "UPDATE \"User\" SET \"losses\" = \"losses\" + 1 WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateLossesQuery)) {
             preparedStatement.setString(1, username);
@@ -442,7 +442,7 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void incrementEloScore(String username, int increment) throws SQLException {
-        String updateEloQuery = "UPDATE \"User\" SET elo_score = elo_score + ? WHERE username = ?";
+        String updateEloQuery = "UPDATE \"User\" SET \"elo_score\" = \"elo_score\" + ? WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateEloQuery)) {
             preparedStatement.setInt(1, increment);
@@ -459,7 +459,7 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void decrementEloScore(String username, int decrement) throws SQLException {
-        String updateEloQuery = "UPDATE \"User\" SET elo_score = elo_score - ? WHERE username = ?";
+        String updateEloQuery = "UPDATE \"User\" SET \"elo_score\" = \"elo_score\" - ? WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateEloQuery)) {
             preparedStatement.setInt(1, decrement);
@@ -504,7 +504,7 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void insertRoundDetail(UUID roundId, UUID cardId, CardName cardName, String playerUsername) throws SQLException {
-        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(round_id, card_id, card_name, player_username) VALUES (?, ?, ?, ?)";
+        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(\"round_id\", \"card_id\", \"card_name\", \"player_username\") VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundDetailQuery)) {
             preparedStatement.setObject(1, roundId);
@@ -528,7 +528,7 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void insertRoundLog(UUID battleId, Integer roundNumber, String winnerUsername, String loserUsername, boolean draw, UUID roundId) throws SQLException {
-        String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(battle_id, round_number, winner_username, loser_username, draw, round_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String insertRoundLogQuery = "INSERT INTO \"RoundLog\"(\"battle_id\", \"round_number\", \"winner_username\", \"loser_username\", \"draw\", \"round_id\") VALUES (?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundLogQuery)) {
             preparedStatement.setObject(1, battleId);
@@ -554,10 +554,10 @@ public class GameDAO {
 
         try {
             String selectRoundLogDetailsQuery =
-                    "SELECT rd.player_username, rd.card_name, rd.card_id, rl.draw " +
+                    "SELECT rd.\"player_username\", rd.\"card_name\", rd.\"card_id\", rl.\"draw\" " +
                             "FROM \"RoundLog\" rl " +
-                            "JOIN \"RoundDetail\" rd ON rl.round_id = rd.round_id " +
-                            "WHERE rl.battle_id = ? AND rl.round_number = ?";
+                            "JOIN \"RoundDetail\" rd ON rl.\"round_id\" = rd.\"round_id\" " +
+                            "WHERE rl.\"battle_id\" = ? AND rl.\"round_number\" = ?";
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(selectRoundLogDetailsQuery)) {
                 preparedStatement.setObject(1, battleId);
@@ -608,7 +608,7 @@ public class GameDAO {
      * @param username The username for which to remove all cards from the deck.
      */
     private void removeAllCardsFromDeck(String username) {
-        String deleteDeckQuery = "DELETE FROM \"Deck\" WHERE username = ?";
+        String deleteDeckQuery = "DELETE FROM \"Deck\" WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteDeckQuery)) {
             preparedStatement.setString(1, username);
@@ -625,10 +625,10 @@ public class GameDAO {
      * @param deck     The deck containing the cards to be moved.
      */
     private void moveAllCardsToStack(String username, List<Card> deck) {
-        String updateCardOwnerQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+        String updateCardOwnerQuery = "UPDATE \"Card\" SET \"owner_username\" = ? WHERE \"id\" = ?";
 
         try (PreparedStatement updateStatement = connection.prepareStatement(updateCardOwnerQuery)) {
-            String insertStackQuery = "INSERT INTO \"Stack\"(username, card_id) VALUES (?, ?)";
+            String insertStackQuery = "INSERT INTO \"Stack\"(\"username\", \"card_id\") VALUES (?, ?)";
 
             try (PreparedStatement insertStatement = connection.prepareStatement(insertStackQuery)) {
                 for (Card card : deck) {

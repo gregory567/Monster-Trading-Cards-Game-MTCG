@@ -29,7 +29,7 @@ public class CardDAO {
     public ArrayList<CardDTO> getUserCards(String username) {
         List<CardDTO> cards = new ArrayList<>();
 
-        String query = "SELECT * FROM \"Stack\" s JOIN \"Card\" c ON s.card_id = c.id WHERE s.username = ?";
+        String query = "SELECT * FROM \"Stack\" s JOIN \"Card\" c ON s.\"card_id\" = c.\"id\" WHERE s.\"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, username); // Set the parameter for the username
@@ -65,8 +65,8 @@ public class CardDAO {
      */
     public List<CardDTO> getDeckCards(String username) {
         String query = "SELECT c.* FROM \"Deck\" d " +
-                "JOIN \"Card\" c ON c.id = ANY(ARRAY[d.card1_id, d.card2_id, d.card3_id, d.card4_id]) " +
-                "WHERE d.username = ?";
+                "JOIN \"Card\" c ON c.\"id\" = ANY(ARRAY[d.\"card1_id\", d.\"card2_id\", d.\"card3_id\", d.\"card4_id\"]) " +
+                "WHERE d.\"username\" = ?";
 
         List<CardDTO> cards = new ArrayList<>();
 
@@ -117,7 +117,7 @@ public class CardDAO {
         }
 
         // If validation passes, proceed with the update
-        String updateQuery = "UPDATE \"Deck\" SET card1_id = ?, card2_id = ?, card3_id = ?, card4_id = ? WHERE username = ?";
+        String updateQuery = "UPDATE \"Deck\" SET \"card1_id\" = ?, \"card2_id\" = ?, \"card3_id\" = ?, \"card4_id\" = ? WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
             // cardIds is a list of UUIDs in the same order as they should be updated in the deck
@@ -164,7 +164,7 @@ public class CardDAO {
      * @return True if the card is in the user's stack, false otherwise.
      */
     private boolean isCardInUserStack(String cardId, String username) {
-        String query = "SELECT COUNT(*) FROM \"Stack\" WHERE username = ? AND card_id = ?";
+        String query = "SELECT COUNT(*) FROM \"Stack\" WHERE \"username\" = ? AND \"card_id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, username);
@@ -192,7 +192,7 @@ public class CardDAO {
      * @return True if the card is in another user's deck, false otherwise.
      */
     private boolean isCardInAnotherDeck(String cardId, String username) {
-        String query = "SELECT COUNT(*) FROM \"Deck\" WHERE (card1_id = ? OR card2_id = ? OR card3_id = ? OR card4_id = ?) AND username != ?";
+        String query = "SELECT COUNT(*) FROM \"Deck\" WHERE (\"card1_id\" = ? OR \"card2_id\" = ? OR \"card3_id\" = ? OR \"card4_id\" = ?) AND \"username\" != ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             for (int i = 1; i <= 4; i++) {
@@ -222,7 +222,7 @@ public class CardDAO {
      * @return True if the card is in another user's stack, false otherwise.
      */
     private boolean isCardInAnotherUserStack(String cardId, String username) {
-        String query = "SELECT COUNT(*) FROM \"Stack\" WHERE username != ? AND card_id = ?";
+        String query = "SELECT COUNT(*) FROM \"Stack\" WHERE \"username\" != ? AND \"card_id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, username);
@@ -451,7 +451,7 @@ public class CardDAO {
      * @return A Map containing the package ID and a list of CardDTO representing the cards in the selected package.
      */
     private Map<UUID, List<CardDTO>> getFirstPackage() {
-        String query = "SELECT id, card1_id, card2_id, card3_id, card4_id, card5_id FROM \"Package\" LIMIT 1";
+        String query = "SELECT \"id\", \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\", \"card5_id\" FROM \"Package\" LIMIT 1";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -505,7 +505,7 @@ public class CardDAO {
      */
     private void updateUserCoins(String username, double updatedCoins) throws SQLException {
 
-        String updateQuery = "UPDATE \"User\" SET coins = ? WHERE username = ?";
+        String updateQuery = "UPDATE \"User\" SET \"coins\" = ? WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
             preparedStatement.setDouble(1, updatedCoins);
@@ -525,7 +525,7 @@ public class CardDAO {
      * @return The user's current coins.
      */
     private double getUserCoins(String username) {
-        String query = "SELECT coins FROM \"User\" WHERE username = ?";
+        String query = "SELECT \"coins\" FROM \"User\" WHERE \"username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, username);
@@ -552,7 +552,7 @@ public class CardDAO {
      */
     private void addCardsToUserStack(String username, List<CardDTO> purchasedCards) throws SQLException {
 
-        String insertQuery = "INSERT INTO \"Stack\" (username, card_id) VALUES (?, ?)";
+        String insertQuery = "INSERT INTO \"Stack\" (\"username\", \"card_id\") VALUES (?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             for (CardDTO card : purchasedCards) {
@@ -575,7 +575,7 @@ public class CardDAO {
      * @throws SQLException If a database access error occurs.
      */
     private void insertUsernameIntoCardTable(String username, List<CardDTO> purchasedCards) throws SQLException {
-        String insertQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+        String insertQuery = "UPDATE \"Card\" SET \"owner_username\" = ? WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             for (CardDTO card : purchasedCards) {
@@ -596,7 +596,7 @@ public class CardDAO {
      * @throws SQLException If a database access error occurs.
      */
     private void deletePackage(UUID packageId) throws SQLException {
-        String deleteQuery = "DELETE FROM \"Package\" WHERE id = ?";
+        String deleteQuery = "DELETE FROM \"Package\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
             preparedStatement.setObject(1, packageId);
@@ -616,7 +616,7 @@ public class CardDAO {
      */
     private void deleteCardsFromUserStack(String username, List<CardDTO> cardsToRemove) throws SQLException {
 
-        String deleteQuery = "DELETE FROM \"Stack\" WHERE username = ? AND card_id = ?";
+        String deleteQuery = "DELETE FROM \"Stack\" WHERE \"username\" = ? AND \"card_id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
             for (CardDTO card : cardsToRemove) {
@@ -639,7 +639,7 @@ public class CardDAO {
      */
     public void deleteCardFromUserStack(String username, String cardId) throws SQLException {
 
-        String deleteQuery = "DELETE FROM \"Stack\" WHERE username = ? AND card_id = ?";
+        String deleteQuery = "DELETE FROM \"Stack\" WHERE \"username\" = ? AND \"card_id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
             preparedStatement.setString(1, username);
@@ -659,7 +659,7 @@ public class CardDAO {
      */
     public CardDTO read(String cardId) {
         // Implement logic to retrieve a card by its ID from the database
-        String query = "SELECT * FROM \"Card\" WHERE id = ?";
+        String query = "SELECT * FROM \"Card\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setObject(1, UUID.fromString(cardId));

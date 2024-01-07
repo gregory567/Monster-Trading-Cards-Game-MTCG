@@ -80,7 +80,7 @@ public class TradeDealDAO {
         }
 
         String sql = "INSERT INTO \"TradeDeal\" " +
-                "(id, \"offeringUser_username\", \"offeredCard_id\", \"requirement_cardType\", \"requirement_minDamage\") " +
+                "(\"id\", \"offeringUser_username\", \"offeredCard_id\", \"requirement_cardType\", \"requirement_minDamage\") " +
                 "VALUES (?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -106,7 +106,7 @@ public class TradeDealDAO {
      * @return True if the trade deal exists, false otherwise.
      */
     private boolean isTradeDealIdExists(String tradeDealId) {
-        String sql = "SELECT COUNT(*) FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT COUNT(*) FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -130,7 +130,7 @@ public class TradeDealDAO {
      * @return True if the user owns the card, false otherwise.
      */
     private boolean isCardOwnedByUser(String username, String cardId) {
-        String sql = "SELECT COUNT(*) FROM \"Card\" WHERE id = ? AND owner_username = ?";
+        String sql = "SELECT COUNT(*) FROM \"Card\" WHERE \"id\" = ? AND \"owner_username\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(cardId)); // Assuming it's a valid UUID
@@ -155,7 +155,7 @@ public class TradeDealDAO {
      * @return True if the card is locked in the deck, false otherwise.
      */
     private boolean isCardLockedInDeck(String username, String cardId) {
-        String sql = "SELECT COUNT(*) FROM \"Deck\" WHERE username = ? AND (card1_id = ? OR card2_id = ? OR card3_id = ? OR card4_id = ?)";
+        String sql = "SELECT COUNT(*) FROM \"Deck\" WHERE \"username\" = ? AND (\"card1_id\" = ? OR \"card2_id\" = ? OR \"card3_id\" = ? OR \"card4_id\" = ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, username);
@@ -194,7 +194,7 @@ public class TradeDealDAO {
             return 403; // HTTP status code for Forbidden
         }
 
-        String sql = "DELETE FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "DELETE FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -219,7 +219,7 @@ public class TradeDealDAO {
      * @return The ID of the card associated with the trade deal.
      */
     private String getCardIdFromTradeDeal(String tradeDealId) {
-        String sql = "SELECT \"offeredCard_id\" FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeredCard_id\" FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -270,7 +270,7 @@ public class TradeDealDAO {
         }
 
         // Carry out the trade
-        String sql = "UPDATE \"TradeDeal\" SET status = 'COMPLETED' WHERE id = ?";
+        String sql = "UPDATE \"TradeDeal\" SET \"status\" = 'COMPLETED' WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -321,7 +321,7 @@ public class TradeDealDAO {
      * @return True if the trade deal belongs to the user, false otherwise.
      */
     private boolean isTradeDealBelongsToUser(String username, String tradeDealId) {
-        String sql = "SELECT \"offeringUser_username\" FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeringUser_username\" FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -350,7 +350,7 @@ public class TradeDealDAO {
      */
     private boolean doesOfferedCardMeetRequirements(String tradeDealId, String offeredCardId) {
         String sql = "SELECT \"requirement_cardType\", \"requirement_minDamage\" FROM \"TradeDeal\" " +
-                "WHERE id = ?";
+                "WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -382,7 +382,7 @@ public class TradeDealDAO {
      * @throws SQLException If a database access error occurs.
      */
     public void updateCardOwner(String cardId, String newOwnerUsername) throws SQLException {
-        String updateQuery = "UPDATE \"Card\" SET owner_username = ? WHERE id = ?";
+        String updateQuery = "UPDATE \"Card\" SET \"owner_username\" = ? WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
             preparedStatement.setString(1, newOwnerUsername);
@@ -403,7 +403,7 @@ public class TradeDealDAO {
      */
     public void updateCardInUserStack(String username, String cardId) throws SQLException {
 
-        String insertQuery = "UPDATE \"Stack\" SET username = ? WHERE card_id = ?";
+        String insertQuery = "UPDATE \"Stack\" SET \"username\" = ? WHERE \"card_id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
             preparedStatement.setString(1, username);
@@ -423,7 +423,7 @@ public class TradeDealDAO {
      * @return True if the trade deal is successfully deleted, false otherwise.
      */
     private boolean deleteDeal(String tradeDealId) {
-        String deleteSql = "DELETE FROM \"TradeDeal\" WHERE id = ?";
+        String deleteSql = "DELETE FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSql)) {
             deleteStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -445,7 +445,7 @@ public class TradeDealDAO {
      * @return The card type.
      */
     private String getCardTypeFromCardId(String cardId) {
-        String sql = "SELECT \"cardType\" FROM \"Card\" WHERE id = ?";
+        String sql = "SELECT \"cardType\" FROM \"Card\" WHERE \"id\" = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(cardId));
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -463,7 +463,7 @@ public class TradeDealDAO {
      * @return The damage value.
      */
     private double getDamageFromCardId(String cardId) {
-        String sql = "SELECT damage FROM \"Card\" WHERE id = ?";
+        String sql = "SELECT \"damage\" FROM \"Card\" WHERE \"id\" = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(cardId));
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -482,7 +482,7 @@ public class TradeDealDAO {
      * @throws SQLException If a SQL exception occurs.
      */
     private String getOfferingUserUsername(String tradeDealId) throws SQLException {
-        String sql = "SELECT \"offeringUser_username\" FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeringUser_username\" FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
@@ -507,7 +507,7 @@ public class TradeDealDAO {
      * @throws SQLException If a database access error occurs.
      */
     private String getOfferedCardId(String tradeDealId) throws SQLException {
-        String sql = "SELECT \"offeredCard_id\" FROM \"TradeDeal\" WHERE id = ?";
+        String sql = "SELECT \"offeredCard_id\" FROM \"TradeDeal\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setObject(1, UUID.fromString(tradeDealId));
