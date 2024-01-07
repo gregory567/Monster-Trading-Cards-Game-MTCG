@@ -2,6 +2,7 @@ package org.example.app;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
@@ -27,6 +28,7 @@ import org.example.server.ServerApp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 @AllArgsConstructor
 @Setter(AccessLevel.PRIVATE)
@@ -37,26 +39,10 @@ public class App implements ServerApp {
     private CardController cardController;
     private TradeDealController tradeDealController;
     private GameController gameController;
-    private boolean isBattleLobbyOpen = false;
     private List<String> usernamesInLobby = new ArrayList<>();
-
-    public synchronized void notifyNewUserInLobby() {
-        isBattleLobbyOpen = true;
-        // Notify any waiting threads that the lobby is now open
-        notifyAll();
-    }
-
-    public synchronized boolean isBattleLobbyOpen() {
-        return isBattleLobbyOpen;
-    }
-
-    public synchronized void addUsernameToLobby(String username) {
-        usernamesInLobby.add(username);
-    }
-
-    public synchronized List<String> getUsernamesInLobby() {
-        return new ArrayList<>(usernamesInLobby);
-    }
+    private Integer usersInLobby = 0;
+    private CountDownLatch startBattleLatch = new CountDownLatch(2);
+    private String BattleLog;
 
     public App() {
         DatabaseService databaseService = new DatabaseService();
@@ -302,21 +288,49 @@ public class App implements ServerApp {
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            // Notify the waiting threads that a new user is in the lobby
-            notifyNewUserInLobby();
-            /*
-            In this case, when a user requests to enter the battles endpoint,
-            the server notifies waiting threads that a new user is in the lobby.
-            This is important for signaling other threads waiting for a user to enter the lobby and potentially start a battle.
-             */
+            // Increment the usersInLobby count
+            synchronized (this) {
+                usersInLobby++;
+            }
 
-            // If there is another user in the lobby, start the battle immediately
-            List<String> usernamesInLobby = getUsernamesInLobby();
-            if (isBattleLobbyOpen() && usernamesInLobby.size() == 2) {
-                return getGameController().carryOutBattle(usernamesInLobby.get(0), usernamesInLobby.get(1));
+            // Wait until there are two users in the lobby
+            if (usersInLobby < 2) {
+                try {
+                    // Wait for another user to enter the lobby
+                    wait();
+                } catch (InterruptedException e) {
+                    // Restore interrupted status and handle the exception
+                    Thread.currentThread().interrupt();
+                    handleException(e);
+                }
+            }
+
+            // If there are two users in the lobby, start the battle
+            if (usersInLobby == 2) {
+                try {
+                    // Notify waiting threads that the battle is starting
+                    startBattleLatch.countDown();
+
+                    // Wait for the other user to be ready
+                    startBattleLatch.await();
+
+                    // Reset the usersInLobby count
+                    usersInLobby = 0;
+
+                    // Call the GameController to carry out the battle
+                    if (BattleLog.isEmpty()) {
+                        Response battleResponse = getGameController().carryOutBattle(usernamesInLobby.get(0), usernamesInLobby.get(1));
+                        setBattleLog(extractBattleLog(battleResponse));
+                        return battleResponse;
+                    }
+                } catch (InterruptedException e) {
+                    // Restore interrupted status and handle the exception
+                    Thread.currentThread().interrupt();
+                    handleException(e);
+                }
             } else {
-                // Otherwise, return a response indicating that the user is in the lobby
-                return buildJsonResponse(HttpStatus.OK, null, "Waiting for another user to enter the lobby");
+                // Otherwise, print a message to the console indicating that the user is in the lobby
+                System.out.println("Waiting for another user to enter the lobby");
             }
         }
         return notFoundResponse();
@@ -456,6 +470,28 @@ public class App implements ServerApp {
     private void testMultithreading() throws InterruptedException {
         // Introduce a configurable sleep duration for testing
         Thread.sleep(2500);
+    }
+
+    private String extractBattleLog(Response response) {
+        if (response == null || response.getContent() == null || response.getContent().isEmpty()) {
+            return null;
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response.getContent());
+
+            if (rootNode.has("data")) {
+                JsonNode dataNode = rootNode.get("data");
+                if (dataNode != null && dataNode.isTextual()) {
+                    return dataNode.asText();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private Response buildJsonResponse(HttpStatus status, String data, String error) {

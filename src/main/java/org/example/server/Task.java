@@ -1,7 +1,5 @@
 package org.example.server;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.app.App;
@@ -50,14 +48,9 @@ public class Task implements Runnable {
                 response = app.handleRequest(request);
             }
 
-            // Handle entering the lobby for battles
-            if (request.getPathname().equals("/battles")) {
-                handleBattleLobbyEntry(request);
-            }
-
             writer.write(response.build());
             // flush the stream to ensure data is sent immediately
-            //writer.flush();
+            writer.flush();
         } catch (IOException e) {
             handleException(e);
         } finally {
@@ -81,34 +74,6 @@ public class Task implements Runnable {
             }
         } catch (IOException e) {
             handleException(e);
-        }
-    }
-
-    private void handleBattleLobbyEntry(Request request) {
-        // Check if the lobby is open; if not, wait until it is
-        synchronized (app) {
-            while (!app.isBattleLobbyOpen()) {
-                try {
-                    // Notify the app that a new user is in the lobby
-                    app.notifyNewUserInLobby();
-                    /*
-                    When a new user enters the lobby (represented by a task/thread),
-                    it notifies other waiting threads that the lobby is no longer empty,
-                    potentially allowing them to proceed.
-                    This is essential for coordinating multiple threads waiting for the lobby to open.
-                     */
-
-                    // Add the username to the list when a user enters the lobby
-                    app.addUsernameToLobby(getAuthenticatedUsernameFromToken(request.getAuthorization()));
-
-                    // Wait for another user to enter the lobby
-                    app.wait();
-                } catch (InterruptedException e) {
-                    // Restore interrupted status and handle the exception
-                    Thread.currentThread().interrupt();
-                    handleException(e);
-                }
-            }
         }
     }
 

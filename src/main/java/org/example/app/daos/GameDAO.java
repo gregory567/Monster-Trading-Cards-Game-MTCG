@@ -91,14 +91,14 @@ public class GameDAO {
             if (user1Deck.isEmpty() || user2Deck.isEmpty()) {
                 break;
             }
-
-            // Reset variables
-            setWinner(null);
-            setLoser(null);
-            setWinnerCard(null);
-            setLoserCard(null);
-
         }
+
+        // Reset variables
+        setWinner(null);
+        setLoser(null);
+        setWinnerCard(null);
+        setLoserCard(null);
+
         // Update decks and stacks when the battle ends
         updateDecksAndStacks();
 

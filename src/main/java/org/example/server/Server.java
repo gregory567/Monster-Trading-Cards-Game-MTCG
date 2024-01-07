@@ -44,6 +44,16 @@ public class Server {
         }
     }
 
+    public void stop() {
+        try {
+            if (getServerSocket() != null && !getServerSocket().isClosed()) {
+                getServerSocket().close();
+            }
+        } catch (IOException e) {
+            handleException(e);
+        }
+    }
+
     /*
     private void handleClientConnection() {
         try (
