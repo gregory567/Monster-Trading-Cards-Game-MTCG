@@ -1,6 +1,5 @@
 package org.example.app;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -28,7 +27,7 @@ import org.example.server.ServerApp;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 
 @AllArgsConstructor
 @Setter(AccessLevel.PRIVATE)
@@ -41,8 +40,8 @@ public class App implements ServerApp {
     private GameController gameController;
     private List<String> usernamesInLobby = new ArrayList<>();
     private Integer usersInLobby = 0;
-    private CountDownLatch startBattleLatch = new CountDownLatch(2);
-    private String BattleLog;
+    private BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
+    private String battleLog;
 
     public App() {
         DatabaseService databaseService = new DatabaseService();
@@ -296,8 +295,13 @@ public class App implements ServerApp {
             // Wait until there are two users in the lobby
             if (usersInLobby < 2) {
                 try {
+                    // add first username to usernamesInLobby
+                    usernamesInLobby.add(usernameFromToken);
+
                     // Wait for another user to enter the lobby
                     wait();
+                    // Enqueue the first request
+                    requestQueue.add(request);
                 } catch (InterruptedException e) {
                     // Restore interrupted status and handle the exception
                     Thread.currentThread().interrupt();
@@ -308,22 +312,33 @@ public class App implements ServerApp {
             // If there are two users in the lobby, start the battle
             if (usersInLobby == 2) {
                 try {
-                    // Notify waiting threads that the battle is starting
-                    startBattleLatch.countDown();
-
-                    // Wait for the other user to be ready
-                    startBattleLatch.await();
+                    // add second username to usernamesInLobby
+                    usernamesInLobby.add(usernameFromToken);
 
                     // Reset the usersInLobby count
                     usersInLobby = 0;
 
+                    // Wait for the third thread to carry out the battle
+                    wait();
+                    // Enqueue the second request
+                    requestQueue.add(request);
+
                     // Call the GameController to carry out the battle
-                    if (BattleLog.isEmpty()) {
+                    if (battleLog.isEmpty()) {
+                        // third thread should carry out the battle, wake up first and second thread and give the battle log to them
                         Response battleResponse = getGameController().carryOutBattle(usernamesInLobby.get(0), usernamesInLobby.get(1));
                         setBattleLog(extractBattleLog(battleResponse));
+
+                        // Now release the waiting threads from the queue
+                        for (Request waitingRequest : requestQueue) {
+                            synchronized (waitingRequest) {
+                                waitingRequest.notify();
+                            }
+                        }
+
                         return battleResponse;
                     }
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     // Restore interrupted status and handle the exception
                     Thread.currentThread().interrupt();
                     handleException(e);
