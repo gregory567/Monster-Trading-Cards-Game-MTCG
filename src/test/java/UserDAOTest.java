@@ -26,13 +26,14 @@ class UserDAOTest {
 
     private UserDAO userDAO;
 
-    // Strings to store SQL script content
+    // String to store SQL DB-schema script content
     private static String schemaSql;
+    // String to store SQL DB reset-script content
     private static String resetSql;
 
     @BeforeAll
     static void beforeAll() {
-        // Setup H2 in-memory database connection
+        // Set up an H2 in-memory database connection
         testConnection = createH2Connection();
 
         // Load the content of Schema.sql and Reset.sql into strings
@@ -45,7 +46,7 @@ class UserDAOTest {
         // Print the contents of the Reset.sql file for debugging
         System.out.println("Reset SQL Contents:\n" + resetSql);
 
-        // Ensure to execute any database schema initialization scripts here
+        // Execute database schema initialization scripts here
         executeScript(schemaSql, testConnection);
     }
 
@@ -68,8 +69,8 @@ class UserDAOTest {
     }
 
     private void resetDatabase() {
-        // Execute SQL scripts or commands to reset the database to a clean state
-        // This might include deleting all data, resetting sequences, etc.
+        // Execute SQL script to reset the database to a clean state
+        // This includes deleting all data from all tables
         executeScript(resetSql, testConnection);
     }
 
@@ -137,6 +138,9 @@ class UserDAOTest {
         UserDataDTO userData = userDAO.getUser("testuser");
         // A - assert, then
         assertNotNull(userData);
+        assertNull(userData.getName());
+        assertNull(userData.getBio());
+        assertNull(userData.getImage());
     }
 
     @Test
@@ -173,6 +177,7 @@ class UserDAOTest {
         // A - assert, then
         assertNotNull(token);
         assertNotEquals("401", token);
+        assertEquals("testuser-mtcgToken", token);
     }
 
     @Test
@@ -227,7 +232,10 @@ class UserDAOTest {
         // A - assert, then
         // Verify that the user stats are not null
         assertNotNull(userStats);
-        // Add more assertions based on the expected data in the user stats
+        assertNull(userStats.getName());
+        assertEquals(100, userStats.getElo_score());
+        assertEquals(0, userStats.getWins());
+        assertEquals(0, userStats.getLosses());
     }
 
     @Test
@@ -258,8 +266,18 @@ class UserDAOTest {
         // Verify that the scoreboard is not null and has the expected number of entries
         assertNotNull(scoreboard);
         assertEquals(3, scoreboard.size());
-
-        // Add more assertions based on the expected order and data in the scoreboard
+        assertNull(scoreboard.get(0).getName());
+        assertNull(scoreboard.get(1).getName());
+        assertNull(scoreboard.get(2).getName());
+        assertEquals(100, scoreboard.get(0).getElo_score());
+        assertEquals(100, scoreboard.get(1).getElo_score());
+        assertEquals(100, scoreboard.get(2).getElo_score());
+        assertEquals(0, scoreboard.get(0).getWins());
+        assertEquals(0, scoreboard.get(1).getWins());
+        assertEquals(0, scoreboard.get(2).getWins());
+        assertEquals(0, scoreboard.get(0).getLosses());
+        assertEquals(0, scoreboard.get(1).getLosses());
+        assertEquals(0, scoreboard.get(2).getLosses());
     }
 
     @Test

@@ -14,9 +14,9 @@ public class UserStatDTO {
     @JsonAlias({"Name"})
     private String name;
     @JsonAlias({"Elo"})
-    private String elo_score;
+    private Integer elo_score;
     @JsonAlias({"Wins"})
-    private String wins;
+    private Integer wins;
     @JsonAlias({"Losses"})
-    private String losses;
+    private Integer losses;
 }

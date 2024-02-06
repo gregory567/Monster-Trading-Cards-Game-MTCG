@@ -523,9 +523,9 @@ public class UserDAO {
             try (ResultSet statsResultSet = statsStatement.executeQuery()) {
                 if (statsResultSet.next()) {
                     String name = statsResultSet.getString("profile_name");
-                    String eloScore = statsResultSet.getString("elo_score");
-                    String wins = statsResultSet.getString("wins");
-                    String losses = statsResultSet.getString("losses");
+                    Integer eloScore = statsResultSet.getInt("elo_score");
+                    Integer wins = statsResultSet.getInt("wins");
+                    Integer losses = statsResultSet.getInt("losses");
 
                     return new UserStatDTO(name, eloScore, wins, losses);
                 }
@@ -572,9 +572,9 @@ public class UserDAO {
      */
     private UserStatDTO createUserStatFromResultSet(ResultSet resultSet) throws SQLException {
         String name = resultSet.getString("profile_name");
-        String eloScore = resultSet.getString("elo_score");
-        String wins = resultSet.getString("wins");
-        String losses = resultSet.getString("losses");
+        Integer eloScore = resultSet.getInt("elo_score");
+        Integer wins = resultSet.getInt("wins");
+        Integer losses = resultSet.getInt("losses");
 
         return new UserStatDTO(name, eloScore, wins, losses);
     }
