@@ -27,7 +27,7 @@ public class CardDAO {
      * @return An ArrayList of CardDTO representing the cards in the user's stack.
      */
     public ArrayList<CardDTO> getUserCards(String username) {
-        List<CardDTO> cards = new ArrayList<>();
+        ArrayList<CardDTO> cards = new ArrayList<>();
 
         String query = "SELECT * FROM \"Stack\" s JOIN \"Card\" c ON s.\"card_id\" = c.\"id\" WHERE s.\"username\" = ?";
 
@@ -44,7 +44,7 @@ public class CardDAO {
             e.printStackTrace();
         }
 
-        return (ArrayList<CardDTO>) cards;
+        return cards;
     }
 
     // Helper method to create a CardDTO from a ResultSet
@@ -86,7 +86,6 @@ public class CardDAO {
         // Check if the deck is not yet configured (contains only "null" values)
         if (cards.isEmpty() || cards.stream().allMatch(cardDTO -> cardDTO == null)) {
             // Handle the case where the deck is not yet configured
-            // You can return an empty list or throw an exception based on your application's requirements
             return Collections.emptyList();
         }
 

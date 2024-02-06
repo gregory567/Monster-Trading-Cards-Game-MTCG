@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class UserDAOTest {
+public class UserDAOTest {
 
     private static Connection testConnection; // in-memory database connection
 
