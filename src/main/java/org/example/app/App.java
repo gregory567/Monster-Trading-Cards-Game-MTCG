@@ -25,9 +25,8 @@ import org.example.server.Request;
 import org.example.server.Response;
 import org.example.server.ServerApp;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 @AllArgsConstructor
 @Setter(AccessLevel.PRIVATE)
@@ -38,10 +37,11 @@ public class App implements ServerApp {
     private CardController cardController;
     private TradeDealController tradeDealController;
     private GameController gameController;
-    private List<String> usernamesInLobby = new ArrayList<>();
-    private Integer usersInLobby = 0;
-    private BlockingQueue<Request> requestQueue = new LinkedBlockingQueue<>();
+    private final ReentrantLock lock = new ReentrantLock();
+    private String userName1;
+    private String userName2;
     private String battleLog;
+
 
     public App() {
         DatabaseService databaseService = new DatabaseService();
@@ -287,65 +287,28 @@ public class App implements ServerApp {
                 return buildJsonResponse(HttpStatus.UNAUTHORIZED, null, "Access token is missing or invalid");
             }
 
-            // Increment the usersInLobby count
-            synchronized (this) {
-                usersInLobby++;
-            }
-
-            // Wait until there are two users in the lobby
-            if (usersInLobby < 2) {
-                try {
+            synchronized (lock) {
+                // Wait until there are two users in the lobby
+                if (userName1.isEmpty()) {
                     // add first username to usernamesInLobby
-                    usernamesInLobby.add(usernameFromToken);
-
-                    // Wait for another user to enter the lobby
-                    wait();
-                    // Enqueue the first request
-                    requestQueue.add(request);
-                } catch (InterruptedException e) {
-                    // Restore interrupted status and handle the exception
-                    Thread.currentThread().interrupt();
-                    handleException(e);
-                }
-            }
-
-            // If there are two users in the lobby, start the battle
-            if (usersInLobby == 2) {
-                try {
+                    userName1 = usernameFromToken;
+                    System.out.println("Waiting for another user to enter the lobby");
+                } else if (userName2.isEmpty()) {
+                    // If there are two users in the lobby, start the battle
                     // add second username to usernamesInLobby
-                    usernamesInLobby.add(usernameFromToken);
-
-                    // Reset the usersInLobby count
-                    usersInLobby = 0;
-
-                    // Wait for the third thread to carry out the battle
-                    wait();
-                    // Enqueue the second request
-                    requestQueue.add(request);
+                    userName2 = usernameFromToken;
+                    System.out.println("Both usernames are set in the lobby");
 
                     // Call the GameController to carry out the battle
-                    if (battleLog.isEmpty()) {
-                        // third thread should carry out the battle, wake up first and second thread and give the battle log to them
-                        Response battleResponse = getGameController().carryOutBattle(usernamesInLobby.get(0), usernamesInLobby.get(1));
-                        setBattleLog(extractBattleLog(battleResponse));
+                    // carry out the battle, return the battle log
+                    Response battleResponse = getGameController().carryOutBattle(userName1, userName2);
+                    setBattleLog(extractBattleLog(battleResponse));
 
-                        // Now release the waiting threads from the queue
-                        for (Request waitingRequest : requestQueue) {
-                            synchronized (waitingRequest) {
-                                waitingRequest.notify();
-                            }
-                        }
-
-                        return battleResponse;
-                    }
-                } catch (Exception e) {
-                    // Restore interrupted status and handle the exception
-                    Thread.currentThread().interrupt();
-                    handleException(e);
+                    return battleResponse;
+                } else {
+                    // Otherwise, print a message to the console indicating that the battle already started
+                    System.out.println("Battle already started");
                 }
-            } else {
-                // Otherwise, print a message to the console indicating that the user is in the lobby
-                System.out.println("Waiting for another user to enter the lobby");
             }
         }
         return notFoundResponse();

@@ -103,7 +103,7 @@ public class GameDAO {
         updateDecksAndStacks();
 
         // Return the detailed battle log
-        return "Battle completed\n" + battleLog.toString();
+        return "Battle completed\n" + battleLog;
     }
 
     /**
@@ -582,7 +582,7 @@ public class GameDAO {
             roundLogDetails.append("Error retrieving round details.\n");
         }
 
-        return roundLogDetails.toString();
+        return String.valueOf(roundLogDetails);
     }
 
     /**
