@@ -82,7 +82,7 @@ public class GameDAO {
             }
 
             // Log the round details, winner, loser, cards, and draw status
-            logRound(battleId, round, winner, loser, winnerCard, loserCard, draw);
+            logRound(battleId, round, winner, loser, winnerCard, loserCard, draw, battleLog);
 
             // Retrieve and append round details to the battle log
             battleLog.append(getRoundLogDetails(battleId, round));
@@ -148,7 +148,7 @@ public class GameDAO {
         List<Card> selectedCards = new ArrayList<>();
 
         // Select all cards for the user from their deck
-        String selectDeckQuery = "SELECT \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\" FROM Deck WHERE \"username\" = ?";
+        String selectDeckQuery = "SELECT \"card1_id\", \"card2_id\", \"card3_id\", \"card4_id\" FROM \"Deck\" WHERE \"username\" = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectDeckQuery)) {
             preparedStatement.setString(1, username);
 
@@ -177,7 +177,7 @@ public class GameDAO {
      * @return The Card object representing the retrieved card or null if not found.
      */
     public Card getCardById(UUID cardId) {
-        String selectCardQuery = "SELECT * FROM Card WHERE \"id\" = ?";
+        String selectCardQuery = "SELECT * FROM \"Card\" WHERE \"id\" = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectCardQuery)) {
             preparedStatement.setObject(1, cardId);
@@ -479,15 +479,24 @@ public class GameDAO {
      * @param loserCard  The card of the loser.
      * @param draw       True if the round ended in a draw; false otherwise.
      */
-    private void logRound(UUID battleId, Integer round, String winner, String loser, Card winnerCard, Card loserCard, boolean draw) {
+    private void logRound(UUID battleId, Integer round, String winner, String loser, Card winnerCard, Card loserCard, boolean draw, StringBuilder battleLog) {
         try {
             // Insert into RoundDetail table
             UUID roundId = UUID.randomUUID();
-            insertRoundDetail(roundId, winnerCard.getId(), winnerCard.getName(), winner);
-            insertRoundDetail(roundId, loserCard.getId(), loserCard.getName(), loser);
 
-            // Insert into RoundLog table
-            insertRoundLog(battleId, round, winner, loser, draw, roundId);
+            if (draw) {
+                // Log round details for draw
+                String drawRoundLog = String.format("Round %d ended in a draw.\n", round);
+                // Insert into RoundLog table
+                insertRoundLog(battleId, round, null, null, true, roundId);
+                // Append draw round log
+                battleLog.append(drawRoundLog);
+            } else {
+                // Log round details for normal round
+                insertRoundDetail(roundId, winnerCard.getId(), winnerCard.getName(), winner, loserCard.getId(), loserCard.getName(), loser);
+                insertRoundLog(battleId, round, winner, loser, false, roundId);
+            }
+
         } catch (SQLException e) {
             // Handle SQL exception by logging or rethrowing if necessary
             e.printStackTrace();
@@ -497,20 +506,26 @@ public class GameDAO {
     /**
      * Inserts details of a round into the "RoundDetail" table in the database.
      *
-     * @param roundId         The unique identifier (UUID) of the round.
-     * @param cardId          The unique identifier (UUID) of the card used in the round.
-     * @param cardName        The name of the card used in the round.
-     * @param playerUsername  The username of the player associated with the round.
+     * @param roundId             The unique identifier (UUID) of the round.
+     * @param winnerCardId       The unique identifier (UUID) of the winning card used in the round.
+     * @param winnerCardName     The name of the winning card used in the round.
+     * @param winnerPlayerUsername The username of the player who won the round.
+     * @param loserCardId        The unique identifier (UUID) of the losing card used in the round.
+     * @param loserCardName      The name of the losing card used in the round.
+     * @param loserPlayerUsername The username of the player who lost the round.
      * @throws SQLException If a SQL exception occurs during the database update.
      */
-    private void insertRoundDetail(UUID roundId, UUID cardId, CardName cardName, String playerUsername) throws SQLException {
-        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(\"round_id\", \"card_id\", \"card_name\", \"player_username\") VALUES (?, ?, ?, ?)";
+    private void insertRoundDetail(UUID roundId, UUID winnerCardId, CardName winnerCardName, String winnerPlayerUsername, UUID loserCardId, CardName loserCardName, String loserPlayerUsername) throws SQLException {
+        String insertRoundDetailQuery = "INSERT INTO \"RoundDetail\"(\"round_id\", \"winner_card_id\", \"winner_card_name\", \"winner_player_username\", \"loser_card_id\", \"loser_card_name\", \"loser_player_username\") VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertRoundDetailQuery)) {
             preparedStatement.setObject(1, roundId);
-            preparedStatement.setObject(2, cardId);
-            preparedStatement.setObject(3, cardName);
-            preparedStatement.setString(4, playerUsername);
+            preparedStatement.setObject(2, winnerCardId);
+            preparedStatement.setString(3, String.valueOf(winnerCardName));
+            preparedStatement.setString(4, winnerPlayerUsername);
+            preparedStatement.setObject(5, loserCardId);
+            preparedStatement.setString(6, String.valueOf(loserCardName));
+            preparedStatement.setString(7, loserPlayerUsername);
 
             preparedStatement.executeUpdate();
         }
@@ -554,7 +569,7 @@ public class GameDAO {
 
         try {
             String selectRoundLogDetailsQuery =
-                    "SELECT rd.\"player_username\", rd.\"card_name\", rd.\"card_id\", rl.\"draw\" " +
+                    "SELECT rd.\"winner_player_username\", rd.\"winner_card_name\", rd.\"winner_card_id\", rd.\"loser_player_username\", rd.\"loser_card_name\", rd.\"loser_card_id\", rl.\"draw\" " +
                             "FROM \"RoundLog\" rl " +
                             "JOIN \"RoundDetail\" rd ON rl.\"round_id\" = rd.\"round_id\" " +
                             "WHERE rl.\"battle_id\" = ? AND rl.\"round_number\" = ?";
@@ -567,13 +582,20 @@ public class GameDAO {
                     roundLogDetails.append(String.format("Round %d Details:\n", roundNumber));
 
                     while (resultSet.next()) {
-                        String playerUsername = resultSet.getString("player_username");
-                        String cardName = resultSet.getString("card_name");
-                        UUID cardId = UUID.fromString(resultSet.getString("card_id"));
+                        String winnerPlayerUsername = resultSet.getString("winner_player_username");
+                        String winnerCardName = resultSet.getString("winner_card_name");
+                        UUID winnerCardId = UUID.fromString(resultSet.getString("winner_card_id"));
+                        String loserPlayerUsername = resultSet.getString("loser_player_username");
+                        String loserCardName = resultSet.getString("loser_card_name");
+                        UUID loserCardId = UUID.fromString(resultSet.getString("loser_card_id"));
                         boolean draw = resultSet.getBoolean("draw");
 
-                        roundLogDetails.append(String.format("  Player: %s, Card: %s, Card ID: %s%s\n",
-                                playerUsername, cardName, cardId, (draw ? " (Draw)" : "")));
+                        roundLogDetails.append(String.format("  Winner: %s, Winning Card: %s, Winning Card ID: %s\n" +
+                                        " Loser: %s, Losing Card: %s, Losing Card ID: %s\n" +
+                                        " %s\n",
+                                winnerPlayerUsername, winnerCardName, winnerCardId,
+                                loserPlayerUsername, loserCardName, loserCardId,
+                                (draw ? " (Draw)" : "")));
                     }
                 }
             }
@@ -619,7 +641,8 @@ public class GameDAO {
     }
 
     /**
-     * Moves all cards from the deck list to the stack of the specified username.
+     * Moves all cards from the deck list to the stack of the specified username,
+     * if they are not already present in the stack.
      *
      * @param username The username for which to move cards to the stack.
      * @param deck     The deck containing the cards to be moved.
@@ -632,20 +655,49 @@ public class GameDAO {
 
             try (PreparedStatement insertStatement = connection.prepareStatement(insertStackQuery)) {
                 for (Card card : deck) {
-                    // Update owner_username in Card table
-                    updateStatement.setString(1, username);
-                    updateStatement.setObject(2, card.getId());
-                    updateStatement.executeUpdate();
+                    // Check if the card is already in the user's stack
+                    if (!isCardInStack(username, card.getId())) {
+                        // Update owner_username in Card table
+                        updateStatement.setString(1, username);
+                        updateStatement.setObject(2, card.getId());
+                        updateStatement.executeUpdate();
 
-                    // Insert into Stack table
-                    insertStatement.setString(1, username);
-                    insertStatement.setObject(2, card.getId());
-                    insertStatement.executeUpdate();
+                        // Insert into Stack table
+                        insertStatement.setString(1, username);
+                        insertStatement.setObject(2, card.getId());
+                        insertStatement.executeUpdate();
+                    }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Checks if a card is already present in the user's stack.
+     *
+     * @param username The username of the user.
+     * @param cardId   The ID of the card to check.
+     * @return True if the card is already in the user's stack, false otherwise.
+     * @throws SQLException If a SQL exception occurs during the database query.
+     */
+    private boolean isCardInStack(String username, UUID cardId) throws SQLException {
+        String selectStackQuery = "SELECT COUNT(*) AS count FROM \"Stack\" WHERE \"username\" = ? AND \"card_id\" = ?";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(selectStackQuery)) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setObject(2, cardId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    int count = resultSet.getInt("count");
+                    return count > 0;
+                }
+            }
+        }
+
+        return false; // Default to false if no result is found
     }
 
 

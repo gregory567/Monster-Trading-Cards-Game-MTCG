@@ -289,11 +289,11 @@ public class App implements ServerApp {
 
             synchronized (lock) {
                 // Wait until there are two users in the lobby
-                if (userName1.isEmpty()) {
+                if (userName1 == null) {
                     // add first username to usernamesInLobby
                     userName1 = usernameFromToken;
                     System.out.println("Waiting for another user to enter the lobby");
-                } else if (userName2.isEmpty()) {
+                } else if (userName2 == null) {
                     // If there are two users in the lobby, start the battle
                     // add second username to usernamesInLobby
                     userName2 = usernameFromToken;

@@ -78,32 +78,50 @@ CREATE TABLE IF NOT EXISTS "Battle" (
 -- Create RoundDetail Table
 CREATE TABLE IF NOT EXISTS "RoundDetail" (
     "round_id" UUID PRIMARY KEY,
-    "card_id" UUID REFERENCES "Card"("id"),
-    "card_name" VARCHAR(255),
-    "player_username" VARCHAR(255) REFERENCES "User"("username"),
-    UNIQUE("round_id", "card_id")
+    "winner_card_id" UUID REFERENCES "Card"("id"),
+    "winner_card_name" VARCHAR(255),
+    "winner_player_username" VARCHAR(255) REFERENCES "User"("username"),
+    "loser_card_id" UUID REFERENCES "Card"("id"),
+    "loser_card_name" VARCHAR(255),
+    "loser_player_username" VARCHAR(255) REFERENCES "User"("username"),
+    UNIQUE("round_id", "winner_card_id")
 );
 
 -- if the above doesnt work:
 -- Create RoundDetail Table (Simple Structure)
 CREATE TABLE IF NOT EXISTS "RoundDetail" (
     "round_id" UUID PRIMARY KEY,
-    "card_id" UUID,
-    "card_name" VARCHAR(255),
-    "player_username" VARCHAR(255),
-    UNIQUE("round_id", "card_id")
+    "winner_card_id" UUID,
+    "winner_card_name" VARCHAR(255),
+    "winner_player_username" VARCHAR(255),
+    "loser_card_id" UUID,
+    "loser_card_name" VARCHAR(255),
+    "loser_player_username" VARCHAR(255),
+    UNIQUE("round_id", "winner_card_id")
 );
 
--- Add foreign key constraint for "card_id"
+-- Add foreign key constraint for "winner_card_id"
 ALTER TABLE "RoundDetail"
-ADD CONSTRAINT "fk_rounddetail_cardid"
-FOREIGN KEY ("card_id")
+ADD CONSTRAINT "fk_rounddetail_winnercardid"
+FOREIGN KEY ("winner_card_id")
 REFERENCES "Card" ("id");
 
--- Add foreign key constraint for "player_username"
+-- Add foreign key constraint for "winner_player_username"
 ALTER TABLE "RoundDetail"
-ADD CONSTRAINT "fk_rounddetail_user"
-FOREIGN KEY ("player_username")
+ADD CONSTRAINT "fk_rounddetail_winneruser"
+FOREIGN KEY ("winner_player_username")
+REFERENCES "User" ("username");
+
+-- Add foreign key constraint for "loser_card_id"
+ALTER TABLE "RoundDetail"
+ADD CONSTRAINT "fk_rounddetail_losercardid"
+FOREIGN KEY ("loser_card_id")
+REFERENCES "Card" ("id");
+
+-- Add foreign key constraint for "loser_player_username"
+ALTER TABLE "RoundDetail"
+ADD CONSTRAINT "fk_rounddetail_loseruser"
+FOREIGN KEY ("loser_player_username")
 REFERENCES "User" ("username");
 
 
