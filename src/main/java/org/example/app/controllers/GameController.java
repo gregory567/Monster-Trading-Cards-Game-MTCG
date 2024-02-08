@@ -33,7 +33,7 @@ public class GameController extends Controller {
 
             if (!battleLog.isEmpty()) {
                 String battleLogJSON = getObjectMapper().writeValueAsString(battleLog);
-                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", battleLogJSON, "The battle has been carried out successfully.");
+                String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", battleLogJSON, null);
                 return new Response(HttpStatus.OK, ContentType.JSON, jsonResponse);
             } else {
                 return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, null);

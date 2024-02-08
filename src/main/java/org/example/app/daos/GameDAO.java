@@ -487,6 +487,8 @@ public class GameDAO {
             if (draw) {
                 // Log round details for draw
                 String drawRoundLog = String.format("Round %d ended in a draw.\n", round);
+                // Insert into RoundDetail table
+                insertRoundDetail(roundId, null, null, null, null, null, null);
                 // Insert into RoundLog table
                 insertRoundLog(battleId, round, null, null, true, roundId);
                 // Append draw round log

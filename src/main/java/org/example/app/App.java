@@ -303,6 +303,10 @@ public class App implements ServerApp {
                     // carry out the battle, return the battle log
                     Response battleResponse = getGameController().carryOutBattle(userName1, userName2);
                     setBattleLog(extractBattleLog(battleResponse));
+                    System.out.println(battleLog);
+                    userName1 = null;
+                    userName2 = null;
+                    battleLog = null;
 
                     return battleResponse;
                 } else {
