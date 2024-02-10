@@ -84,9 +84,6 @@ public class GameDAO {
             // Log the round details, winner, loser, cards, and draw status
             logRound(battleId, round, winner, loser, winnerCard, loserCard, draw, battleLog);
 
-            // Retrieve and append round details to the battle log
-            battleLog.append(getRoundLogDetails(battleId, round));
-
             // end the battle, if one user has lost all his cards
             if (user1Deck.isEmpty() || user2Deck.isEmpty()) {
                 break;
@@ -497,6 +494,8 @@ public class GameDAO {
                 // Log round details for normal round
                 insertRoundDetail(roundId, winnerCard.getId(), winnerCard.getName(), winner, loserCard.getId(), loserCard.getName(), loser);
                 insertRoundLog(battleId, round, winner, loser, false, roundId);
+                // Retrieve and append round details to the battle log
+                battleLog.append(getRoundLogDetails(battleId, round));
             }
 
         } catch (SQLException e) {
