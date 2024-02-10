@@ -38,6 +38,7 @@ public class App implements ServerApp {
     private TradeDealController tradeDealController;
     private GameController gameController;
     private final ReentrantLock lock = new ReentrantLock();
+    private final ConcurrentLinkedQueue<String> lobbyQueue = new ConcurrentLinkedQueue<>();
     private String userName1;
     private String userName2;
     private String battleLog;
@@ -288,32 +289,25 @@ public class App implements ServerApp {
             }
 
             synchronized (lock) {
-                // Wait until there are two users in the lobby
-                if (userName1 == null) {
-                    // add first username to usernamesInLobby
-                    userName1 = usernameFromToken;
-                    System.out.println("Waiting for another user to enter the lobby");
-                } else if (userName2 == null) {
-                    // If there are two users in the lobby, start the battle
-                    // add second username to usernamesInLobby
-                    userName2 = usernameFromToken;
+                // Add the user to the lobby
+                addUserToLobby(usernameFromToken);
+
+                // Check if there are enough users in the lobby to start a battle
+                if (canStartBattle()) {
                     System.out.println("Both usernames are set in the lobby");
 
-                    // Call the GameController to carry out the battle
-                    // carry out the battle, return the battle log
-                    Response battleResponse = getGameController().carryOutBattle(userName1, userName2);
+                    // If there are two users in the lobby, start the battle
+                    Response battleResponse = startBattle();
                     setBattleLog(extractBattleLog(battleResponse));
                     System.out.println(battleLog);
-                    userName1 = null;
-                    userName2 = null;
-                    battleLog = null;
 
                     return battleResponse;
                 } else {
-                    // Otherwise, print a message to the console indicating that the battle already started
-                    System.out.println("Battle already started");
+                    // Otherwise, print a message to the console indicating that the battle hasn't started yet
+                    System.out.println("Waiting for another user to enter the lobby");
                 }
             }
+
         }
         return notFoundResponse();
     }
@@ -373,6 +367,35 @@ public class App implements ServerApp {
             return getTradeDealController().deleteTradeDeal(usernameFromToken, tradeDealIdFromPath);
         }
         return notFoundResponse();
+    }
+
+    // Method to add a user to the lobby queue
+    private void addUserToLobby(String username) {
+        lobbyQueue.offer(username);
+    }
+
+    // Method to remove a user from the lobby queue
+    private void removeUserFromLobby(String username) {
+        lobbyQueue.remove(username);
+    }
+
+    // Method to check if there are enough users in the lobby to start a battle
+    private boolean canStartBattle() {
+        return lobbyQueue.size() >= 2;
+    }
+
+    // Method to start a battle with the first two users in the lobby
+    private Response startBattle() {
+        // Retrieve the first two users from the lobby queue
+        String userName1 = lobbyQueue.poll();
+        String userName2 = lobbyQueue.poll();
+
+        // Remove the users from the lobby queue
+        removeUserFromLobby(userName1);
+        removeUserFromLobby(userName2);
+
+        // Carry out the battle
+        return getGameController().carryOutBattle(userName1, userName2);
     }
 
     private String getUsernameFromPath(String path) {
