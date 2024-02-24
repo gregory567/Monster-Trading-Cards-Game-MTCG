@@ -137,8 +137,8 @@ public class Request {
                 return true;
             }
         } else if (method == Method.POST) {
-            if (pathname.equals("/users") || pathname.equals("/sessions") || pathname.equals("/packages") ||
-                    pathname.equals("/transactions/packages") || pathname.equals("/tradings") ||
+            if (pathname.equals("/users") || pathname.equals("/sessions") || pathname.equals("/logout") ||
+                    pathname.equals("/packages") || pathname.equals("/transactions/packages") || pathname.equals("/tradings") ||
                     pathname.startsWith("/tradings/") || pathname.equals("/battles")) {
                 return true;
             }

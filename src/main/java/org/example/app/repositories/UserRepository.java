@@ -39,6 +39,10 @@ public class UserRepository {
         return userDAO.loginUser(username, password);
     }
 
+    public String logoutUser(String username) {
+        return userDAO.logoutUser(username);
+    }
+
     public UserStatDTO getStats(String username) {
         return userDAO.getStats(username);
     }

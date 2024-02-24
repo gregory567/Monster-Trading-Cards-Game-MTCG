@@ -239,8 +239,19 @@ public class UserDAO {
                 System.out.println("Authentication failed.");
                 return "401";
             } else {
-                // Authentication successful
-                return retrieveUserToken(username);
+                // Check if the user has a token
+                String token = retrieveUserToken(username);
+                if (token == null) {
+                    // create token for later login
+                    String newToken = username + "-mtcgToken";
+                    // Insert the new token into the database
+                    insertUserToken(username, newToken);
+                    // Return the newly generated token
+                    return newToken;
+                } else {
+                    // Authentication successful, return existing token
+                    return token;
+                }
             }
         } catch (SQLException e) {
             // Handle SQL exception
@@ -306,6 +317,58 @@ public class UserDAO {
 
         // Return false if an exception occurred or no password for the specified username was found
         return false;
+    }
+
+    /**
+     * Inserts a user token into the database for the specified username.
+     *
+     * @param username The username for which to insert the token.
+     * @param token    The token to be inserted.
+     * @throws SQLException If a SQL exception occurs during token insertion.
+     */
+    private void insertUserToken(String username, String token) throws SQLException {
+        String updateTokenStmt = "UPDATE \"User\" SET \"token\" = ? WHERE \"username\" = ?;";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateTokenStmt)) {
+            preparedStatement.setString(1, token);
+            preparedStatement.setString(2, username);
+            preparedStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Logs out the user by removing the token associated with the specified username.
+     * If the user does not exist, returns "404". If the token removal is successful, returns "200".
+     * If the token removal fails or a SQL exception occurs, returns "500".
+     *
+     * @param username The username of the user to log out.
+     * @return A string indicating the result of the logout operation (e.g., "404" for user not found,
+     *         "200" for successful logout, "500" for failure or error).
+     */
+    public String logoutUser(String username) {
+        // Check if the user exists
+        if (!userExists(username)) {
+            // User not found
+            return "404";
+        }
+
+        // Remove the token associated with the user
+        String updateTokenStmt = "UPDATE \"User\" SET \"token\" = NULL WHERE \"username\" = ?;";
+        try (PreparedStatement preparedStatement = getConnection().prepareStatement(updateTokenStmt)) {
+            preparedStatement.setString(1, username);
+            int rowsUpdated = preparedStatement.executeUpdate();
+
+            // Check if the token was successfully removed
+            if (rowsUpdated > 0) {
+                return "200";
+            } else {
+                // Token removal failed
+                return "500";
+            }
+        } catch (SQLException e) {
+            // Handle SQL exception
+            e.printStackTrace();
+            return "500"; // Internal server error
+        }
     }
 
     /**

@@ -182,6 +182,32 @@ public class UserController extends Controller {
         }
     }
 
+    public Response logoutUser(String username) {
+        try {
+            // Validate username and password
+            if (username == null) {
+                return buildJsonResponse(HttpStatus.BAD_REQUEST, null, "Missing username");
+            }
+
+            // Authenticate the user using the UserDAO
+            String logoutStatus = getUserRepository().logoutUser(username);
+
+            switch (logoutStatus) {
+                case "404":
+                    // User not found
+                    return buildJsonResponse(HttpStatus.NOT_FOUND, null, "User not found");
+                case "500":
+                    return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to logout user");
+                default:
+                    // Assuming the logout operation was successful, return a response with HTTP status 200 (OK)
+                    return buildJsonResponse(HttpStatus.OK, null, "User successfully logged out");
+            }
+        } catch (Exception e) {
+            // Handle exceptions, if any
+            return buildJsonResponse(HttpStatus.INTERNAL_SERVER_ERROR, null, "Failed to logout user");
+        }
+    }
+
     // GET /stats
     public Response getStats(String username) {
         try {
