@@ -60,24 +60,41 @@ public class GameDAO {
         for (int round = 1; round <= NUMBER_OF_ROUNDS; round++) {
 
             boolean draw = false;
+
             // Select one card for each user from their decks
             Card user1Card = selectRandomCardFromDeck(user1Deck);
             Card user2Card = selectRandomCardFromDeck(user2Deck);
 
-            // battle logic using the selected cards
-            applySpecialty(user1Card, user2Card, username1, username2);
-            applySpecialty(user2Card, user1Card, username2, username1);
-
-            if (winner == null && loser == null) {
-                Double effectiveDamageUser1 = user1Card.calculateEffectiveDamage(user2Card);
-                Double effectiveDamageUser2 = user2Card.calculateEffectiveDamage(user1Card);
-
+            // Check if it's a chaos round
+            if (round == 25 || round == 50 || round == 75) {
+                // Calculate effective damage randomly for both users
+                Double effectiveDamageUser1 = getRandomEffectiveDamage();
+                Double effectiveDamageUser2 = getRandomEffectiveDamage();
+                // Update the winner based on random damage
                 if (effectiveDamageUser1 > effectiveDamageUser2) {
                     setWinnerAndLoser(username1, username2, user1Card, user2Card);
                 } else if (effectiveDamageUser1 < effectiveDamageUser2) {
                     setWinnerAndLoser(username2, username1, user2Card, user1Card);
                 } else {
                     draw = true;
+                }
+            } else {
+
+                // battle logic using the selected cards
+                applySpecialty(user1Card, user2Card, username1, username2);
+                applySpecialty(user2Card, user1Card, username2, username1);
+
+                if (winner == null && loser == null) {
+                    Double effectiveDamageUser1 = user1Card.calculateEffectiveDamage(user2Card);
+                    Double effectiveDamageUser2 = user2Card.calculateEffectiveDamage(user1Card);
+
+                    if (effectiveDamageUser1 > effectiveDamageUser2) {
+                        setWinnerAndLoser(username1, username2, user1Card, user2Card);
+                    } else if (effectiveDamageUser1 < effectiveDamageUser2) {
+                        setWinnerAndLoser(username2, username1, user2Card, user1Card);
+                    } else {
+                        draw = true;
+                    }
                 }
             }
 
@@ -101,6 +118,18 @@ public class GameDAO {
 
         // Return the detailed battle log
         return "Battle completed\n" + battleLog;
+    }
+
+    /**
+     * Generates a random value representing effective damage for chaos rounds.
+     *
+     * @return A random double value between 0 (inclusive) and 100 (inclusive)
+     *         representing the effective damage.
+     */
+    private Double getRandomEffectiveDamage() {
+        Random random = new Random();
+        // Generate a random double value between 0 and 100 (inclusive) for effective damage
+        return random.nextDouble() * 101;
     }
 
     /**
