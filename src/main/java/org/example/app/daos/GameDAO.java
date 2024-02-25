@@ -510,12 +510,32 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void incrementEloScore(String username, int increment) throws SQLException {
-        String updateEloQuery = "UPDATE \"User\" SET \"elo_score\" = \"elo_score\" + ? WHERE \"username\" = ?";
+        // Query to retrieve the current Elo score
+        String selectEloQuery = "SELECT \"elo_score\" FROM \"User\" WHERE \"username\" = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(updateEloQuery)) {
-            preparedStatement.setInt(1, increment);
-            preparedStatement.setString(2, username);
-            preparedStatement.executeUpdate();
+        // Update query to increment the Elo score
+        String updateEloQuery = "UPDATE \"User\" SET \"elo_score\" = ? WHERE \"username\" = ?";
+
+        int currentEloScore = 0;
+
+        // Step 1: Query current Elo score
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectEloQuery)) {
+            selectStatement.setString(1, username);
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    currentEloScore = resultSet.getInt("elo_score");
+                }
+            }
+        }
+
+        // Step 2: Increment the Elo score
+        int updatedEloScore = currentEloScore + increment;
+
+        // Step 3: Update the value in the database
+        try (PreparedStatement updateStatement = connection.prepareStatement(updateEloQuery)) {
+            updateStatement.setInt(1, updatedEloScore);
+            updateStatement.setString(2, username);
+            updateStatement.executeUpdate();
         }
     }
 
@@ -527,12 +547,32 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void decrementEloScore(String username, int decrement) throws SQLException {
-        String updateEloQuery = "UPDATE \"User\" SET \"elo_score\" = \"elo_score\" - ? WHERE \"username\" = ?";
+        // Query to retrieve the current Elo score
+        String selectEloQuery = "SELECT \"elo_score\" FROM \"User\" WHERE \"username\" = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(updateEloQuery)) {
-            preparedStatement.setInt(1, decrement);
-            preparedStatement.setString(2, username);
-            preparedStatement.executeUpdate();
+        // Update query to decrement the Elo score
+        String updateEloQuery = "UPDATE \"User\" SET \"elo_score\" = ? WHERE \"username\" = ?";
+
+        int currentEloScore = 0;
+
+        // Step 1: Query current Elo score
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectEloQuery)) {
+            selectStatement.setString(1, username);
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    currentEloScore = resultSet.getInt("elo_score");
+                }
+            }
+        }
+
+        // Step 2: Decrement the Elo score
+        int updatedEloScore = Math.max(currentEloScore - decrement, 0); // Ensure Elo score doesn't go below 0
+
+        // Step 3: Update the value in the database
+        try (PreparedStatement updateStatement = connection.prepareStatement(updateEloQuery)) {
+            updateStatement.setInt(1, updatedEloScore);
+            updateStatement.setString(2, username);
+            updateStatement.executeUpdate();
         }
     }
 
