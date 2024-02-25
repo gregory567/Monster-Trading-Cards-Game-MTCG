@@ -437,11 +437,32 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void incrementWins(String username) throws SQLException {
-        String updateWinsQuery = "UPDATE \"User\" SET \"wins\" = \"wins\" + 1 WHERE \"username\" = ?";
+        // Query to retrieve the current number of wins
+        String selectWinsQuery = "SELECT \"wins\" FROM \"User\" WHERE \"username\" = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(updateWinsQuery)) {
-            preparedStatement.setString(1, username);
-            preparedStatement.executeUpdate();
+        // Update query to increment the wins
+        String updateWinsQuery = "UPDATE \"User\" SET \"wins\" = ? WHERE \"username\" = ?";
+
+        int currentWins = 0;
+
+        // Step 1: Query current number of wins
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectWinsQuery)) {
+            selectStatement.setString(1, username);
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    currentWins = resultSet.getInt("wins");
+                }
+            }
+        }
+
+        // Step 2: Increment the wins
+        int updatedWins = currentWins + 1;
+
+        // Step 3: Update the value in the database
+        try (PreparedStatement updateStatement = connection.prepareStatement(updateWinsQuery)) {
+            updateStatement.setInt(1, updatedWins);
+            updateStatement.setString(2, username);
+            updateStatement.executeUpdate();
         }
     }
 
@@ -452,11 +473,32 @@ public class GameDAO {
      * @throws SQLException If a SQL exception occurs during the database update.
      */
     private void incrementLosses(String username) throws SQLException {
-        String updateLossesQuery = "UPDATE \"User\" SET \"losses\" = \"losses\" + 1 WHERE \"username\" = ?";
+        // Query to retrieve the current number of losses
+        String selectLossesQuery = "SELECT \"losses\" FROM \"User\" WHERE \"username\" = ?";
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(updateLossesQuery)) {
-            preparedStatement.setString(1, username);
-            preparedStatement.executeUpdate();
+        // Update query to increment the losses
+        String updateLossesQuery = "UPDATE \"User\" SET \"losses\" = ? WHERE \"username\" = ?";
+
+        int currentLosses = 0;
+
+        // Step 1: Query current number of losses
+        try (PreparedStatement selectStatement = connection.prepareStatement(selectLossesQuery)) {
+            selectStatement.setString(1, username);
+            try (ResultSet resultSet = selectStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    currentLosses = resultSet.getInt("losses");
+                }
+            }
+        }
+
+        // Step 2: Increment the losses
+        int updatedLosses = currentLosses + 1;
+
+        // Step 3: Update the value in the database
+        try (PreparedStatement updateStatement = connection.prepareStatement(updateLossesQuery)) {
+            updateStatement.setInt(1, updatedLosses);
+            updateStatement.setString(2, username);
+            updateStatement.executeUpdate();
         }
     }
 
