@@ -321,6 +321,9 @@ public class App implements ServerApp {
                 } else {
                     // Otherwise, print a message to the console indicating that the battle hasn't started yet
                     System.out.println("Waiting for another user to enter the lobby");
+
+                    String jsonResponse = String.format("{ \"data\": %s, \"message\": %s }", null, "Waiting for another user to enter the lobby");
+                    return new Response(HttpStatus.NO_CONTENT, ContentType.JSON, jsonResponse);
                 }
             }
 
